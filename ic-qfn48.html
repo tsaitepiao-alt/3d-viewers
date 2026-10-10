@@ -4770,6 +4770,47 @@ const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(6, -8, 1
 const fill = new THREE.DirectionalLight(0x9ec2ff, 0.9); fill.position.set(-9, 5, 6); scene.add(fill);
 const rim = new THREE.DirectionalLight(0xffd9a0, 1.2); rim.position.set(0, 9, -7); scene.add(rim);
 
+// 取景工具：把模型放到畫面正中央並填滿（fill = 佔畫面比例）
+function projectBox(obj, cam) {
+  const box = new THREE.Box3().setFromObject(obj);
+  let minx = 9e9, maxx = -9e9, miny = 9e9, maxy = -9e9;
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+    const p = new THREE.Vector3(x, y, z).project(cam);
+    minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x);
+    miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y);
+  }
+  return { cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, w: (maxx - minx) / 2, h: (maxy - miny) / 2 };
+}
+function fitDir(obj, dirVec, fov, fill, aspect) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const c = box.getCenter(new THREE.Vector3());
+  const r = box.getSize(new THREE.Vector3()).length() / 2;
+  const dir = dirVec.clone().normalize();
+  const target = c.clone();
+  const pos = c.clone().addScaledVector(dir, r / Math.sin(fov * Math.PI / 360) * 1.15);
+  const cam = new THREE.PerspectiveCamera(fov, aspect, 0.05, 500);
+  const tanH = Math.tan(fov * Math.PI / 360), tanW = tanH * aspect;
+  for (let i = 0; i < 5; i++) {
+    cam.position.copy(pos); cam.lookAt(target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    const m = projectBox(obj, cam);
+    const d = pos.distanceTo(target);
+    const k = Math.max(m.w, m.h) / fill;
+    if (Math.abs(k - 1) > 0.01) { const dv = new THREE.Vector3().subVectors(pos, target); pos.copy(target).addScaledVector(dv, k); }
+    cam.position.copy(pos); cam.lookAt(target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    const m2 = projectBox(obj, cam);
+    const d2 = pos.distanceTo(target);
+    const fwd = new THREE.Vector3().subVectors(target, pos).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+    const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+    const shift = new THREE.Vector3()
+      .addScaledVector(right, m2.cx * tanW * d2)
+      .addScaledVector(up, m2.cy * tanH * d2);
+    pos.add(shift); target.add(shift);
+  }
+  return { pos, target, fov, dir };
+}
+let HOME = null, BOTTOM = null;
+
 // 地面網格（提供尺度感，1 格 = 1 mm）
 const grid = new THREE.GridHelper(16, 16, 0x3a4050, 0x2a2f3a);
 grid.position.z = -3.0; grid.rotation.x = Math.PI/2;
@@ -4802,13 +4843,12 @@ new THREE.GLTFLoader().parse(buf.buffer, '', gltf => {
     });
   });
   scene.add(model);
-  const box = new THREE.Box3().setFromObject(model);
-  const c = box.getCenter(new THREE.Vector3());
-  const s = box.getSize(new THREE.Vector3()).length();
-  controls.target.copy(c);
-  // 從斜下方看 → 接腳與散熱墊都看得到
-  camera.position.copy(c).add(new THREE.Vector3(s*0.62, -s*0.78, -s*0.42));
-  camera.lookAt(c);
+  HOME = fitDir(model, new THREE.Vector3(0.62, -0.78, -0.42).normalize(),
+                38, 0.85, innerWidth / innerHeight);
+  BOTTOM = fitDir(model, new THREE.Vector3(0, 0, -1), 38, 0.85, innerWidth / innerHeight);
+  controls.target.copy(HOME.target);
+  camera.position.copy(HOME.pos); camera.fov = HOME.fov; camera.updateProjectionMatrix();
+  camera.lookAt(HOME.target);
   controls.update();
 });
 
@@ -4816,14 +4856,16 @@ new THREE.GLTFLoader().parse(buf.buffer, '', gltf => {
 const bRot = document.getElementById('btnRotate');
 bRot.onclick = () => { controls.autoRotate = !controls.autoRotate; bRot.classList.toggle('on', controls.autoRotate); };
 document.getElementById('btnReset').onclick = () => {
-  const c = new THREE.Vector3(0,0,0.45);
-  controls.target.copy(c);
-  camera.position.set(7.6, -9.6, -5.2); camera.lookAt(c); controls.update();
+  if (!HOME) return;
+  controls.target.copy(HOME.target);
+  camera.position.copy(HOME.pos); camera.fov = HOME.fov; camera.updateProjectionMatrix();
+  camera.lookAt(HOME.target); controls.update();
 };
 document.getElementById('btnBottom').onclick = () => {
-  const c = new THREE.Vector3(0,0,0.45);
-  controls.target.copy(c);
-  camera.position.set(0, 0.001, -11); camera.lookAt(c); controls.update();
+  if (!BOTTOM) return;
+  controls.target.copy(BOTTOM.target);
+  camera.position.copy(BOTTOM.pos); camera.fov = BOTTOM.fov; camera.updateProjectionMatrix();
+  camera.lookAt(BOTTOM.target); controls.update();
 };
 const bAx = document.getElementById('btnAxes');
 bAx.onclick = () => { axes.visible = !axes.visible; bAx.classList.toggle('on', axes.visible); };

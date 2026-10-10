@@ -1261,30 +1261,120 @@ label('項圈帶寬 20 mm', -56, -30, -6, 13);
 label('側壓式安全扣（貓用）', -56, 30, -32, 13, '#ffb4a2');
 label('示意頸圍 209 mm（約 21 cm，貓咪適用）', 40, 34, -26, 12, '#9aa2b1');
 
+// ══ 自動取景：把模型放到畫面正中央 ══
+const product = new THREE.Group();
+[strap, podGroup, bk, neck, neckTop].forEach(o => product.add(o));
+scene.add(product);
+const pbox = new THREE.Box3().setFromObject(product);
+const pc = pbox.getCenter(new THREE.Vector3());
+const pr = pbox.getSize(new THREE.Vector3()).length() / 2;
+const podBox = new THREE.Box3().setFromObject(podGroup);
+const podC = podBox.getCenter(new THREE.Vector3());
+const podR = podBox.getSize(new THREE.Vector3()).length() / 2;
+
+function frame(azDeg, elDeg, fov, pad = 1.15, center = pc, radius = pr) {
+  const az = azDeg * Math.PI / 180, el = elDeg * Math.PI / 180;
+  const dist = radius / Math.sin((fov * Math.PI / 180) / 2) * pad;
+  return {
+    pos: new THREE.Vector3(
+      center.x + Math.sin(az) * Math.cos(el) * dist,
+      center.y + Math.sin(el) * dist,
+      center.z + Math.cos(az) * Math.cos(el) * dist),
+    target: center.clone(), fov
+  };
+}
+
+// 把「投影後的實際範圍」對準畫面正中心（透視會讓視覺重心偏移，所以用迭代修正）
+function centerView(view, obj = product) {
+  const dir = new THREE.Vector3().subVectors(view.target, view.pos).normalize();
+  const up0 = new THREE.Vector3(0, 1, 0);
+  const right = new THREE.Vector3().crossVectors(dir, up0).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+  const dist = view.pos.distanceTo(view.target);
+  const tanH = Math.tan(view.fov * Math.PI / 360), tanW = tanH * (W / H);
+  const cam = new THREE.PerspectiveCamera(view.fov, W / H, 1, 5000);
+  const box = new THREE.Box3();
+  for (let it = 0; it < 4; it++) {
+    cam.position.copy(view.pos); cam.lookAt(view.target);
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    box.setFromObject(obj);
+    let minx = 9e9, maxx = -9e9, miny = 9e9, maxy = -9e9;
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      const p = new THREE.Vector3(x, y, z).project(cam);
+      minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x);
+      miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y);
+    }
+    const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+    if (Math.abs(cx) < 0.003 && Math.abs(cy) < 0.003) break;
+    const shift = new THREE.Vector3()
+      .addScaledVector(right, cx * tanW * dist)
+      .addScaledVector(up, cy * tanH * dist);
+    view.pos.add(shift); view.target.add(shift);
+  }
+  return view;
+}
+
+// 取景＝置中 + 填滿（讓模型佔畫面約 85%，不會太小也不會切邊）
+function wrap(view, fill = 0.85, obj = product) {
+  const measure = (vw) => {
+    const cam = new THREE.PerspectiveCamera(vw.fov, W / H, 1, 5000);
+    cam.position.copy(vw.pos); cam.lookAt(vw.target);
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    let minx = 9e9, maxx = -9e9, miny = 9e9, maxy = -9e9;
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      const p = new THREE.Vector3(x, y, z).project(cam);
+      minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x);
+      miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y);
+    }
+    return { w: (maxx - minx) / 2, h: (maxy - miny) / 2 };
+  };
+  for (let i = 0; i < 3; i++) {
+    centerView(view, obj);
+    const m = measure(view);
+    const k = Math.max(m.w, m.h) / fill;
+    if (Math.abs(k - 1) < 0.02) break;
+    const dir = new THREE.Vector3().subVectors(view.pos, view.target);
+    view.pos.copy(view.target).addScaledVector(dir, k);
+  }
+  centerView(view, obj);
+  return view;
+}
+
 // ══ 視角 ══
 const VIEWS = {
-  iso:     {p:[-118, 118, 148], t:[0, -2, 6],  f:40},
-  top:     {p:[0, 210, 0.5],    t:[0, 0, 0],   f:38},
-  closeup: {p:[38, 40, 108],    t:[0, -1, 40], f:34},
-  worn:    {p:[-96, 46, 132],   t:[0, -4, 0],  f:42},
+  iso:     wrap(frame(-42, 24, 38)),
+  top:     wrap(frame(0, 86, 36)),
+  closeup: wrap(frame(-18, 14, 34, 1.0, podC, podR), 0.9, podGroup),
+  worn:    wrap(frame(-58, 16, 40)),
 };
 const v = VIEWS[VIEW] || VIEWS.iso;
-camera.position.set(...v.p); camera.fov=v.f; camera.updateProjectionMatrix();
-// 環繞出圖用：?spin=<度數>（360° 轉盤影片）
+camera.position.copy(v.pos); camera.fov = v.fov; camera.updateProjectionMatrix();
+// 環繞出圖用：?spin=<度數>（360° 轉盤影片）— 固定距離，轉動時不會忽大忽小
 const spin = parseFloat(q.get('spin') || 'NaN');
+let spinDist = 0;
+for (let a = 0; a < 360; a += 30) {
+  const t = wrap(frame(a, 22, 38));
+  spinDist = Math.max(spinDist, t.pos.distanceTo(t.target));
+}
+const spinView = centerView(frame(spin, 22, 38));
+(() => {
+  const d = new THREE.Vector3().subVectors(spinView.pos, spinView.target).normalize();
+  spinView.pos.copy(spinView.target).addScaledVector(d, spinDist);
+  centerView(spinView);
+})();
 if (!isNaN(spin)) {
-  const rad = spin*Math.PI/180, dist = 215;
-  camera.position.set(Math.sin(rad)*dist, 92, Math.cos(rad)*dist);
-  camera.fov = 40; camera.updateProjectionMatrix();
+  camera.position.copy(spinView.pos); camera.fov = spinView.fov; camera.updateProjectionMatrix();
 }
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.target.set(...v.t); controls.enableDamping=true; controls.dampingFactor=0.08;
-controls.minDistance=50; controls.maxDistance=600; controls.update();
+controls.target.copy(isNaN(spin) ? v.target : spinView.target);
+controls.enableDamping=true; controls.dampingFactor=0.08;
+controls.minDistance=50; controls.maxDistance=900; controls.update();
 
 if (!SHOT) {
   const ids=['b1','b2','b3','b4'], keys=['iso','top','closeup','worn'];
-  const set=n=>{const w=VIEWS[n];camera.position.set(...w.p);camera.fov=w.f;camera.updateProjectionMatrix();
-    controls.target.set(...w.t);controls.update();
+  const set=n=>{const w=VIEWS[n];camera.position.copy(w.pos);camera.fov=w.fov;camera.updateProjectionMatrix();
+    controls.target.copy(w.target);controls.update();
     ids.forEach((id,i)=>document.getElementById(id).classList.toggle('on',keys[i]===n));};
   ids.forEach((id,i)=>document.getElementById(id).onclick=()=>set(keys[i]));
   const b5=document.getElementById('b5');

@@ -1120,6 +1120,7 @@ const rim = new THREE.DirectionalLight(0xffd9a8, 0.8); rim.position.set(20,-90,-
 const desk = new THREE.Mesh(new THREE.PlaneGeometry(260,260),
   new THREE.MeshStandardMaterial({color:0x23262e, roughness:0.95, metalness:0.02}));
 desk.rotation.x = -Math.PI/2; desk.position.y = -0.2; desk.receiveShadow = true; scene.add(desk);
+desk.name = 'desk';
 
 const M = (color, rough=0.55, metal=0.05) => new THREE.MeshStandardMaterial({color, roughness:rough, metalness:metal, envMapIntensity:0.9});
 function box(w,h,d,mat,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z);
@@ -1270,23 +1271,80 @@ for (const [txt, row, side] of pinLabels) {
         side > 0 ? '#ffd479' : '#9fe8b0', 'rgba(10,12,16,.75)');
 }
 
+// ══ 自動取景（置中 + 填滿，排除桌面與文字標籤）══
+function collectBox() {
+  const b = new THREE.Box3();
+  scene.children.forEach(o => {
+    if (o.name === 'desk' || o.isSprite || o.isLight || o.type === 'GridHelper' || o.type === 'AxesHelper') return;
+    const bb = new THREE.Box3().setFromObject(o);
+    if (isFinite(bb.min.x)) b.union(bb);
+  });
+  return b;
+}
+function projectBox(box, cam) {
+  let minx = 9e9, maxx = -9e9, miny = 9e9, maxy = -9e9;
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+    const p = new THREE.Vector3(x, y, z).project(cam);
+    minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x);
+    miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y);
+  }
+  return { cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, w: (maxx - minx) / 2, h: (maxy - miny) / 2 };
+}
+function fitDir(dirVec, fov, fill, center, radius, measureBox) {
+  const fullBox = collectBox();
+  const box = measureBox || fullBox;
+  const c = center || box.getCenter(new THREE.Vector3());
+  const r = radius || box.getSize(new THREE.Vector3()).length() / 2;
+  const dir = dirVec.clone().normalize();
+  const target = c.clone();
+  const pos = c.clone().addScaledVector(dir, r / Math.sin(fov * Math.PI / 360) * 1.15);
+  const cam = new THREE.PerspectiveCamera(fov, W / H, 1, 5000);
+  const tanH = Math.tan(fov * Math.PI / 360), tanW = tanH * (W / H);
+  for (let i = 0; i < 5; i++) {
+    cam.position.copy(pos); cam.lookAt(target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    const m = projectBox(box, cam);
+    const k = Math.max(m.w, m.h) / fill;
+    if (Math.abs(k - 1) > 0.01) { const dv = new THREE.Vector3().subVectors(pos, target); pos.copy(target).addScaledVector(dv, k); }
+    cam.position.copy(pos); cam.lookAt(target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    const m2 = projectBox(box, cam);
+    const d2 = pos.distanceTo(target);
+    const fwd = new THREE.Vector3().subVectors(target, pos).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+    const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+    pos.add(new THREE.Vector3()
+      .addScaledVector(right, m2.cx * tanW * d2)
+      .addScaledVector(up, m2.cy * tanH * d2));
+    target.add(new THREE.Vector3()
+      .addScaledVector(right, m2.cx * tanW * d2)
+      .addScaledVector(up, m2.cy * tanH * d2));
+  }
+  return { pos, target, fov };
+}
+const dirFor = (azDeg, elDeg) => new THREE.Vector3(
+  Math.sin(azDeg * Math.PI / 180) * Math.cos(elDeg * Math.PI / 180),
+  Math.sin(elDeg * Math.PI / 180),
+  Math.cos(azDeg * Math.PI / 180) * Math.cos(elDeg * Math.PI / 180));
+
 // ── 相機視角 ──
+const gpsCenter = new THREE.Vector3(GPS.x, BB_H + 5, GPS.z);
+const gpsBox = new THREE.Box3(new THREE.Vector3(GPS.x - 13, BB_H - 1, GPS.z - 13),
+                              new THREE.Vector3(GPS.x + 13, BB_H + 7, GPS.z + 13));
 const VIEWS = {
-  iso:     {p:[-72, 84, 92],  t:[2, 8, 0],   f:42},
-  top:     {p:[0, 150, 0.1],  t:[0, 2, 0],   f:38},
-  front:   {p:[-6, 26, 132],  t:[2, 9, 0],   f:40},
-  closeup: {p:[44, 54, 56],   t:[19, 6, 12], f:36},
+  iso:     fitDir(dirFor(-40, 26), 38, 0.85),
+  top:     fitDir(dirFor(0, 88), 36, 0.85),
+  front:   fitDir(dirFor(0, 10), 40, 0.85),
+  closeup: fitDir(dirFor(-22, 18), 34, 0.9, gpsCenter, 13, gpsBox),
 };
 const v = VIEWS[VIEW] || VIEWS.iso;
-camera.position.set(...v.p); camera.fov = v.f; camera.updateProjectionMatrix();
+camera.position.copy(v.pos); camera.fov = v.fov; camera.updateProjectionMatrix();
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.target.set(...v.t); controls.enableDamping=true; controls.dampingFactor=0.08;
-controls.minDistance=30; controls.maxDistance=420; controls.update();
+controls.target.copy(v.target); controls.enableDamping=true; controls.dampingFactor=0.08;
+controls.minDistance=20; controls.maxDistance=900; controls.update();
 
 // 按鈕（互動用）
 if (!SHOT) {
-  const set = (n) => { const w = VIEWS[n]; camera.position.set(...w.p); camera.fov=w.f;
-    camera.updateProjectionMatrix(); controls.target.set(...w.t); controls.update();
+  const set = (n) => { const w = VIEWS[n]; camera.position.copy(w.pos); camera.fov=w.fov;
+    camera.updateProjectionMatrix(); controls.target.copy(w.target); controls.update();
     ['b1','b2','b3','b4'].forEach((id,i)=>document.getElementById(id).classList.toggle('on', i===['iso','top','front','closeup'].indexOf(n)));
   };
   document.getElementById('b1').onclick=()=>set('iso');
