@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f1116">
+<title>3D 模型庫 — 可旋轉</title>
+<style>
+ :root{--bg:#0f1116;--card:#191c23;--line:#2b303b;--txt:#e9eaee;--dim:#98a0ae;--acc:#e8734a}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--txt);
+   font-family:-apple-system,"PingFang TC","Heiti TC",system-ui,sans-serif;
+   -webkit-text-size-adjust:100%}
+ .wrap{max-width:640px;margin:0 auto;padding:22px 16px 40px}
+ h1{font-size:22px;margin:0 0 6px}
+ p.sub{color:var(--dim);font-size:14px;line-height:1.6;margin:0 0 20px}
+ a.card{display:block;text-decoration:none;color:inherit;background:var(--card);
+   border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 12px}
+ a.card:active{background:#20242d}
+ .tag{display:inline-block;font-size:12px;color:#0f1116;background:var(--acc);
+   border-radius:20px;padding:2px 10px;margin-bottom:8px;font-weight:700}
+ .t{font-size:17px;font-weight:700;margin:0 0 4px}
+ .d{font-size:13.5px;color:var(--dim);line-height:1.55}
+ .hint{margin-top:22px;font-size:13px;color:var(--dim);line-height:1.7;
+   border-top:1px solid var(--line);padding-top:16px}
+ b{color:#fff}
+</style></head><body>
+<div class="wrap">
+  <h1>3D 模型庫</h1>
+  <p class="sub">用手指就能上下左右轉動。<b>單指拖曳＝旋轉</b>、<b>雙指＝縮放</b>、<b>兩指拖曳＝平移</b>。</p>
+
+  <a class="card" href="collar.html">
+    <span class="tag">產品外觀</span>
+    <p class="t">寵物智慧項圈</p>
+    <p class="d">顯示版表頭 64 × 34 × 17.8 mm、帶寬 20 mm、側壓式安全扣。<br>附「戴在脖子上」視角。</p>
+  </a>
+
+  <a class="card" href="ic-qfn48.html">
+    <span class="tag">IC 封裝</span>
+    <p class="t">QFN-48 6×6 標準封裝</p>
+    <p class="d">JEDEC MO-220 尺寸，可看底面 48 支接腳與散熱墊。<br>（給廠商的模擬圖用）</p>
+  </a>
+
+  <a class="card" href="gps-wiring.html">
+    <span class="tag">電路實作</span>
+    <p class="t">GPS 追蹤器實體接線</p>
+    <p class="d">麵包板 ＋ Raspberry Pi Pico W ＋ GPS ＋ 編碼器 ＋ TFT，<br>照著插就能做出來。</p>
+  </a>
+
+  <div class="hint">
+    <b>沒有網路也能用：</b>這三個檔案的原始 HTML 都存在你 Mac 上（`~/Desktop` 各專案資料夾），雙擊即可開啟。<br><br>
+    <b>小技巧：</b>轉到喜歡的角度後，用螢幕截圖就能直接當簡報或給客戶看的圖。
+  </div>
+</div>
+</body></html>
