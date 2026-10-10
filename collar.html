@@ -14,6 +14,15 @@
  #c button.on{background:#e8734a;border-color:#e8734a;color:#fff}
  #lg{bottom:12px;right:12px;padding:9px 12px;font-size:12px;line-height:1.65}
  @media(max-width:700px){#t{display:none}}
+ @media(max-width:760px){
+   #lg{display:none}
+   #t{max-width:68vw;font-size:12px}
+   #c{left:8px;right:8px;bottom:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;
+      justify-content:flex-start;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+   #c::-webkit-scrollbar{display:none}
+   #c button{flex:0 0 auto;padding:9px 12px;font-size:12.5px}
+ }
+
 </style></head><body>
 <canvas id="cv"></canvas>
 <div id="t" class="panel"><b>寵物智慧項圈 — 磁吸拆裝版</b><br>

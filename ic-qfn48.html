@@ -22,7 +22,15 @@
   #ctrl button.on { background:#2f6df6; border-color:#2f6df6; color:#fff; }
   #hint { bottom:14px; right:14px; padding:10px 12px; font-size:12.5px; color:#9aa2b1; line-height:1.6; }
   #hint b { color:#e8e8ea; font-weight:600; }
-  @media (max-width:640px){ #title p{display:none} #hint{display:none} }
+  @media (max-width:640px){
+    #title p{display:none} #hint{display:none}
+    #title{max-width:74vw;top:10px;left:10px;padding:10px 12px}
+    #title h1{font-size:14px}
+    #ctrl{left:8px;right:8px;bottom:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;
+          justify-content:flex-start;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #ctrl::-webkit-scrollbar{display:none}
+    #ctrl button{flex:0 0 auto;padding:9px 12px;font-size:12.5px}
+  }
 </style>
 </head>
 <body>

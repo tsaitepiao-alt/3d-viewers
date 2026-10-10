@@ -15,6 +15,15 @@
  #lg{bottom:12px;right:12px;padding:9px 12px;font-size:12px;line-height:1.7}
  .sw{display:inline-block;width:13px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
  @media(max-width:700px){#t{display:none}}
+ @media(max-width:760px){
+   #lg{display:none}
+   #t{max-width:68vw;font-size:12px}
+   #c{left:8px;right:8px;bottom:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;
+      justify-content:flex-start;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+   #c::-webkit-scrollbar{display:none}
+   #c button{flex:0 0 auto;padding:9px 12px;font-size:12.5px}
+ }
+
 </style></head><body>
 <canvas id="cv"></canvas>
 <div id="t" class="panel"><b>GPS 追蹤器 — 實體接線 3D 圖</b><br>
@@ -1090,7 +1099,8 @@ const q = new URLSearchParams(location.search);
 const SHOT = q.get('shot') === '1', VIEW = q.get('view') || 'iso';
 if (SHOT) { document.getElementById('t').style.display='none'; document.getElementById('c').style.display='none'; document.getElementById('lg').style.display='none'; }
 
-const W = SHOT ? 2000 : innerWidth, H = SHOT ? 1250 : innerHeight;
+// 畫布尺寸一律跟視窗一致（headless 截圖才不會只拍到左上角）
+const W = innerWidth, H = innerHeight;
 const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('cv'), antialias:true, preserveDrawingBuffer:true});
 renderer.setPixelRatio(SHOT?1:Math.min(devicePixelRatio,2));
 renderer.setSize(W,H);
