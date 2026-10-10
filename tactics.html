@@ -1137,7 +1137,7 @@ renderer.setPixelRatio(SHOT?1:Math.min(devicePixelRatio,2));
 renderer.setSize(W,H);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.98;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x121a26);
@@ -1148,8 +1148,8 @@ scene.background = new THREE.Color(0x121a26);
   scene.background = new THREE.CanvasTexture(c); })();
 
 const camera = new THREE.PerspectiveCamera(40, W/H, 1, 500000);   // near/far 會在算出模型尺度後重設
-scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x3a4149, 1.05));
-const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(-1,2.2,1.4); key.castShadow=true;
+scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x3a4149, 0.80));
+const key = new THREE.DirectionalLight(0xffffff, 1.65); key.position.set(-1,2.2,1.4); key.castShadow=true;
 key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera;
 sc.left=-160000; sc.right=160000; sc.top=160000; sc.bottom=-160000; scene.add(key);
 const fill = new THREE.DirectionalLight(0xbcd4ff, 0.6); fill.position.set(140,90,-120); scene.add(fill);
@@ -1353,9 +1353,9 @@ function fieldClickInit(){
 function buildField(){
   const g=new THREE.Group(); g.name='field';
   const gy=0;
-  const grass=M(0x3f9a52,0.92,0,0.4);      // 外野草區（綠）
-  const clay =M(0xa9492f,0.94,0,0.30);     // 內野紅土（紅）
-  const trk  =M(0x8c2f22,0.94,0,0.28);     // 警戒區（深紅）
+  const grass=M(0x348a45,0.95,0,0.28);      // 外野草區（綠）
+  const clay =M(0x9c3a22,0.96,0,0.22);     // 內野紅土（紅）
+  const trk  =M(0x7d2418,0.96,0,0.20);     // 警戒區（深紅）
   const white=M(0xf8f8f4,0.55,0.02,0.7);
   for(const mm of [grass,clay,trk,white]) mm.side=THREE.DoubleSide;   // 平面要雙面，否則點選（raycast）打不到
   const a0=-Math.PI*0.25, a1=Math.PI*0.25;   // 界內扇形：-45°~+45°（0°=中外野）
