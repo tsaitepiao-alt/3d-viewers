@@ -16,6 +16,9 @@
  button{background:#232937;color:#e9eaee;border:1px solid #39404f;border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer}
  button.on{background:#2f6fd6;border-color:#2f6fd6;color:#fff}
  #c2{bottom:12px;right:12px;padding:8px 11px;display:flex;gap:6px;flex-wrap:wrap}
+ #c3{bottom:110px;left:12px;padding:8px 11px;display:flex;gap:6px;flex-wrap:wrap}
+ #c3 button{background:#2a3140}
+ #c3 button.on{background:#e8734a;border-color:#e8734a}
  button{padding:8px 12px;font-size:13px}
  @media(max-width:760px){
    #t,#spec{display:none}
@@ -27,6 +30,8 @@
        justify-content:space-between;scrollbar-width:none}
    #c2{padding:6px 8px}
    #c2 button{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12.5px;white-space:nowrap}
+   #c3{left:8px;right:8px;bottom:154px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+   #c3 button{flex:0 0 auto;padding:8px 11px;font-size:12.5px}
  }
  @media(max-width:400px){
    #c{bottom:60px} #c button{padding:9px 10px;font-size:12px}
@@ -41,6 +46,9 @@
 <div id="c" class="panel">
  <button id="m1" class="on">棒球場</button><button id="m2">棒球</button>
  <button id="m3">球棒</button><button id="m4">手套</button><button id="m5">自動旋轉</button>
+</div>
+<div id="c3" class="panel" style="display:none">
+ <button id="g1">內野手</button><button id="g2">外野手</button><button id="g3">投手</button><button id="g4">捕手</button><button id="g5">一壘手</button>
 </div>
 <div id="c2" class="panel">
  <button id="v1" class="on">立體</button><button id="v2">俯視</button><button id="v3">正面</button><button id="v5">特寫</button>
@@ -1142,6 +1150,30 @@ const M = (color, rough=0.65, metal=0.03, env=0.8) =>
 const mk = (geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z);
   m.castShadow=true; m.receiveShadow=true; return m; };
 
+// 圓角矩形 Path（用來挖洞）
+function roundedRectPath(w,h,r){
+  const p=new THREE.Path(); const x=-w/2, y=-h/2;
+  p.moveTo(x+r,y); p.lineTo(x+w-r,y); p.quadraticCurveTo(x+w,y,x+w,y+r);
+  p.lineTo(x+w,y+h-r); p.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  p.lineTo(x+r,y+h); p.quadraticCurveTo(x,y+h,x,y+h-r);
+  p.lineTo(x,y+r); p.quadraticCurveTo(x,y,x+r,y); return p;
+}
+// 淺碗（口袋凹面）：球半徑 = 開口半徑 / sin(30°)，深約 0.27×開口半徑
+function pocketBowl(rimR, mat){
+  const R=rimR*1.02/Math.sin(Math.PI/6);
+  const m=new THREE.Mesh(new THREE.SphereGeometry(R, 40, 22, 0, Math.PI*2, 0, Math.PI/6),
+    new THREE.MeshStandardMaterial({color:0xe0bd8b, roughness:0.75, metalness:0.02, emissive:0x4a3820, emissiveIntensity:0.55, side:THREE.BackSide}));
+  return m;
+}
+// 圓角矩形 Shape（手套／外殼用）
+function roundedRectShape(w,h,r){
+  const s=new THREE.Shape(); const x=-w/2, y=-h/2;
+  s.moveTo(x+r,y); s.lineTo(x+w-r,y); s.quadraticCurveTo(x+w,y,x+w,y+r);
+  s.lineTo(x+w,y+h-r); s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  s.lineTo(x+r,y+h); s.quadraticCurveTo(x,y+h,x,y+h-r);
+  s.lineTo(x,y+r); s.quadraticCurveTo(x,y,x+r,y); return s;
+}
+
 // ══ 尺寸常數（mm）══
 const FT=304.8;
 const BASE_PATH=27432;            // 90 ft 壘間
@@ -1222,6 +1254,29 @@ function buildField(){
       (p[0]+p2[0])/2, gy+1500, (p[2]+p2[2])/2);
     seg.rotation.y=Math.atan2(dx,dz)-Math.PI/2; g.add(seg);
   }
+  // 全壘打牆距離標示（沿弧線標距離）
+  (function(){
+    const marks=[[0.00,'325 ft・99.06 m'],[0.18,'347 ft'],[0.34,'368 ft'],[0.50,'400 ft・121.92 m'],
+                 [0.66,'368 ft'],[0.82,'347 ft'],[1.00,'325 ft・99.06 m']];
+    for(const [tt,txt] of marks){
+      const a=Math.PI*(0.25+0.5*tt);
+      const r=FENCE_LINE+(FENCE_CF-FENCE_LINE)*Math.sin(Math.PI*tt);
+      // 牆上的白色距離牌
+      const plate=mk(new THREE.BoxGeometry(1500, 900, 60), M(0x101418,0.6,0.02,0.5),
+        Math.sin(a)*(r-40), gy+1700, Math.cos(a)*(r-40));
+      plate.rotation.y=-a; g.add(plate);
+      label(txt, Math.sin(a)*(r+900), gy+2600, Math.cos(a)*(r+900), 13.5, '#ffe066');
+    }
+  })();
+  // 全壘打牆頂緣（黃線）
+  (function(){
+    const pts=[]; for(let i=0;i<=80;i++){ const tt=i/80, a=Math.PI*(0.25+0.5*tt);
+      const r=FENCE_LINE+(FENCE_CF-FENCE_LINE)*Math.sin(Math.PI*tt);
+      pts.push(new THREE.Vector3(Math.sin(a)*(r-130), gy+3000, Math.cos(a)*(r-130))); }
+    const curve=new THREE.CatmullRomCurve3(pts);
+    const m=new THREE.Mesh(new THREE.TubeGeometry(curve, 120, 90, 8, false), M(0xf2c73c,0.6,0.05,0.6));
+    g.add(m);
+  })();
   // 邊線
   for (const s of [1,-1]) {
     const L=FENCE_LINE*1.0, a=Math.PI/4*s;
@@ -1241,9 +1296,26 @@ function buildField(){
   // 投手丘 + 投手板
   const mound=mk(new THREE.CylinderGeometry(MOUND_R, MOUND_R*1.06, MOUND_H, 72), dirt, 0, gy+MOUND_H/2, MOUND_DIST); g.add(mound);
   const ru=mk(new THREE.BoxGeometry(610, 12, 152), white, 0, gy+MOUND_H+6, MOUND_DIST+200); g.add(ru);
-  // 打擊區（左右各一）
-  for(const s of [1,-1]){ const b=mk(new THREE.BoxGeometry(BOX_W, 8, BOX_D), M(0xcfd3d8,0.9,0,0.4),
-      s*(PLATE_W/2+BOX_W/2+150), gy+12, -BOX_D/2+400); b.rotation.y=0; g.add(b); }
+  // 打擊區（左右各一，白線框）
+  const outlineRect=(cx,cz,w,d,thick,col,y)=>{ const m=M(col,0.85,0,0.5);
+    const a=mk(new THREE.BoxGeometry(w, 14, thick), m, cx, y, cz-d/2); g.add(a);
+    const b=mk(new THREE.BoxGeometry(w, 14, thick), m, cx, y, cz+d/2); g.add(b);
+    const c=mk(new THREE.BoxGeometry(thick, 14, d), m, cx-w/2, y, cz); g.add(c);
+    const e=mk(new THREE.BoxGeometry(thick, 14, d), m, cx+w/2, y, cz); g.add(e); };
+  for(const s of [1,-1]) outlineRect(s*(PLATE_W/2+BOX_W/2+220), 420, BOX_W, BOX_D, 70, 0xf2f2ef, gy+16);
+  // 捕手區（本壘後方 1.37 × 2.44 m）
+  outlineRect(0, -1250, 1370, 2440, 70, 0xd8dbe0, gy+16);
+  // 本壘周邊土圈
+  const homeDirt=mk(new THREE.CylinderGeometry(3800, 3800, 8, 64), dirt, 0, gy+10, -300); g.add(homeDirt);
+  // 練習圈（兩側各一，半徑 1.5 m）
+  for(const s of [1,-1]){ const ring=mk(new THREE.TorusGeometry(1500, 55, 8, 44), M(0xf2f2ef,0.85,0,0.5),
+      s*8600, gy+18, -7200); ring.rotation.x=Math.PI/2; g.add(ring); }
+  // 教練區（一、三壘側）
+  for(const s of [1,-1]) outlineRect(s*7600, 6600, 3200, 1800, 70, 0xd8dbe0, gy+16);
+  // 界外桿（黃色，弧線兩端）
+  for(const s of [1,-1]){ const a=Math.PI*(0.25+0.5*(s>0?0:1));
+    const pole=mk(new THREE.CylinderGeometry(60,60,8000,16), M(0xf2c73c,0.6,0.05,0.6),
+      Math.sin(a)*FENCE_LINE, gy+4000, Math.cos(a)*FENCE_LINE); g.add(pole); }
   // 尺寸標註
   label('本壘板 43.18 × 21.6 cm（17 × 8.5 in）', 0, gy+900, -3600, 15, '#ffcf9a');
   label('壘間 27.43 m（90 ft）', 9700, gy+900, 12800, 15, '#8fd7ff');
@@ -1271,7 +1343,7 @@ function buildField(){
 function buildBall(){
   const g=new THREE.Group();
   const R=37;                                     // 直徑 74mm（周長 22.9–23.5cm）
-  const leather=M(0xf4f2ec,0.62,0.02,0.5), seam=M(0xc0392b,0.55,0.02,0.4);
+  const leather=M(0xf6f4ee,0.60,0.02,0.5), seam=M(0xb32b1c,0.5,0.03,0.45);
   g.add(mk(new THREE.SphereGeometry(R, 96, 72), leather));
   // 縫線曲線（經典棒球縫線參數式）
   const curve=[];
@@ -1281,19 +1353,19 @@ function buildBall(){
     let z=0.62*Math.sin(2*t);
     const L=Math.hypot(x,y,z); curve.push(new THREE.Vector3(x/L*(R+0.4), z/L*(R+0.4), y/L*(R+0.4))); }
   const path=new THREE.CatmullRomCurve3(curve, true, 'catmullrom', 0.5);
-  const tube=new THREE.Mesh(new THREE.TubeGeometry(path, 900, 0.75, 8, true), seam); g.add(tube);
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(path, 900, 1.75, 10, true), seam); g.add(tube);
   // 108 針縫線
   for(let i=0;i<108;i++){
     const t=i/108, p=path.getPointAt(t), tan=path.getTangentAt(t).normalize();
     const up=new THREE.Vector3(0,1,0); const nrm=new THREE.Vector3().crossVectors(tan,up).normalize();
-    const st=mk(new THREE.BoxGeometry(0.55, 2.4, 0.55), seam);
-    st.position.copy(p).addScaledVector(nrm, 1.0);
+    const st=mk(new THREE.BoxGeometry(1.0, 4.0, 1.0), seam);
+    st.position.copy(p).addScaledVector(nrm, 1.7);
     st.rotation.y=Math.atan2(tan.x,tan.z); st.rotation.z=(i%2?1:-1)*0.5;
     g.add(st);
   }
   label('直徑 7.3–7.5 cm（周長 22.9–23.5 cm / 9–9.25 in）', 0, R+30, 0, 14, '#ffcf9a');
   label('重量 141.7–148.8 g（5–5.25 oz）', 0, R+14, 60, 13, '#8fd7ff');
-  label('縫線 108 針（紅棉線・兩片馬皮）', 0, -R-14, 60, 13, '#ff9a9a');
+  label('縫線 108 針（紅棉線・兩片馬皮）', 0, -R-16, 60, 13.5, '#ff9a9a');
   label('內層：軟木芯＋橡膠層＋羊毛線纏繞', 0, -R-30, 0, 12.5, '#cfd3d8');
   return g;
 }
@@ -1302,56 +1374,169 @@ function buildBall(){
 function buildBat(){
   const g=new THREE.Group();
   const LEN=1067;                                   // 42 in 上限
-  const prof=[[0,0],[0,10],[6,22],[14,24],[22,15],[46,12.5],[120,12.8],[280,14.5],[430,17.5],
-              [620,23],[800,29],[940,33],[1020,33.2],[1050,31],[1060,26],[1067,0]];
+  const prof=[[0,0],[0,11],[6,25],[15,26],[23,16],[48,12.5],[130,13.5],[300,16],
+              [470,20.5],[650,26.5],[830,31.5],[960,33.2],[1010,33.5],[1045,33],[1058,27],[1067,0]];
   const pts=prof.map(([y,r])=>new THREE.Vector2(Math.max(r,0.01), y));
   const wood=M(0xc99a5b,0.55,0.02,0.6), tape=M(0x2b2f36,0.85,0.02,0.3);
   const bat=mk(new THREE.LatheGeometry(pts, 64), wood); bat.position.set(0,-LEN/2,0); g.add(bat);
   // 握把膠帶
   const grip=mk(new THREE.CylinderGeometry(13.6,13.6,300,48), tape, 0, -LEN/2+165, 0); g.add(grip);
-  const knob=mk(new THREE.CylinderGeometry(24,24,8,48), wood, 0, -LEN/2+18, 0); g.add(knob);
+  const knob=mk(new THREE.CylinderGeometry(26,26,9,48), wood, 0, -LEN/2+18, 0); g.add(knob);
   label('全長上限 1,067 mm（42 in）', 0, LEN/2+40, 0, 14, '#ffcf9a');
-  label('最粗處 Ø 66 mm（2.61 in）', 60, LEN/2-160, 0, 13, '#8fd7ff');
+  label('棒頭最粗 Ø 66 mm（2.61 in）', 68, LEN/2-190, 0, 13.5, '#8fd7ff');
   label('握把 Ø 24–25 mm', 54, -LEN/2+180, 0, 13, '#a8ffd8');
   label('重量上限 1,077 g（38 oz）', 0, -LEN/2-30, 0, 13, '#ffd9a0');
   label('材質：白蠟木／楓木／樺木（木棒）・BBCOR（金屬棒）', 0, -LEN/2-70, 0, 12.5, '#cfd3d8');
   return g;
 }
 
-// ══ 模型 4：手套 ══
-function buildGlove(){
-  const g=new THREE.Group();
-  const L=305, Wd=197, T=52;                        // 上限 12in 長 × 7.75in 寬
-  const lth=M(0x8a4b22,0.62,0.02,0.5), lace=M(0x5d3016,0.5,0.05,0.6), inner=M(0xd9c3a5,0.7,0.02,0.4);
-  // 掌面（略彎曲）
-  const palm=mk(new THREE.BoxGeometry(Wd, 175, T), lth); palm.position.y=60; g.add(palm);
-  const palmIn=mk(new THREE.BoxGeometry(Wd-14, 160, 4), inner); palmIn.position.set(0,60,T/2-1); g.add(palmIn);
-  // 四指
-  for(let i=0;i<4;i++){
-    const fw=(Wd-6)/4-3;
-    const f=mk(new THREE.BoxGeometry(fw, 92-i*8, T-10), lth, -(Wd-6)/2+fw/2+3+i*((Wd-6)/4), 175+ (92-i*8)/2 - 10, 0);
-    f.rotation.x=-0.18; g.add(f);
-    const l=mk(new THREE.CylinderGeometry(4.2,4.2,26,16), lace, f.position.x, f.position.y+34, T/2-4);
-    l.rotation.z=Math.PI/2; g.add(l);
+// ══ 模型 4：手套（內野／外野／捕手／一壘／投手，五種分開做）══
+const GLOVE_COLOR = { tan:0x9c5f2c, dark:0x6d3f1c, black:0x2a2622, cream:0xddc9a5 };
+function palmLacing(g, wid, hgt, z, n=2, laceMat){
+  for(let k=0;k<n;k++){
+    const y=hgt*0.42 - k*(hgt*0.30);
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(3.0,3.0,wid*0.78,10), laceMat);
+    t.rotation.z=Math.PI/2; t.position.set(0, y, z); g.add(t);
   }
-  // 拇指
-  const th=mk(new THREE.BoxGeometry(74, 120, T-6), lth, -(Wd/2+22), 92, 0);
-  th.rotation.z=0.42; g.add(th);
-  // 拇指與食指間的網（上限寬 133mm）
-  const web=mk(new THREE.BoxGeometry(96, 104, 8), inner, -(Wd/2-40), 196, 0); web.rotation.z=0.30; g.add(web);
-  for(let i=0;i<3;i++){ const l=mk(new THREE.CylinderGeometry(3.4,3.4,104,14), lace, -(Wd/2-40)+ (i-1)*26*Math.cos(0.30), 196-(i-1)*8, 6);
-    l.rotation.z=0.30; g.add(l); }
-  // 手腕帶
-  const wrist=mk(new THREE.BoxGeometry(Wd-40, 58, T+8), lth, 0, -42, 0); g.add(wrist);
-  const strap=mk(new THREE.BoxGeometry(Wd-56, 26, 4), lace, 0, -46, T/2+5); g.add(strap);
-  label('長上限 305 mm（12 in）', 0, 320, 0, 14, '#ffcf9a');
-  label('寬上限 197 mm（7.75 in）', 0, -110, 0, 13, '#8fd7ff');
-  label('球網寬度上限 133 mm（5.25 in）・上下 114 mm（4.5 in）', 0, 250, 30, 12.5, '#a8ffd8');
-  label('守位尺寸：內野 11–11.75 in｜外野 12–12.75 in｜捕手 32–34 in（圍長）', 0, -140, 0, 12.5, '#cfd3d8');
+}
+function fingers(g, wid, cols, lens, dep, mat, y0){
+  const gap=4, fw=(wid-gap*(cols-1))/cols;
+  for(let i=0;i<cols;i++){
+    const h=lens[i];
+    const m=mk(new THREE.BoxGeometry(fw, h, dep-6), mat, -wid/2+fw/2+i*(fw+gap), y0+h/2, 0);
+    m.rotation.x=-0.16; g.add(m);
+    const tip=mk(new THREE.CylinderGeometry(fw*0.42, fw*0.42, dep-6, 20), mat, m.position.x, y0+h-2, 0);
+    tip.rotation.x=Math.PI/2; tip.rotation.z=0; g.add(tip);
+  }
+}
+function webPanel(g, kind, x, y, w, h, z, mat, laceMat){
+  if(kind==='basket'){                       // 投手：封閉編織網
+    for(let i=0;i<4;i++){ const b=mk(new THREE.BoxGeometry(w, 9, 11), laceMat, x-w/2+ w*0.16+i*w*0.23, y, z); b.rotation.z=0.0; g.add(b); }
+    for(let i=0;i<3;i++){ const b=mk(new THREE.BoxGeometry(9, h, 11), laceMat, x-w/2+w*0.2+i*w*0.3, y, z); g.add(b); }
+    const fr=mk(new THREE.BoxGeometry(w+10, h+10, 8), mat, x, y, z-4); g.add(fr);
+  } else if(kind==='trap'){                  // 外野：梯形大網
+    const b1=mk(new THREE.BoxGeometry(12, h*1.15, 10), laceMat, x-w*0.3, y, z); b1.rotation.z=0.18; g.add(b1);
+    const b2=mk(new THREE.BoxGeometry(12, h*1.15, 10), laceMat, x+w*0.3, y, z); b2.rotation.z=-0.10; g.add(b2);
+    const b3=mk(new THREE.BoxGeometry(w, 11, 10), laceMat, x, y-h*0.15, z); g.add(b3);
+    const b4=mk(new THREE.BoxGeometry(w*0.7, 11, 10), laceMat, x, y+h*0.3, z); g.add(b4);
+  } else {                                   // 內野：H 網 + 交叉繩
+    const b1=mk(new THREE.BoxGeometry(14, h, 11), laceMat, x-w*0.24, y, z); g.add(b1);
+    const b2=mk(new THREE.BoxGeometry(14, h, 11), laceMat, x+w*0.24, y, z); g.add(b2);
+    const b3=mk(new THREE.BoxGeometry(w, 15, 11), laceMat, x, y, z); g.add(b3);
+    for(const [sx,sy] of [[1,1],[-1,1],[1,-1],[-1,-1]]){
+      const d=mk(new THREE.CylinderGeometry(4.6,4.6,h*0.92,8), laceMat, x+sx*w*0.16, y+sy*h*0.24, z);
+      d.rotation.z=sx*0.55; g.add(d);
+    }
+  }
+}
+function buildGloveType(type){
+  const g=new THREE.Group();
+  const CFG={
+    infield: {t:'內野手手套', size:'11.5 in（292 mm）', len:292, wid:205, dep:46, fingers:[86,96,92,80], web:'H'},
+    outfield:{t:'外野手手套', size:'12.75 in（324 mm）',len:324, wid:210, dep:54, fingers:[100,112,108,94], web:'trap'},
+    pitcher: {t:'投手手套',   size:'12 in（305 mm）',  len:305, wid:200, dep:50, fingers:[92,102,98,86], web:'basket'},
+    catcher: {t:'捕手手套',   size:'圍長 32–34 in',    len:330, wid:320, dep:66, fingers:null, web:'mitt'},
+    first:   {t:'一壘手手套', size:'12 in（305 mm）',  len:312, wid:268, dep:58, fingers:null, web:'scoop'},
+  }[type] || CFG0();
+  const lth=M(GLOVE_COLOR.tan,0.66,0.02,0.5);
+  const lth2=M(GLOVE_COLOR.dark,0.7,0.02,0.45);
+  const laceMat=M(0x4a2a12,0.45,0.06,0.7);
+  const innerMat=M(0xd9c3a5,0.75,0.02,0.4);
+  const Wd=CFG.wid, Dep=CFG.dep;
+  if(!CFG.fingers){                          // 捕手／一壘：整片式（無分指）
+    const palmH=CFG.len*0.72;
+    const rimR=Math.min(Wd,palmH)*0.30;
+    const bodyShape=roundedRectShape(Wd, palmH, Math.min(Wd,palmH)/2-6);
+    bodyShape.holes.push(new THREE.Path().absarc(0,0,rimR,0,Math.PI*2,true));   // 圓形口袋開口
+    const body=mk(new THREE.ExtrudeGeometry(bodyShape,
+      {depth:Dep*0.55, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:3, curveSegments:16}), lth, 0, palmH/2, 0);
+    body.position.z=-Dep*0.28; g.add(body);
+    // 口袋：洞裡放淺碗（凹面）
+    const bowl=pocketBowl(rimR); bowl.rotation.x=-Math.PI/2;
+    bowl.position.set(0, palmH*0.5, Dep*0.30-5); g.add(bowl);
+    const ring2=new THREE.Mesh(new THREE.TorusGeometry(rimR*1.02, 5.5, 10, 48), laceMat);
+    ring2.position.set(0, palmH*0.5, Dep*0.30-3); g.add(ring2);
+    // 拇指側（捕手/一壘的粗拇指）
+    const thW=Wd*0.30, thH=CFG.len*0.55;
+    const th=mk(new THREE.ExtrudeGeometry(roundedRectShape(thW, thH, thW/2-3),
+      {depth:Dep*0.5, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:3, curveSegments:14}), lth2, -(Wd/2+thW*0.38), CFG.len*0.52, -Dep*0.25);
+    g.add(th);
+    // 底部厚墊（heel）
+    const heel=mk(new THREE.ExtrudeGeometry(roundedRectShape(Wd*1.05, CFG.len*0.24, 22),
+      {depth:Dep*0.6, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:2, curveSegments:14}), lth2, 0, CFG.len*0.10, -Dep*0.3);
+    g.add(heel);
+    // 邊緣粗縫線（一圈）
+    const ring=new THREE.Shape(); ring.absarc(0, CFG.len*0.5, Math.min(Wd,palmH)*0.5-8, 0, Math.PI*2, false);
+    const ringGeo=new THREE.BufferGeometry().setFromPoints(new THREE.CatmullRomCurve3(
+      Array.from({length:64},(_,k)=>{ const a=k/64*Math.PI*2;
+        return new THREE.Vector3(Math.cos(a)*(Wd*0.46), CFG.len*0.5+Math.sin(a)*(CFG.len*0.42), Dep*0.34); })).getPoints(120));
+    const ringT=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(
+      Array.from({length:64},(_,k)=>{ const a=k/64*Math.PI*2;
+        return new THREE.Vector3(Math.cos(a)*(Wd*0.46), CFG.len*0.5+Math.sin(a)*(CFG.len*0.42), Dep*0.34); })), 120, 4.2, 8, true), laceMat);
+    g.add(ringT);
+    if(type==='first'){                      // 一壘手套的挖球勺
+      const sc=mk(new THREE.TorusGeometry(Wd*0.34, 12, 12, 44, Math.PI), lth2, 0, CFG.len*0.02, 0);
+      g.add(sc);
+    }
+  } else {                                   // 內野／外野／投手：分指 + 網
+    const palmH=CFG.len*0.42;
+    const rimR=Wd*0.26;
+    const palmShape=roundedRectShape(Wd, palmH, 24);
+    palmShape.holes.push(new THREE.Path().absarc(0,0,rimR,0,Math.PI*2,true));
+    const palm=mk(new THREE.ExtrudeGeometry(palmShape,
+      {depth:Dep*0.62, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:3, curveSegments:16}), lth, 0, palmH/2, 0);
+    palm.position.z=-Dep*0.31; g.add(palm);
+    fingers(g, Wd*0.94, 4, CFG.fingers, Dep*0.62, lth, palmH-6);
+    const thW=Wd*0.26, thH=CFG.len*0.45;
+    const th=mk(new THREE.ExtrudeGeometry(roundedRectShape(thW, thH, thW/2-4),
+      {depth:Dep*0.55, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:3, curveSegments:14}), lth, -(Wd/2+thW*0.2), palmH*0.55, -Dep*0.28);
+    th.rotation.z=0.30; g.add(th);
+    // 口袋：洞裡放淺碗（凹面）
+    const bowl=pocketBowl(rimR); bowl.rotation.x=-Math.PI/2;
+    bowl.position.set(0, palmH*0.5, Dep*0.31-4); g.add(bowl);
+    const ring2=new THREE.Mesh(new THREE.TorusGeometry(rimR*1.02, 4.5, 10, 44), laceMat);
+    ring2.position.set(0, palmH*0.5, Dep*0.31-2); g.add(ring2);
+    // 手腕束帶扣
+    const buckle=mk(new THREE.BoxGeometry(30, 22, 14), M(0x8d8f96,0.4,0.6,0.9), Wd*0.20, -CFG.len*0.10, Dep*0.22);
+    g.add(buckle);
+    // 手指間與指根的縫線
+    for(let k=0;k<3;k++){
+      const x=-Wd*0.35+k*(Wd*0.23);
+      const l=mk(new THREE.CylinderGeometry(2.6,2.6,CFG.fingers[1]*0.8,10), laceMat, x, palmH+CFG.fingers[1]*0.34, Dep*0.30);
+      g.add(l);
+    }
+    palmLacing(g, Wd, palmH, Dep*0.32, 2, laceMat);
+    // 球網（拇指與食指之間）
+    const webW=Wd*0.30, webH=CFG.len*0.36;
+    webPanel(g, CFG.web, -(Wd*0.18), palmH+webH*0.42, webW, webH, Dep*0.30, lth, laceMat);
+  }
+  // 手腕帶 + 束帶
+  const wrist=mk(new THREE.ExtrudeGeometry(roundedRectShape(Wd*0.72, CFG.len*0.20, 16),
+    {depth:Dep*0.7, bevelEnabled:true, bevelThickness:4, bevelSize:4, bevelSegments:2, curveSegments:12}), lth2, 0, -CFG.len*0.10, -Dep*0.3);
+  g.add(wrist);
+  const strap=mk(new THREE.BoxGeometry(Wd*0.60, 26, 14), laceMat, 0, -CFG.len*0.11, Dep*0.22); g.add(strap);
+  const wristPad=mk(new THREE.BoxGeometry(Wd*0.80, 34, Dep*0.8), M(0x5a3a1e,0.8,0.02,0.35), 0, -CFG.len*0.17, -Dep*0.15); g.add(wristPad);
+  // 標籤
+  label(CFG.t+'　'+CFG.size, 0, CFG.len*0.62+120, 0, 14, '#ffcf9a');
+  label('長度：'+Math.round(CFG.len)+' mm｜寬度：'+Math.round(Wd)+' mm｜厚度：'+Math.round(Dep)+' mm', 0, -CFG.len*0.22-40, 0, 12.5, '#8fd7ff');
+  if(type==='catcher') label('捕手手套：無分指・厚重襯墊・圍長 813–864 mm（32–34 in）', 0, -CFG.len*0.22-80, 0, 12.5, '#a8ffd8');
+  else if(type==='first') label('一壘手手套：無分指・底部挖球勺（scoop）・掌心較淺', 0, -CFG.len*0.22-80, 0, 12.5, '#a8ffd8');
+  else if(type==='pitcher') label('投手手套：封閉式編織網（basket web）・不得為白／灰色', 0, -CFG.len*0.22-80, 0, 12.5, '#a8ffd8');
+  else if(type==='outfield') label('外野手手套：12–12.75 in・網大、口袋深（接飛球）', 0, -CFG.len*0.22-80, 0, 12.5, '#a8ffd8');
+  else label('內野手手套：11–11.75 in・網小、口袋淺（快速拿球）', 0, -CFG.len*0.22-80, 0, 12.5, '#a8ffd8');
   return g;
 }
+function CFG0(){ return CFG_DEFAULT; }
+const CFG_DEFAULT={t:'手套', size:'', len:300, wid:200, dep:50, fingers:[90,100,96,84], web:'H'};
 
-const BUILDERS={field:buildField, ball:buildBall, bat:buildBat, glove:buildGlove};
+const GLOVE_KEYS={glove_inf:'infield', glove_out:'outfield', glove_pit:'pitcher', glove_cat:'catcher', glove_first:'first', glove:'infield'};
+const BUILDERS={
+  field:buildField, ball:buildBall, bat:buildBat,
+  glove:()=>buildGloveType('infield'),
+  glove_inf:()=>buildGloveType('infield'), glove_out:()=>buildGloveType('outfield'),
+  glove_pit:()=>buildGloveType('pitcher'), glove_cat:()=>buildGloveType('catcher'),
+  glove_first:()=>buildGloveType('first'),
+};
 const model=BUILDERS[MODEL] ? BUILDERS[MODEL]() : BUILDERS.field();
 scene.add(model);
 // 地面＋柔影（球場自己有草皮，其餘加一塊展示台）
@@ -1393,13 +1578,33 @@ const SPECS={
   ['重量','≤ 1,077 g（38 oz）'],['材質','白蠟木／楓木／樺木；金屬棒須 BBCOR'],
   ['構造','旋鈕 knob・握把 handle・漸縮 taper・棒身 barrel'],
   ['杯狀尾端','可（深度 ≤ 2.5 cm）']]},
- glove:{t:'手套', h:'手套規格（MLB／守位）', rows:[
+ glove_inf:{t:'內野手手套', h:'內野手手套（11–11.75 in）', rows:[
+  ['建議尺寸','279–298 mm（11–11.75 in）'],['網型','I 網／H 網（開放式，看得見球）'],
+  ['口袋','淺（約 40–50 mm）・好拿球、傳球快'],['適用','二壘手、三壘手、游擊手'],
+  ['MLB 上限','長 ≤ 305 mm（12 in）・寬 ≤ 197 mm（7.75 in）']]},
+ glove_out:{t:'外野手手套', h:'外野手手套（12–12.75 in）', rows:[
+  ['建議尺寸','305–324 mm（12–12.75 in）'],['網型','梯形網／H 網（網面大）'],
+  ['口袋','深（約 55–65 mm）・接飛球不易掉'],['適用','左外野、中外野、右外野'],
+  ['MLB 上限','長 ≤ 305 mm（職業賽事限 12 in；青少棒常見 12.75 in）']]},
+ glove_pit:{t:'投手手套', h:'投手手套（12 in）', rows:[
+  ['建議尺寸','305 mm（12 in）'],['網型','封閉式編織網（basket web）・藏球'],
+  ['顏色','不得為白色或灰色（避免干擾打者）'],['口袋','中等・方便快速換握'],
+  ['MLB 上限','長 ≤ 305 mm（12 in）']]},
+ glove_cat:'', glove:{t:'手套', h:'手套規格（MLB／守位）', rows:[
   ['長度','≤ 305 mm（12 in）'],['寬度','≤ 197 mm（7.75 in）'],
   ['球網','寬 ≤ 133 mm（5.25 in）・上下 ≤ 114 mm（4.5 in）'],
   ['捕手手套','圍長 81–86 cm（32–34 in）'],
   ['內野手','28–30 cm（11–11.75 in）'],['外野手','30–32.5 cm（12–12.75 in）'],
   ['投手手套','可為單色或雙色（不得為白／灰）'],
   ['材質','牛皮／合成皮・手套線（lace）']]},
+ glove_cat:{t:'捕手手套', h:'捕手手套（圍長 32–34 in）', rows:[
+  ['圍長','813–864 mm（32–34 in）'],['構造','無分指（整片式）、厚重襯墊'],
+  ['特點','接投手 130+ km/h 的球・吸收衝擊'],['網型','封閉式・拇指側加厚'],
+  ['形狀','圓盤狀・開口大、掌心深']]},
+ glove_first:{t:'一壘手手套', h:'一壘手手套（12 in）', rows:[
+  ['長度','≤ 305 mm（12 in）'],['構造','無分指（或淺分指）・底部有挖球勺'],
+  ['口袋','淺・長・適合接低球（pick）'],['圍長','約 762–787 mm（30–31 in）'],
+  ['適用','一壘手專用（scoop 撈球）']]},
 };
 (function(){ const s=SPECS[MODEL]||SPECS.field;
   document.getElementById('ttl').textContent=s.t;
@@ -1476,6 +1681,11 @@ const PRESETS={
   ball:{iso:[-40,26,38,1.10], top:[0,86,40,1.10], front:[0,8,34,1.10], side:[90,8,34,1.10]},
   bat:{iso:[-35,20,34,1.10], top:[0,86,40,1.10], front:[0,6,32,1.10], side:[90,6,32,1.10]},
   glove:{iso:[-40,24,38,1.10], top:[0,84,40,1.10], front:[0,10,34,1.10], side:[90,10,34,1.10]},
+  glove_inf:{iso:[-38,22,38,1.12], top:[0,84,40,1.12], front:[0,8,34,1.12], side:[90,8,34,1.12]},
+  glove_out:{iso:[-38,22,38,1.12], top:[0,84,40,1.12], front:[0,8,34,1.12], side:[90,8,34,1.12]},
+  glove_pit:{iso:[-38,22,38,1.12], top:[0,84,40,1.12], front:[0,8,34,1.12], side:[90,8,34,1.12]},
+  glove_cat:{iso:[-36,24,38,1.12], top:[0,82,40,1.12], front:[0,10,34,1.12], side:[90,10,34,1.12]},
+  glove_first:{iso:[-36,24,38,1.12], top:[0,82,40,1.12], front:[0,10,34,1.12], side:[90,10,34,1.12]},
 };
 // 球場改用「扇形外接圓」取景（用包圍盒會留下大量空白）
 const FIELD_BODY={c:[0,0,52000], r:132000};
@@ -1487,6 +1697,7 @@ const FOCUS={ field:{c:[6858,0,25600], r:21000, az:-20, el:54, fov:41},   // 已
               ball:{c:[0,0,0], r:46, az:-40, el:24, fov:34},
               bat:{c:[0,-60,0], r:340, az:-30, el:16, fov:32},
               glove:{c:[0,150,0], r:230, az:-34, el:22, fov:34} };
+FOCUS.glove_inf=FOCUS.glove_out=FOCUS.glove_pit=FOCUS.glove_cat=FOCUS.glove_first=FOCUS.glove;
 const F=FOCUS[MODEL]||FOCUS.field;
 VIEWS.zoom=fitBoxSub(F.az,F.el,F.fov,new THREE.Vector3(...F.c),F.r,1.06);   // 特寫：以對焦半徑計算
 LS = ((VIEW==='zoom') ? F.r : pr)/(MODEL==='field' ? 155 : 90);   // 標籤大小跟著取景半徑（球場用的字小一點）
@@ -1505,9 +1716,16 @@ if(q.get('debug')==='1'){
   document.body.appendChild(dbg);
 }
 if(!SHOT){
-  const ids=['m1','m2','m3','m4'], keys=['field','ball','bat','glove'], names=['field','ball','bat','glove'];
-  ids.forEach((id,i)=>{ document.getElementById(id).classList.toggle('on', keys[i]===MODEL);
+  const ids=['m1','m2','m3','m4'], keys=['field','ball','bat','glove'], names=['field','ball','bat','glove_inf'];
+  const isGlove=MODEL.indexOf('glove')===0;
+  if(document.getElementById('c3')) document.getElementById('c3').style.display = isGlove?'flex':'none';
+  ids.forEach((id,i)=>{ const on = (keys[i]==='glove') ? isGlove : keys[i]===MODEL;
+    document.getElementById(id).classList.toggle('on', on);
     document.getElementById(id).onclick=()=>{ q.set('model',names[i]); location.search=q.toString(); }; });
+  const gids=['g1','g2','g3','g4','g5'], gkeys=['glove_inf','glove_out','glove_pit','glove_cat','glove_first'];
+  gids.forEach((id,i)=>{ const el=document.getElementById(id); if(!el) return;
+    el.classList.toggle('on', gkeys[i]===MODEL);
+    el.onclick=()=>{ q.set('model',gkeys[i]); location.search=q.toString(); }; });
   const vids=['v1','v2','v3','v4','v5'], vkeys=['iso','top','front','zoom'];
   vids.forEach((id,i)=>{ if(!document.getElementById(id)) return;
     document.getElementById(id).classList.toggle('on', vkeys[i]===VIEW);
