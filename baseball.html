@@ -48,6 +48,11 @@
  <button id="m1" class="on">棒球場</button><button id="m2">棒球</button>
  <button id="m3">球棒</button><button id="m4">手套</button><button id="m5">自動旋轉</button>
 </div>
+<div id="gpanel" class="panel" style="display:none;left:50%;transform:translateX(-50%);bottom:112px;flex-direction:column;align-items:stretch;max-width:560px;width:calc(100% - 24px);gap:6px">
+ <div id="gscore" style="font-size:13px;color:#cfe3f5"></div>
+ <div id="gmsg" style="font-size:13.5px;color:#e8eef5;line-height:1.5"></div>
+ <div id="gbtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+</div>
 <div id="c3" class="panel" style="display:none">
  <button id="g1">內野手</button><button id="g2">外野手</button><button id="g3">投手</button><button id="g4">捕手</button><button id="g5">一壘手</button>
 </div>
@@ -1221,7 +1226,7 @@ function circle(r,seg=96,y=0){ const p=[]; for(let i=0;i<=seg;i++){const a=i/seg
 
 // ══ 模型 1：標準棒球場 ══
 function buildField(){
-  const g=new THREE.Group();
+  const g=new THREE.Group(); g.name='field';
   const gy=0;
   const grass=M(0x3f8f4f,0.92,0,0.4), dirt=M(0xc08a4e,0.92,0,0.35), white=M(0xf8f8f4,0.55,0.02,0.7);
   // 草皮（扇形）
@@ -1710,6 +1715,246 @@ const v=VIEWS[VIEW]||VIEWS.iso;
 camera.position.copy(v.pos); camera.fov=v.fov; camera.updateProjectionMatrix();
 const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.target.copy(v.target); controls.enableDamping=true; controls.dampingFactor=0.08; controls.update();
+
+
+/* ══════════════════ 戰術小遊戲 ══════════════════
+   局面 → 選戰術 → 用機率模型跑出結果 → 在 3D 球場上演出
+   機率模型（業餘/少棒層級，經 20,000 局蒙地卡羅模擬校準，見 tactStats()）
+*/
+const TP={ swing:'強攻', bunt:'犧牲觸擊', steal:'盜壘', hitrun:'打帶跑', squeeze:'強迫取分' };
+const TACT_HIT={
+  ground:[0.55,0.95],   // 內野滾地：距離比例（相對 27.43m 壘間）
+  fly:[0.55,0.95],      // 外野飛球
+  single:[1.2,2.2], double:[2.4,3.4], triple:[3.4,4.2], HR:[4.4,5.0]
+};
+function tactResolve(play, st){
+  let b=st.bases.slice(); const o=st.outs; let runs=0, desc='', hit=null;
+  const R=(a,z)=>a+Math.floor(Math.random()*(z-a+1));
+  if(play==='steal'){
+    let src=-1; for(let i=2;i>=0;i--) if(b[i]){ src=i; break; }
+    if(src<0) return {bases:b,outs:o,runs:0,desc:'壘上沒人，不能盜壘',hit:null,bad:true};
+    if(R(1,100)<=72){
+      b[src]=false;
+      if(src===2){ runs+=1; desc='盜本壘成功！'; } else { b[src+1]=true; desc='盜壘成功，上'+(src===1?'三':'二')+'壘'; }
+    } else { b[src]=false; desc='盜壘失敗，跑者出局'; return {bases:b,outs:o+1,runs:0,desc,hit:null}; }
+    return {bases:b,outs:o,runs,desc,hit:null};
+  }
+  if(play==='bunt'){
+    const r=R(1,100);
+    if(r<=70){
+      if(b[0]&&o<2&&R(1,100)<=15){ b[0]=false; return {bases:b,outs:o+2,runs:0,desc:'觸擊變成雙殺！',hit:{k:'ground'}}; }
+      if(b[2]){ b[2]=false; runs+=1; }
+      if(b[1]){ b[1]=false; b[2]=true; }
+      if(b[0]){ b[0]=false; b[1]=true; }
+      return {bases:b,outs:o+1,runs,desc:'犧牲觸擊成功，跑者推進'+(runs?'、三壘跑者得分':''),hit:{k:'ground'}};
+    } else if(r<=80){
+      if(b[2]){ b[2]=false; runs+=1; } if(b[1]){ b[1]=false; b[2]=true; }
+      if(b[0]){ b[0]=false; b[1]=true; } b[0]=true;
+      return {bases:b,outs:o,runs,desc:'觸擊安打，打者上壘！',hit:{k:'single'}};
+    }
+    return {bases:b,outs:o+1,runs:0,desc:'觸擊失敗，打者出局',hit:{k:'ground'}};
+  }
+  if(play==='squeeze'){
+    if(R(1,100)<=55){ if(b[2]){ b[2]=false; runs+=1; } b[0]=true;
+      return {bases:b,outs:o,runs,desc:'強迫取分成功！三壘跑者回本壘得分',hit:{k:'ground'}}; }
+    if(b[2]) b[2]=false;
+    return {bases:b,outs:o+1,runs:0,desc:'強迫取分失敗，三壘跑者在本壘前出局',hit:{k:'ground'}};
+  }
+  // 揮擊 / 打帶跑
+  const tbl = (play==='hitrun')
+    ? [[1,18,'single'],[19,44,'ground'],[45,58,'fly'],[59,74,'K'],[75,79,'double'],[80,80,'triple'],[81,82,'HR'],[83,94,'DP'],[95,98,'BB'],[99,100,'error']]
+    : [[1,16,'single'],[17,22,'double'],[23,23,'triple'],[24,25,'HR'],[26,33,'BB'],[34,36,'error'],[37,60,'ground'],[61,82,'fly'],[83,100,'K']];
+  const r=R(1,100); let k='K';
+  for(const [a,z,kk] of tbl) if(r>=a&&r<=z){ k=kk; break; }
+  const adv=(n)=>{ for(let i=n-1;i>=0;i--) if(b[i]){ if(i+n>2){ b[i]=false; runs++; } else { b[i]=false; b[i+n]=true; } } };
+  if(k==='BB'){
+    if(b[0]&&b[1]&&b[2]){ runs+=1; }
+    else if(b[0]&&b[1]){ b[2]=true; }
+    else if(b[0]){ b[1]=true; }
+    b[0]=true; return {bases:b,outs:o,runs,desc:'保送上壘'+(runs?'，擠回一分':''),hit:null};
+  }
+  if(k==='HR'){ runs+=b.filter(x=>x).length+1; return {bases:[false,false,false],outs:o,runs,desc:'全壘打！'+(runs>1?runs+' 分打點':''),hit:{k:'HR'}}; }
+  if(k==='triple'){ runs+=b.filter(x=>x).length; b=[false,false,true]; return {bases:b,outs:o,runs,desc:'三壘安打',hit:{k:'triple'}}; }
+  if(k==='double'){ runs+=b[1]+b[2]; b=[false,true,b[0]]; return {bases:b,outs:o,runs,desc:'二壘安打'+(runs?'，'+runs+' 分打點':''),hit:{k:'double'}}; }
+  if(k==='single'){ runs+=b[1]+b[2]; const b1=b[0]; b=[true,b1,false]; if(b1&&R(1,100)<=45) b[2]=true;
+    return {bases:b,outs:o,runs,desc:'一壘安打'+(runs?'，'+runs+' 分打點':''),hit:{k:'single'}}; }
+  if(k==='error'){ runs+=b[2]; b=[true,b[0],b[1]]; return {bases:b,outs:o,runs,desc:'守備失誤，打者上壘',hit:{k:'ground'}}; }
+  if(k==='DP'){ if(b[0]&&o<2){ b[0]=false; return {bases:b,outs:o+2,runs:0,desc:'打帶跑失敗，雙殺！',hit:{k:'ground'}}; }
+    return {bases:b,outs:o+1,runs:0,desc:'滾地球出局',hit:{k:'ground'}}; }
+  if(k==='fly'){ if(b[2]&&o<2&&R(1,100)<=70){ b[2]=false; runs+=1; return {bases:b,outs:o+1,runs,desc:'高飛犧牲打，三壘跑者得分',hit:{k:'fly'}}; }
+    return {bases:b,outs:o+1,runs:0,desc:'外野飛球接殺',hit:{k:'fly'}}; }
+  if(k==='ground'){ if(b[0]&&o<2&&R(1,100)<=45){ b[0]=false; return {bases:b,outs:o+2,runs:0,desc:'內野滾地，雙殺！',hit:{k:'ground'}}; }
+    if(b[2]&&o<2&&R(1,100)<=60){ b[2]=false; runs+=1; return {bases:b,outs:o+1,runs,desc:'滾地推進，三壘跑者得分',hit:{k:'ground'}}; }
+    return {bases:b,outs:o+1,runs:0,desc:'內野滾地球出局',hit:{k:'ground'}}; }
+  return {bases:b,outs:o+1,runs:0,desc:'三振出局',hit:null};
+}
+function tactRunsFrom(st, play, n){
+  let tot=0;
+  for(let i=0;i<n;i++){
+    let s=tactResolve(play, st), runs=s.runs, o=s.outs, bs=s.bases;
+    let guard=0;
+    while(o<3 && guard++<40){ const x=tactResolve('swing', {bases:bs, outs:o}); runs+=x.runs; o=x.outs; bs=x.bases; }
+    tot+=runs;
+  }
+  return tot/n;
+}
+function tactSim(st, play, n){
+  let tot=0, scored=0;
+  for(let i=0;i<n;i++){
+    let s=tactResolve(play, st), runs=s.runs, o=s.outs, bs=s.bases, guard=0;
+    while(o<3 && guard++<40){ const x=tactResolve('swing',{bases:bs,outs:o}); runs+=x.runs; o=x.outs; bs=x.bases; }
+    tot+=runs; if(runs>0) scored++;
+  }
+  return {runs:tot/n, prob:scored/n};
+}
+function tactOptions(st){
+  const opts=['swing'];
+  if(st.bases[1]&&!st.bases[2]) opts.push('steal');
+  else if(st.bases[0]&&!st.bases[1]) opts.push('steal');
+  if((st.bases[1]||st.bases[2])&&st.outs<2) opts.push('bunt');
+  if(st.bases[2]&&st.outs<2) opts.push('squeeze');
+  opts.push('hitrun');
+  return opts;
+}
+function tactStats(){
+  const n=20000; let tot=0; for(let i=0;i<n;i++) tot+=tactInning('swing');
+  const out={swingAvg:tot/n};
+  const st={bases:[false,false,false],outs:0};
+  out.startRE_swing=tactRunsFrom(st,'swing',4000);
+  out.startRE_bunt=tactRunsFrom(st,'bunt',4000);
+  return out;
+}
+function tactInning(first){
+  let o=0,bs=[false,false,false],r=0;
+  while(o<3){ const x=tactResolve(first,{bases:bs,outs:o}); r+=x.runs; o=x.outs; bs=x.bases; }
+  return r;
+}
+/* 場上的跑者與球 */
+const GAME_MARK=[], GAME_BASE_POS=[[BASE_PATH*Math.SQRT1_2,0,BASE_PATH*Math.SQRT1_2],[0,0,BASE_PATH*Math.SQRT2],[-BASE_PATH*Math.SQRT1_2,0,BASE_PATH*Math.SQRT1_2]];
+let gameBall=null, tweens=[];
+function gameInit3D(){
+  if(MODEL!=='field' || GAME_MARK.length) return;
+  const col=[0x38bdf8,0xfbbf24,0xf87171];
+  for(let i=0;i<3;i++){
+    const m=mk(new THREE.CylinderGeometry(900,1200,3200,16), M(col[i],0.5,0.1,0.3),
+      GAME_BASE_POS[i][0]*1.25, 1600, GAME_BASE_POS[i][2]*1.25);
+    m.visible=false; model.add(m); GAME_MARK.push(m);
+  }
+  gameBall=mk(new THREE.SphereGeometry(900,18,14), M(0xffffff,0.35,0.05,0.6), 0, 900, 0);
+  gameBall.visible=false; model.add(gameBall);
+}
+function gameShowRunners(bases){
+  GAME_MARK.forEach((m,i)=>m.visible=!!bases[i]);
+}
+function gameAnimate(hit, bases){
+  if(!model || !gameBall) return;
+  const dur=900, t0=performance.now();
+  let end=null;
+  if(hit){
+    const cfg=TACT_HIT[hit.k]||TACT_HIT.ground;
+    const a=(Math.random()*0.5+0.25)*Math.PI;         // 界內 45°~135°
+    const dist=BASE_PATH*(cfg[0]+Math.random()*(cfg[1]-cfg[0]));
+    end=new THREE.Vector3(-Math.sin(a)*dist, 900, Math.cos(a)*dist);
+  }
+  const start=new THREE.Vector3(0,900,0);
+  gameBall.visible=!!hit;
+  const step=()=>{
+    const k=Math.min(1,(performance.now()-t0)/dur);
+    if(hit){ const p=start.clone().lerp(end,k); p.y=900+Math.sin(Math.PI*k)*(end.length()*0.12+3000);
+      gameBall.position.copy(p);
+      if(k>=1) setTimeout(()=>{ gameShowRunners(bases); }, 120);
+    }
+    if(k<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/* 遊戲狀態 */
+const GAME={ on:false, inning:1, outs:0, bases:[false,false,false], runs:0, plays:0, hist:[], expOpt:0, expSwing:0,
+  goal:'runs',   // 'runs'=攻下最多分；'one'=至少要拿一分（關鍵一分）
+};
+const GOAL_TEXT={runs:'目標：<b>攻下最多分</b>（大局）', one:'目標：<b>只要拿到 1 分</b>（關鍵一分）'};
+function gameRender(){
+  const el=document.getElementById('gscore'), msg=document.getElementById('gmsg'), bx=document.getElementById('gbtns');
+  if(!el) return;
+  const bs=[1,2,3].map(i=>GAME.bases[i-1]?(i+'壘'):null).filter(Boolean).join('、')||'壘上無人';
+  el.innerHTML='第 <b>'+GAME.inning+'</b> 局｜<b>'+GAME.outs+'</b> 出局｜'+bs+'｜得分 <b>'+GAME.runs+'</b>｜'
+    + (GAME.goal==='one'?'<span style="color:#fde047">關鍵一分</span>':'<span style="color:#7dd3fc">大局</span>');
+  bx.innerHTML='';
+  if(GAME.outs>=3||GAME.inning>3){
+    const b=document.createElement('button');
+    b.textContent=(GAME.inning>=3)?'看總結 ▶':'下一局 ▶';
+    b.style.background='#e8734a'; b.onclick=advanceInning;
+    bx.appendChild(b); return;
+  }
+  const opts=tactOptions({bases:GAME.bases,outs:GAME.outs});
+  for(const p of opts){
+    const b=document.createElement('button');
+    b.textContent=TP[p]; b.onclick=()=>gamePlay(p);
+    bx.appendChild(b);
+  }
+}
+function advanceInning(){
+  GAME.inning++; GAME.outs=0; GAME.bases=[false,false,false];
+  if(GAME.inning>3){ gameFinish(); return; }
+  gameSetupInning(); gameRender();
+}
+function gamePlay(play){
+  if(GAME.outs>=3){ advanceInning(); return; }
+  const st={bases:GAME.bases.slice(), outs:GAME.outs};
+  if(play==='steal'&&!st.bases.some(x=>x)){ return; }
+  // 模擬各選項期望值（先跑跑看）
+  const opts=tactOptions(st);
+  const ev={}, pr={};
+  for(const p of opts){ const s2=tactSim(st,p,400); ev[p]=s2.runs; pr[p]=s2.prob; }
+  const key = GAME.goal==='one' ? pr : ev;
+  const bestOpt=opts.slice().sort((a,b)=>key[b]-key[a])[0];
+  const r=tactResolve(play, st);
+  GAME.bases=r.bases; GAME.outs=r.outs; GAME.runs+=r.runs; GAME.plays++;
+  GAME.hist.push({play, best:bestOpt, ev});
+  gameAnimate(r.hit, r.bases);
+  const fb=(play===bestOpt)?'✅ 這是目標下最好的選擇':'💡 模擬後最佳是「'+TP[bestOpt]+'」';
+  const evtxt=opts.map(p=>TP[p]+' 期望'+ev[p].toFixed(2)+'／得分率'+Math.round(pr[p]*100)+'%').join('｜');
+  document.getElementById('gmsg').innerHTML='<b style="color:#7dd3fc">'+TP[play]+'</b> → '+r.desc
+    +(r.runs?' <b style="color:#86efac">+'+r.runs+' 分</b>':'')
+    +'<div style="font-size:12px;color:#9fb3c8;margin-top:4px">'+fb+'<br>（從此局面起算的期望得分：'+evtxt+'）</div>';
+  if(GAME.outs>=3){
+    setTimeout(()=>{ if(GAME.outs>=3) advanceInning(); }, 1600);
+  }
+  gameRender();
+}
+function gameSetupInning(){
+  if(GAME.inning===2){ GAME.goal='one'; GAME.outs=1; GAME.bases=[false,false,true]; }
+  else { GAME.goal='runs'; GAME.outs=0; GAME.bases=[false,false,false]; }
+  gameShowRunners(GAME.bases);
+  const m=document.getElementById('gmsg');
+  if(m) m.innerHTML = (GAME.inning===2)
+    ? '第 2 局是<b>關鍵一分</b>：1 出局、三壘有人、0 比 0。<div style="font-size:12px;color:#9fb3c8;margin-top:4px">這種局面不是比「得多少分」，而是比「<b>拿到 1 分的機率</b>」——短打、強迫取分、盜壘的價值會不一樣。</div>'
+    : '第 '+GAME.inning+' 局開始（大局模式）。';
+}
+function gameStart(){
+  GAME.on=true; GAME.inning=1; GAME.goal='runs'; GAME.outs=0; GAME.bases=[false,false,false]; GAME.runs=0; GAME.plays=0; GAME.hist=[];
+  const st={bases:[false,false,false],outs:0};
+  GAME.expSwing=tactRunsFrom(st,'swing',600)*3;
+  let opt=0; for(let i=0;i<250;i++){                       // 每次都選期望值最高 → 最佳戰術基準
+    let o=0,bs=[false,false,false],r=0,guard=0;
+    while(o<3&&guard++<30){ const s={bases:bs,outs:o}; const op=tactOptions(s);
+      const ev={}; for(const p of op) ev[p]=tactRunsFrom(s,p,60);
+      const best=op.sort((a,b)=>ev[b]-ev[a])[0]; const x=tactResolve(best,s); r+=x.runs; o=x.outs; bs=x.bases; }
+    opt+=r;
+  }
+  GAME.expOpt=opt/250*3;
+  document.getElementById('gpanel').style.display='flex';
+  gameSetupInning(); gameShowRunners(GAME.bases); gameRender();
+}
+function gameFinish(){
+  const rate=Math.round(GAME.runs/Math.max(GAME.expOpt,0.1)*100);
+  document.getElementById('gmsg').innerHTML='<b style="color:#fde047">3 局結束｜你攻下 '+GAME.runs+' 分</b>（'+GAME.plays+' 次戰術）'
+   +'<div style="font-size:12px;color:#9fb3c8;margin-top:6px">模擬基準（3 局）：一路強攻 '+GAME.expSwing.toFixed(1)+' 分｜每次都選最佳戰術 '+GAME.expOpt.toFixed(1)+' 分（含第 2 局「關鍵一分」以得分率為目標）<br>'
+   +'你的表現：<b style="color:'+(rate>=95?'#86efac':'#fbbf24')+'">'+rate+'%</b> 的最佳策略水準</div>';
+  const bx=document.getElementById('gbtns'); bx.innerHTML='';
+  const b=document.createElement('button'); b.textContent='再玩一次'; b.onclick=gameStart; bx.appendChild(b);
+}
+if(q.get('game')==='1') setTimeout(()=>{ gameInit3D(); gameStart(); }, 400);
 
 if(q.get('debug')==='1'){
   const dbg=document.createElement('div'); dbg.id='dbg'; dbg.style.cssText='position:fixed;left:0;top:0;z-index:99;color:#fff;font:12px monospace;background:#000';
