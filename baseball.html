@@ -43,6 +43,7 @@
  <span id="ttl">標準棒球場</span><br>
  <span style="color:#9aa2b1">滑鼠拖曳旋轉、滾輪縮放；數字為真實規格</span></div>
 <div id="spec" class="panel"><h4 id="sh">規格</h4><div id="sb"></div></div>
+<button id="specBtn" class="panel" style="display:none;top:12px;right:12px;padding:9px 13px;font-size:13px;cursor:pointer">規格 ▾</button>
 <div id="c" class="panel">
  <button id="m1" class="on">棒球場</button><button id="m2">棒球</button>
  <button id="m3">球棒</button><button id="m4">手套</button><button id="m5">自動旋轉</button>
@@ -1108,7 +1109,9 @@
 <script>
 const q = new URLSearchParams(location.search);
 const SHOT = q.get('shot')==='1', MODEL = q.get('model')||'field', VIEW = q.get('view')||'iso';
+const EMBED = q.get('embed')==='1';
 if (SHOT) ['t','spec','c','c2'].forEach(id=>document.getElementById(id).style.display='none');
+if (EMBED) { document.getElementById('t').style.display='none'; document.getElementById('spec').style.display='none'; }
 
 const W = innerWidth, H = innerHeight;
 let renderer;
@@ -1672,7 +1675,8 @@ function fitBoxSub(azDeg,elDeg,fov,center,radius,pad=1.06){
   const dist=Math.max(R/tanV, R/tanH)*pad;   // 以球半徑近似（特寫用）
   return { pos:center.clone().addScaledVector(dir,dist), target:center.clone(), fov };
 }
-const frame=(az,el,fov,pad=1.06,center=null)=>
+const AUTO_PAD = (W/H>1.75) ? 1.14 : 1.06;      // 寬畫面多留邊
+const frame=(az,el,fov,pad=AUTO_PAD,center=null)=>
   (MODEL==='field') ? fitPoints(FIELD_FIT_PTS, az,el,fov,pad)
                     : (center ? fitBoxSub(az,el,fov,center,pr,pad) : fitBox(az,el,fov,pad));
 const wrap=(v)=>v;   // 保留介面（不再需要迭代）
@@ -1714,6 +1718,12 @@ if(q.get('debug')==='1'){
     +' canvas '+renderer.domElement.width+'x'+renderer.domElement.height
     +' near '+camera.near.toFixed(2)+' far '+Math.round(camera.far);
   document.body.appendChild(dbg);
+}
+if(EMBED){
+  const b=document.getElementById('specBtn'), sp=document.getElementById('spec');
+  b.style.display='block';
+  b.onclick=()=>{ const on=sp.style.display==='none'; sp.style.display=on?'block':'none';
+    b.textContent = on?'規格 ▴':'規格 ▾'; };
 }
 if(!SHOT){
   const ids=['m1','m2','m3','m4'], keys=['field','ball','bat','glove'], names=['field','ball','bat','glove_inf'];
