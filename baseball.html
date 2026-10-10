@@ -1472,7 +1472,7 @@ const frame=(az,el,fov,pad=1.06,center=null)=>
                     : (center ? fitBoxSub(az,el,fov,center,pr,pad) : fitBox(az,el,fov,pad));
 const wrap=(v)=>v;   // 保留介面（不再需要迭代）
 const PRESETS={
-  field:{iso:[-32,50,40,1.06], top:[0,88,42,1.06], front:[0,14,42,1.06], side:[90,14,42,1.06]},
+  field:{iso:[-30,56,40,1.06], top:[0,88,42,1.06], front:[0,14,42,1.06], side:[90,14,42,1.06]},
   ball:{iso:[-40,26,38,1.10], top:[0,86,40,1.10], front:[0,8,34,1.10], side:[90,8,34,1.10]},
   bat:{iso:[-35,20,34,1.10], top:[0,86,40,1.10], front:[0,6,32,1.10], side:[90,6,32,1.10]},
   glove:{iso:[-40,24,38,1.10], top:[0,84,40,1.10], front:[0,10,34,1.10], side:[90,10,34,1.10]},
@@ -1489,7 +1489,7 @@ const FOCUS={ field:{c:[6858,0,25600], r:21000, az:-20, el:54, fov:41},   // 已
               glove:{c:[0,150,0], r:230, az:-34, el:22, fov:34} };
 const F=FOCUS[MODEL]||FOCUS.field;
 VIEWS.zoom=fitBoxSub(F.az,F.el,F.fov,new THREE.Vector3(...F.c),F.r,1.06);   // 特寫：以對焦半徑計算
-LS = ((VIEW==='zoom') ? F.r : pr)/90;     // 標籤大小跟著實際取景半徑
+LS = ((VIEW==='zoom') ? F.r : pr)/(MODEL==='field' ? 155 : 90);   // 標籤大小跟著取景半徑（球場用的字小一點）
 makeLabels();
 const v=VIEWS[VIEW]||VIEWS.iso;
 camera.position.copy(v.pos); camera.fov=v.fov; camera.updateProjectionMatrix();
