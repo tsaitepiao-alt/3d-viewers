@@ -1086,7 +1086,8 @@ const q = new URLSearchParams(location.search);
 const SHOT = q.get('shot') === '1', VIEW = q.get('view') || 'iso';
 if (SHOT) ['t','c','lg'].forEach(id => document.getElementById(id).style.display = 'none');
 
-const W = SHOT ? 2000 : innerWidth, H = SHOT ? 1400 : innerHeight;
+// 畫布尺寸一律跟視窗一致（否則 headless 截圖會只拍到左上角，主體看起來會偏）
+const W = innerWidth, H = innerHeight;
 const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('cv'), antialias:true, preserveDrawingBuffer:true});
 renderer.setPixelRatio(SHOT?1:Math.min(devicePixelRatio,2));
 renderer.setSize(W,H);
