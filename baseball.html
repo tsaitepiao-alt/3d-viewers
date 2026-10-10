@@ -12,11 +12,25 @@
  #spec{top:12px;right:12px;padding:11px 15px;font-size:12.5px;line-height:1.75;max-width:30vw}
  #spec h4{margin:0 0 6px;font-size:13.5px;color:#ffcf9a}
  #spec i{color:#8fd7ff;font-style:normal}
- #c{bottom:12px;left:12px;padding:9px 11px;display:flex;gap:7px;flex-wrap:wrap;max-width:92vw}
+ #c{bottom:12px;left:12px;padding:9px 11px;display:flex;gap:7px;flex-wrap:wrap;max-width:calc(100vw - 24px)}
  button{background:#232937;color:#e9eaee;border:1px solid #39404f;border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer}
  button.on{background:#2f6fd6;border-color:#2f6fd6;color:#fff}
  #c2{bottom:12px;right:12px;padding:8px 11px;display:flex;gap:6px;flex-wrap:wrap}
- @media(max-width:760px){#t,#spec{display:none}}
+ button{padding:8px 12px;font-size:13px}
+ @media(max-width:760px){
+   #t,#spec{display:none}
+   #c{left:8px;right:8px;bottom:64px;max-width:none;flex-wrap:nowrap;overflow-x:auto;
+      justify-content:flex-start;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+   #c::-webkit-scrollbar,#c2::-webkit-scrollbar{display:none}
+   #c button{flex:0 0 auto;padding:9px 12px;font-size:12.5px}
+   #c2{left:8px;right:8px;bottom:10px;flex-wrap:nowrap;overflow-x:auto;gap:6px;
+       justify-content:space-between;scrollbar-width:none}
+   #c2 button{flex:1 1 0;padding:9px 6px;font-size:12.5px;white-space:nowrap}
+ }
+ @media(max-width:400px){
+   #c{bottom:60px} #c button{padding:9px 10px;font-size:12px}
+   #c2 button{padding:9px 4px;font-size:12px}
+ }
 </style></head><body>
 <canvas id="cv"></canvas>
 <div id="t" class="panel"><b>棒球 3D 互動學習</b><br>
@@ -1088,7 +1102,18 @@ const SHOT = q.get('shot')==='1', MODEL = q.get('model')||'field', VIEW = q.get(
 if (SHOT) ['t','spec','c','c2'].forEach(id=>document.getElementById(id).style.display='none');
 
 const W = innerWidth, H = innerHeight;
-const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('cv'), antialias:true, preserveDrawingBuffer:true});
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({canvas:document.getElementById('cv'), antialias:true, preserveDrawingBuffer:true});
+} catch(e) { renderer=null; }
+if(!renderer || !renderer.getContext()){
+  document.body.insertAdjacentHTML('beforeend',
+    '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:28px;'+
+    'text-align:center;line-height:1.7;font-size:15px;background:#121a26">'+
+    '此裝置／瀏覽器沒有開啟 <b>WebGL</b>，無法顯示 3D。<br>請改用 Chrome／Safari 最新版，'+
+    '或在設定中開啟「硬體加速」。</div>');
+  throw new Error('WebGL unavailable');
+}
 renderer.setPixelRatio(SHOT?1:Math.min(devicePixelRatio,2));
 renderer.setSize(W,H);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1096,14 +1121,14 @@ renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1017);
-(function(){ const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#ffffff'); g.addColorStop(.45,'#c3cde0');
-  g.addColorStop(.75,'#525b6d'); g.addColorStop(1,'#15171d'); x.fillStyle=g; x.fillRect(0,0,256,256);
-  const tex=new THREE.CanvasTexture(c); tex.mapping=THREE.EquirectangularReflectionMapping;
-  const p=new THREE.PMREMGenerator(renderer); scene.environment=p.fromEquirectangular(tex).texture; p.dispose(); })();
+scene.background = new THREE.Color(0x121a26);
+// 漸層背景（讓畫面不是死黑）
+(function(){ const c=document.createElement('canvas'); c.width=4; c.height=512; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,512); g.addColorStop(0,'#25324a'); g.addColorStop(0.5,'#161f2e');
+  g.addColorStop(1,'#0a0e14'); x.fillStyle=g; x.fillRect(0,0,4,512);
+  scene.background = new THREE.CanvasTexture(c); })();
 
-const camera = new THREE.PerspectiveCamera(40, W/H, 1, 500000);
+const camera = new THREE.PerspectiveCamera(40, W/H, 1, 500000);   // near/far 會在算出模型尺度後重設
 scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x3a4149, 1.05));
 const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(-1,2.2,1.4); key.castShadow=true;
 key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera;
@@ -1328,6 +1353,22 @@ function buildGlove(){
 const BUILDERS={field:buildField, ball:buildBall, bat:buildBat, glove:buildGlove};
 const model=BUILDERS[MODEL] ? BUILDERS[MODEL]() : BUILDERS.field();
 scene.add(model);
+// 地面＋柔影（球場自己有草皮，其餘加一塊展示台）
+(function(){
+  const b=new THREE.Box3().setFromObject(model);
+  const w=Math.max(b.max.x-b.min.x, b.max.z-b.min.z);
+  const gy=b.min.y-2;
+  if (MODEL!=='field'){
+    const g=new THREE.Mesh(new THREE.CircleGeometry(w*1.15, 96),
+      new THREE.MeshStandardMaterial({color:0x1c2634, roughness:0.9, metalness:0.05}));
+    g.rotation.x=-Math.PI/2; g.position.set((b.min.x+b.max.x)/2, gy, (b.min.z+b.max.z)/2);
+    g.receiveShadow=true; scene.add(g);
+  }
+  const sh=new THREE.ShadowMaterial({opacity:0.32});
+  const sp=new THREE.Mesh(new THREE.PlaneGeometry(w*1.1, w*1.1), sh);
+  sp.rotation.x=-Math.PI/2; sp.position.set((b.min.x+b.max.x)/2, gy+1, (b.min.z+b.max.z)/2);
+  sp.receiveShadow=true; scene.add(sp);
+})();
 
 // ══ 規格面板 ══
 const SPECS={
@@ -1365,54 +1406,39 @@ const SPECS={
   document.getElementById('sb').innerHTML=s.rows.map(([k,v])=>`${k}：<i>${v}</i>`).join('<br>');
 })();
 
-// ══ 自動取景（置中＋填滿）══
+// ══ 自動取景（解析式：以包圍盒在相機三軸的長度計算距離，任何長寬比都正確）══
 const box=new THREE.Box3().setFromObject(model);
 const pc=box.getCenter(new THREE.Vector3());
 const pr=box.getSize(new THREE.Vector3()).length()/2;
+camera.near=Math.max(pr/2000, 0.02); camera.far=pr*80; camera.updateProjectionMatrix();   // 依尺度自動設定，避免遠平面裁切
 LS=pr/90;
-function frame(azDeg,elDeg,fov,pad=1.15,center=null,radius=null){
-  const C=center||pc, R=radius||pr;
+function fitBox(azDeg,elDeg,fov,pad=1.06,center=null){
+  const C=center||pc;
   const az=azDeg*Math.PI/180, el=elDeg*Math.PI/180;
-  const dist=R/Math.sin(fov*Math.PI/360)*pad;
-  return {pos:new THREE.Vector3(C.x+Math.sin(az)*Math.cos(el)*dist, C.y+Math.sin(el)*dist, C.z+Math.cos(az)*Math.cos(el)*dist),
-          target:C.clone(), fov};
-}
-function centerView(v){
-  const dir=new THREE.Vector3().subVectors(v.target,v.pos).normalize();
+  const dir=new THREE.Vector3(Math.sin(az)*Math.cos(el), Math.sin(el), Math.cos(az)*Math.cos(el)).normalize();
   const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
   const up=new THREE.Vector3().crossVectors(right,dir).normalize();
-  const dist=v.pos.distanceTo(v.target);
-  const tanH=Math.tan(v.fov*Math.PI/360), tanW=tanH*(W/H);
-  const cam=new THREE.PerspectiveCamera(v.fov,W/H,1,1000000);
-  for(let it=0;it<5;it++){
-    cam.position.copy(v.pos); cam.lookAt(v.target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
-    const b=new THREE.Box3().setFromObject(model);
-    let minx=9e12,maxx=-9e12,miny=9e12,maxy=-9e12;
-    for(const x of [b.min.x,b.max.x]) for(const y of [b.min.y,b.max.y]) for(const z of [b.min.z,b.max.z]){
-      const p=new THREE.Vector3(x,y,z).project(cam);
-      minx=Math.min(minx,p.x); maxx=Math.max(maxx,p.x); miny=Math.min(miny,p.y); maxy=Math.max(maxy,p.y); }
-    const cx=(minx+maxx)/2, cy=(miny+maxy)/2;
-    if(Math.abs(cx)<0.003 && Math.abs(cy)<0.003) break;
-    const sh=new THREE.Vector3().addScaledVector(right,cx*tanW*dist).addScaledVector(up,cy*tanH*dist);
-    v.pos.add(sh); v.target.add(sh);
+  const b=new THREE.Box3().setFromObject(model);
+  let hr=0,hu=0,hf=0;
+  for(const x of [b.min.x,b.max.x]) for(const y of [b.min.y,b.max.y]) for(const z of [b.min.z,b.max.z]){
+    const v=new THREE.Vector3(x,y,z).sub(C);
+    hr=Math.max(hr,Math.abs(v.dot(right))); hu=Math.max(hu,Math.abs(v.dot(up))); hf=Math.max(hf,Math.abs(v.dot(dir)));
   }
-  return v;
+  const tanV=Math.tan(fov*Math.PI/360), tanH=tanV*(W/H);
+  const dist=Math.max(hu/tanV, hr/tanH)*pad + hf;
+  return { pos:C.clone().addScaledVector(dir,dist), target:C.clone(), fov };
 }
-function wrap(v,fill=0.85){
-  const meas=(vw)=>{ const cam=new THREE.PerspectiveCamera(vw.fov,W/H,1,1000000);
-    cam.position.copy(vw.pos); cam.lookAt(vw.target); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
-    const b=new THREE.Box3().setFromObject(model);
-    let minx=9e12,maxx=-9e12,miny=9e12,maxy=-9e12;
-    for(const x of [b.min.x,b.max.x]) for(const y of [b.min.y,b.max.y]) for(const z of [b.min.z,b.max.z]){
-      const p=new THREE.Vector3(x,y,z).project(cam);
-      minx=Math.min(minx,p.x); maxx=Math.max(maxx,p.x); miny=Math.min(miny,p.y); maxy=Math.max(maxy,p.y); }
-    return {w:(maxx-minx)/2,h:(maxy-miny)/2};
-  };
-  for(let i=0;i<3;i++){ centerView(v); const m=meas(v); const k=Math.max(m.w,m.h)/fill;
-    if(Math.abs(k-1)<0.02) break;
-    const d=new THREE.Vector3().subVectors(v.pos,v.target); v.pos.copy(v.target).addScaledVector(d,k); }
-  return centerView(v);
+// 特寫：縮小取樣框（只算對焦範圍附近的包圍盒）
+function fitBoxSub(azDeg,elDeg,fov,center,radius,pad=1.06){
+  const az=azDeg*Math.PI/180, el=elDeg*Math.PI/180;
+  const dir=new THREE.Vector3(Math.sin(az)*Math.cos(el), Math.sin(el), Math.cos(az)*Math.cos(el)).normalize();
+  const tanV=Math.tan(fov*Math.PI/360), tanH=tanV*(W/H);
+  const R=radius||pr;
+  const dist=Math.max(R/tanV, R/tanH)*pad;   // 以球半徑近似（特寫用）
+  return { pos:center.clone().addScaledVector(dir,dist), target:center.clone(), fov };
 }
+const frame=(az,el,fov,pad=1.06,center=null)=>center?fitBoxSub(az,el,fov,center,pr,pad):fitBox(az,el,fov,pad);
+const wrap=(v)=>v;   // 保留介面（不再需要迭代）
 const PRESETS={
   field:{iso:[-32,50,40,1.0], top:[0,88,42,0.95], front:[0,14,42,0.95], side:[90,14,42,0.95]},
   ball:{iso:[-40,26,38,0.85], top:[0,86,40,0.85], front:[0,8,34,0.85], side:[90,8,34,0.85]},
@@ -1420,15 +1446,15 @@ const PRESETS={
   glove:{iso:[-40,24,38,0.85], top:[0,84,40,0.85], front:[0,10,34,0.85], side:[90,10,34,0.85]},
 };
 const PV=(PRESETS[MODEL]||PRESETS.field)[VIEW]||(PRESETS[MODEL]||PRESETS.field).iso;
-const VIEWS={ iso:wrap(frame(PV[0],PV[1],PV[2]),PV[3]), top:wrap(frame(PV[0],PV[1],PV[2]),PV[3]),
-              front:wrap(frame(PV[0],PV[1],PV[2]),PV[3]), side:wrap(frame(PV[0],PV[1],PV[2]),PV[3]) };
+const VIEWS={ iso:frame(PV[0],PV[1],PV[2],PV[3]), top:frame(PV[0],PV[1],PV[2],PV[3]),
+              front:frame(PV[0],PV[1],PV[2],PV[3]), side:frame(PV[0],PV[1],PV[2],PV[3]) };
 // 特寫：直接對焦到某個範圍（不套用全模型取景，才能放大細節）
 const FOCUS={ field:{c:[6858,0,25600], r:21000, az:-20, el:54, fov:40},   // 已隨模型轉 15°
               ball:{c:[0,0,0], r:46, az:-40, el:24, fov:34},
               bat:{c:[0,-60,0], r:340, az:-30, el:16, fov:32},
               glove:{c:[0,150,0], r:230, az:-34, el:22, fov:34} };
 const F=FOCUS[MODEL]||FOCUS.field;
-VIEWS.zoom=frame(F.az,F.el,F.fov,1.0,new THREE.Vector3(...F.c),F.r);   // 特寫不對全模型做置中，直接對焦
+VIEWS.zoom=fitBoxSub(F.az,F.el,F.fov,new THREE.Vector3(...F.c),F.r,1.06);   // 特寫：以對焦半徑計算
 LS = ((VIEW==='zoom') ? F.r : pr)/90;     // 標籤大小跟著實際取景半徑
 makeLabels();
 const v=VIEWS[VIEW]||VIEWS.iso;
@@ -1436,6 +1462,14 @@ camera.position.copy(v.pos); camera.fov=v.fov; camera.updateProjectionMatrix();
 const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.target.copy(v.target); controls.enableDamping=true; controls.dampingFactor=0.08; controls.update();
 
+if(q.get('debug')==='1'){
+  const dbg=document.createElement('div'); dbg.id='dbg'; dbg.style.cssText='position:fixed;left:0;top:0;z-index:99;color:#fff;font:12px monospace;background:#000';
+  dbg.textContent='VP '+innerWidth+'x'+innerHeight+' aspect '+camera.aspect.toFixed(3)
+    +' dist '+Math.round(camera.position.distanceTo(controls.target))
+    +' canvas '+renderer.domElement.width+'x'+renderer.domElement.height
+    +' near '+camera.near.toFixed(2)+' far '+Math.round(camera.far);
+  document.body.appendChild(dbg);
+}
 if(!SHOT){
   const ids=['m1','m2','m3','m4'], keys=['field','ball','bat','glove'], names=['field','ball','bat','glove'];
   ids.forEach((id,i)=>{ document.getElementById(id).classList.toggle('on', keys[i]===MODEL);
@@ -1446,8 +1480,16 @@ if(!SHOT){
     document.getElementById(id).onclick=()=>{ q.set('view',vkeys[i]); location.search=q.toString(); }; });
   document.getElementById('m5').onclick=()=>{ controls.autoRotate=!controls.autoRotate;
     controls.autoRotateSpeed=1.0; document.getElementById('m5').classList.toggle('on',controls.autoRotate); };
-  addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth,innerHeight); });
+  let userMoved=false;
+  controls.addEventListener('start', ()=>{ userMoved=true; });
+  const reframe=()=>{
+    const vw=(VIEW==='zoom')?VIEWS.zoom:VIEWS[VIEW]||VIEWS.iso;
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+    if(!userMoved){ camera.position.copy(vw.pos); camera.fov=vw.fov; camera.updateProjectionMatrix();
+      controls.target.copy(vw.target); controls.update(); }
+  };
+  addEventListener('resize',reframe); addEventListener('orientationchange',()=>setTimeout(reframe,220));
 }
 (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
 </script></body></html>
