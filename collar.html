@@ -7,7 +7,7 @@
    font-family:-apple-system,"PingFang TC","Heiti TC",sans-serif;color:#e9eaee}
  #cv{display:block}
  .panel{position:fixed;background:rgba(22,24,30,.9);border:1px solid #303543;border-radius:10px}
- #t{top:12px;left:12px;padding:10px 14px;font-size:13px;line-height:1.55;max-width:44vw}
+ #t{top:12px;left:12px;padding:10px 14px;font-size:13px;line-height:1.55;max-width:46vw}
  #t b{font-size:15px}
  #c{bottom:12px;left:12px;padding:9px 11px;display:flex;gap:7px;flex-wrap:wrap}
  #c button{background:#242835;color:#e9eaee;border:1px solid #39404f;border-radius:7px;padding:7px 11px;font-size:12.5px;cursor:pointer}
@@ -17,16 +17,18 @@
 </style></head><body>
 <canvas id="cv"></canvas>
 <div id="t" class="panel"><b>寵物智慧項圈 — 外觀設計</b><br>
- 顯示版表頭 <span style="color:#ffcf9a">64 × 34 × 17.8 mm</span>（依 3D 列印尺寸表）<br>
+ 表頭 <span style="color:#ffcf9a">66 × 42 × 17.8 mm</span>｜螢幕 <span style="color:#8fd7ff">1.69"（開窗 35 × 30）</span><br>
+ 背面 <span style="color:#a8ffd8">聽診器式振膜 Ø26 + PPG ×2 + 溫度貼片</span><br>
  <span style="color:#9aa2b1">滑鼠拖曳旋轉、滾輪縮放（真實比例，非 AI 生成圖）</span></div>
 <div id="c" class="panel">
  <button id="b1" class="on">立體視角</button><button id="b2">俯視</button>
- <button id="b3">表頭特寫</button><button id="b4">戴在脖子上</button><button id="b5">自動旋轉</button>
+ <button id="b3">正面螢幕</button><button id="b4">背面感測器</button><button id="b5">自動旋轉</button>
 </div>
 <div id="lg" class="panel">
  表頭：象牙白・圓角・免螺絲卡扣<br>
  帶子：20mm 編織尼龍（暖橘）<br>
- 開窗：0.96" OLED 22.5 × 12 mm<br>
+ 螢幕：1.69" 液晶 35 × 30 mm 開窗<br>
+ 背面：聽診器振膜＋聲學收音孔<br>
  扣具：側壓式安全扣（貓用必備）
 </div>
 <script>/**
@@ -1110,6 +1112,8 @@ key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera; sc.left=-160; sc.
 key.shadow.bias=-0.0004; scene.add(key);
 const fill = new THREE.DirectionalLight(0xbcd4ff, 0.75); fill.position.set(120,80,-90); scene.add(fill);
 const rim  = new THREE.DirectionalLight(0xffd2a0, 0.85); rim.position.set(30,-110,-50); scene.add(rim);
+// 背面補光（讓感測器看得清楚）
+const backLight = new THREE.DirectionalLight(0xf2f6ff, 1.25); backLight.position.set(-40, 120, -150); scene.add(backLight);
 
 const desk = new THREE.Mesh(new THREE.PlaneGeometry(600,600),
   new THREE.MeshStandardMaterial({color:0x1e2128, roughness:0.95}));
@@ -1122,11 +1126,11 @@ const box=(w,h,d,m,x,y,z)=>{const me=new THREE.Mesh(new THREE.BoxGeometry(w,h,d)
 const cyl=(r1,r2,h,m,x,y,z,s=24)=>{const me=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,s),m);
   me.position.set(x,y,z);me.castShadow=true;me.receiveShadow=true;scene.add(me);return me;};
 
-// ══ 尺寸（mm，全部來自尺寸表.json 顯示版）══
-const R_NECK=40, STRAP_W=20, STRAP_T=2.5, ARC=300;      // 頸圍示意 2πR*300/360 ≈ 209mm
-const CASE_L=64, CASE_W=34, CASE_H=17.8;                 // 顯示版表頭
-const WIN_L=22.5, WIN_W=12, WIN_T=2.4;                   // OLED 開窗
-const MIC_D=2.5;
+// ══ 尺寸（mm）══
+const R_NECK=40, STRAP_W=20, STRAP_T=2.5, ARC=300;       // 帶子示意環（頸圍 2πR*300/360 ≈ 209mm）
+const CASE_L=66, CASE_W=42, CASE_H=17.8;                 // 表頭（正面 66 × 42）
+const WIN_L=35, WIN_W=30, WIN_T=2.0;                     // 1.69" 液晶開窗（240×280 橫放）
+const BELL_D=28;                                         // 聽診器式振膜直徑
 
 // ══ 項圈帶（參數化平面帶）══
 function buildStrap(R,width,thick,arcDeg,seg){
@@ -1144,10 +1148,9 @@ function buildStrap(R,width,thick,arcDeg,seg){
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
   g.setIndex(idx); g.computeVertexNormals(); return g;
 }
-const strapMat = M(0xc2552b, 0.88, 0.0, 0.35);
-const strap = new THREE.Mesh(buildStrap(R_NECK, STRAP_W, STRAP_T, ARC, 160),
-  new THREE.MeshStandardMaterial({color:0xc2552b, roughness:0.9, metalness:0.0,
-    envMapIntensity:0.35, side:THREE.DoubleSide}));
+const strapMat = new THREE.MeshStandardMaterial({color:0xc2552b, roughness:0.9, metalness:0.0,
+  envMapIntensity:0.35, side:THREE.DoubleSide});
+const strap = new THREE.Mesh(buildStrap(R_NECK, STRAP_W, STRAP_T, ARC, 160), strapMat);
 strap.castShadow=true; strap.receiveShadow=true; scene.add(strap);
 
 // 車縫線（兩側）
@@ -1161,7 +1164,7 @@ for (const dv of [STRAP_W/2-2.0, -(STRAP_W/2-2.0)]) {
   m.castShadow=false; scene.add(m);
 }
 
-// ══ 表頭外殼（圓角 + 倒角）══
+// ══ 表頭外殼 ══
 function roundedRectShape(w,h,r){
   const s=new THREE.Shape(); const x=-w/2, y=-h/2;
   s.moveTo(x+r,y); s.lineTo(x+w-r,y); s.quadraticCurveTo(x+w,y,x+w,y+r);
@@ -1169,58 +1172,116 @@ function roundedRectShape(w,h,r){
   s.lineTo(x+r,y+h); s.quadraticCurveTo(x,y+h,x,y+h-r);
   s.lineTo(x,y+r); s.quadraticCurveTo(x,y,x+r,y); return s;
 }
-const caseMat = M(0xf0ece4, 0.52, 0.02, 1.0);
-const accentMat = M(0xe8734a, 0.55, 0.02, 0.8);
-const darkMat = M(0x23262d, 0.42, 0.05, 0.7);
+const caseMat  = M(0xf0ece4, 0.52, 0.02, 1.0);
+const accentMat= M(0xe8734a, 0.55, 0.02, 0.8);
+const darkMat  = M(0x23262d, 0.42, 0.05, 0.7);
+const chromeMat= M(0xdfe4ec, 0.14, 1.0, 1.7);          // 聽診器金屬振膜（拋光不鏽鋼）
+const goldMat  = M(0xd8b45a, 0.28, 0.95, 1.4);
 const glassMat = new THREE.MeshStandardMaterial({color:0x0b0d12, roughness:0.12, metalness:0.35,
   envMapIntensity:1.6, transparent:true, opacity:0.92});
+const ppgGlassMat = new THREE.MeshStandardMaterial({color:0x0a1410, roughness:0.1, metalness:0.3,
+  envMapIntensity:1.5, transparent:true, opacity:0.95});
 
 const podGroup = new THREE.Group();
 const podZ = R_NECK + STRAP_T/2 + CASE_H/2;      // 表頭貼在帶子外側
 podGroup.position.set(0, 0, podZ);
 scene.add(podGroup);
 
-const caseGeo = new THREE.ExtrudeGeometry(roundedRectShape(CASE_L, CASE_W, 6), {
-  depth: CASE_H-1.6, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.8, bevelSegments:4, curveSegments:14});
+const caseGeo = new THREE.ExtrudeGeometry(roundedRectShape(CASE_L, CASE_W, 7), {
+  depth: CASE_H-1.6, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.8, bevelSegments:4, curveSegments:16});
 caseGeo.center();
 const caseMesh = new THREE.Mesh(caseGeo, caseMat);
 caseMesh.castShadow=true; caseMesh.receiveShadow=true; podGroup.add(caseMesh);
 
-// 0.96" OLED 開窗（外側面）
-const win = new THREE.Mesh(new THREE.BoxGeometry(WIN_L, WIN_W, 1.2), glassMat);
-win.position.set(0, 0, CASE_H/2 - 0.2); podGroup.add(win);
-const winBezel = new THREE.Mesh(new THREE.BoxGeometry(WIN_L+2.4, WIN_W+2.4, 0.9), darkMat);
-winBezel.position.set(0, 0, CASE_H/2 - 0.7); podGroup.add(winBezel);
-// 螢幕內容（示意：顯示 PET / 辨識結果）
+// ── 正面：1.69" 液晶螢幕 ──
+const zF = CASE_H/2;                       // 正面 z
+const bezel = new THREE.Mesh(new THREE.BoxGeometry(WIN_L+2.6, WIN_W+2.6, 1.4), darkMat);
+bezel.position.set(0, 0, zF - 0.5); podGroup.add(bezel);
+const win = new THREE.Mesh(new THREE.BoxGeometry(WIN_L, WIN_W, WIN_T), glassMat);
+win.position.set(0, 0, zF - 0.1); podGroup.add(win);
+// 螢幕內容（心音 / 心率 / 體溫 UI）
 (function(){
-  const c=document.createElement('canvas'); c.width=256; c.height=136; const x=c.getContext('2d');
-  x.fillStyle='#08111c'; x.fillRect(0,0,256,136);
-  x.fillStyle='#5ff0c8'; x.font='bold 34px monospace'; x.fillText('PET COLLAR', 14, 40);
-  x.fillStyle='#ffd166'; x.font='bold 30px monospace'; x.fillText('CAT-FOOD 76%', 14, 82);
-  x.fillStyle='#8fb7ff'; x.font='22px monospace'; x.fillText('BAT 3.92V  GPS OFF', 14, 116);
+  const c=document.createElement('canvas'); c.width=560; c.height=480; const x=c.getContext('2d');
+  x.fillStyle='#060d16'; x.fillRect(0,0,560,480);
+  // 標題列
+  x.fillStyle='#0e1b2a'; x.fillRect(0,0,560,64);
+  x.fillStyle='#5ff0c8'; x.font='bold 34px monospace'; x.fillText('PET COLLAR', 20, 44);
+  x.fillStyle='#8fb7ff'; x.font='bold 26px monospace'; x.fillText('LIVE', 452, 42);
+  // 心率
+  x.fillStyle='#ff8fa3'; x.font='bold 96px monospace'; x.fillText('86', 26, 182);
+  x.fillStyle='#ff8fa3'; x.font='bold 30px monospace'; x.fillText('BPM', 200, 178);
+  // 心音波形
+  x.strokeStyle='#5ff0c8'; x.lineWidth=4; x.beginPath();
+  const pts=[[0,300],[40,300],[56,268],[68,340],[80,246],[92,300],[150,300],[166,286],[178,312],[190,300],
+             [250,300],[266,262],[278,346],[290,240],[302,300],[360,300],[376,288],[388,310],[400,300],
+             [460,300],[476,268],[488,340],[500,250],[512,300],[560,300]];
+  pts.forEach(([px,py],i)=> i?x.lineTo(px,py):x.moveTo(px,py)); x.stroke();
+  // 體溫 / 電量
+  x.fillStyle='#ffd166'; x.font='bold 32px monospace'; x.fillText('38.4°C', 26, 404);
+  x.fillStyle='#8fb7ff'; x.font='bold 30px monospace'; x.fillText('BAT 82%', 250, 404);
+  x.fillStyle='#39465a'; x.font='22px monospace'; x.fillText('SPO2 97%   ACT 1,240', 26, 452);
   const t=new THREE.CanvasTexture(c);
-  const scr=new THREE.Mesh(new THREE.PlaneGeometry(WIN_L-0.6, WIN_W-0.6),
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(WIN_L-0.5, WIN_W-0.5),
     new THREE.MeshBasicMaterial({map:t}));
-  scr.position.set(0, 0, CASE_H/2 + 0.42); podGroup.add(scr);
+  scr.position.set(0, 0, zF + 0.95); podGroup.add(scr);
 })();
-
-// 麥克風孔（Ø2.5mm）×2，頂面
-for (const dx of [CASE_L/2-7, CASE_L/2-11]) {
-  const h = new THREE.Mesh(new THREE.CylinderGeometry(MIC_D/2, MIC_D/2, 1.2, 16), darkMat);
-  h.rotation.x = Math.PI/2; h.position.set(dx, 0, CASE_H/2 - 0.2); podGroup.add(h);
+// 螢幕下方品牌飾條 + 狀態 LED
+const strip = box(CASE_L-18, 1.6, 0.7, accentMat, 0, -CASE_W/2+4.6, zF-0.3); podGroup.add(strip);
+const led = new THREE.Mesh(new THREE.SphereGeometry(1.0, 14, 12),
+  new THREE.MeshStandardMaterial({color:0x36d399, emissive:0x1f9e6e, emissiveIntensity:1.5, roughness:0.3}));
+led.position.set(CASE_L/2-5, CASE_W/2-4.2, zF-0.3); podGroup.add(led);
+// 收音麥克風孔（Ø2.5mm ×2，正面左上）
+for (const dx of [-CASE_L/2+9, -CASE_L/2+14]) {
+  const h = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 1.2, 16), darkMat);
+  h.rotation.x = Math.PI/2; h.position.set(dx, CASE_W/2-6, zF-0.2); podGroup.add(h);
 }
 // USB-C 開孔（側面）
-const usb = box(9, 3.5, 2.0, darkMat, -CASE_L/2+0.2, -CASE_W/2+7, 0); podGroup.add(usb);
-// 狀態 LED
-const led = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 10),
-  new THREE.MeshStandardMaterial({color:0x36d399, emissive:0x1f9e6e, emissiveIntensity:1.4, roughness:0.3}));
-led.position.set(CASE_L/2-4, CASE_W/2-3.6, CASE_H/2-0.3); podGroup.add(led);
-// 品牌刻字條（橘色飾條）
-const strip = box(CASE_L-14, 1.6, 0.7, accentMat, 0, -CASE_W/2+4.2, CASE_H/2-0.3); podGroup.add(strip);
-// 穿帶槽示意（表頭下方兩個導帶環）
-for (const dx of [-CASE_L/2+7, CASE_L/2-7]) {
-  const loop = new THREE.Mesh(new THREE.TorusGeometry(5.2, 1.1, 10, 22), strapMat);
+const usb = box(9, 3.6, 2.0, darkMat, -CASE_L/2+0.1, -CASE_W/2+8, 0); podGroup.add(usb);
+// 穿帶槽（表頭後方兩個導帶環）
+for (const dx of [-CASE_L/2+8, CASE_L/2-8]) {
+  const loop = new THREE.Mesh(new THREE.TorusGeometry(5.4, 1.1, 10, 22), strapMat);
   loop.rotation.y = Math.PI/2; loop.position.set(dx, 0, -CASE_H/2-1.2); podGroup.add(loop);
+}
+
+// ── 背面：感測器（聽診器式振膜 + PPG + 溫度貼片 + 聲學收音孔）──
+const zB = -CASE_H/2;                      // 背面 z
+// 背板（深色感測區）
+const backPlate = new THREE.Mesh(new THREE.ExtrudeGeometry(roundedRectShape(CASE_L-10, CASE_W-8, 6), {
+  depth:0.8, bevelEnabled:false}), M(0x1b1e24, 0.55, 0.1, 0.6));
+backPlate.position.set(0, 0, zB-0.4); podGroup.add(backPlate);
+// 聽診器式金屬振膜（Ø28，外凸 3.6mm）
+const bell = new THREE.Mesh(new THREE.CylinderGeometry(BELL_D/2, BELL_D/2-0.9, 3.6, 64), chromeMat);
+bell.rotation.x = Math.PI/2; bell.position.set(0, 1.5, zB-2.1); bell.castShadow=true; podGroup.add(bell);
+const bellFace = new THREE.Mesh(new THREE.CylinderGeometry(BELL_D/2-0.4, BELL_D/2-0.4, 0.7, 64), chromeMat);
+bellFace.rotation.x = Math.PI/2; bellFace.position.set(0, 1.5, zB-3.9); podGroup.add(bellFace);
+const bellRim = new THREE.Mesh(new THREE.TorusGeometry(BELL_D/2+0.6, 0.75, 12, 64), chromeMat);
+bellRim.rotation.x = Math.PI/2; bellRim.position.set(0, 1.5, zB-3.4); podGroup.add(bellRim);
+// 振膜上的同心溝 + 聲學收音孔 ×12（心音／呼吸音）
+const groove = new THREE.Mesh(new THREE.TorusGeometry(9.4, 0.32, 10, 56), M(0x8f97a3, 0.28, 0.92, 1.3));
+groove.rotation.x = Math.PI/2; groove.position.set(0, 1.5, zB-4.25); podGroup.add(groove);
+for (let i=0;i<12;i++){
+  const a = i*Math.PI/6;
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 1.6, 12), M(0x07090c, 0.7, 0.2, 0.3));
+  hole.rotation.x = Math.PI/2;
+  hole.position.set(Math.cos(a)*12.4, 1.5+Math.sin(a)*12.4, zB-4.1); podGroup.add(hole);
+}
+// PPG 心率感測窗 ×2（綠色 LED + 光電二極體）
+for (const dy of [7.5, -7.5]) {
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 2.9, 0.9, 28), ppgGlassMat);
+  g.rotation.x = Math.PI/2; g.position.set(-22.5, dy, zB-0.9); podGroup.add(g);
+  const e = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 0.6, 24),
+    new THREE.MeshStandardMaterial({color:0x45ffa8, emissive:0x18e07f, emissiveIntensity:2.4, roughness:0.3}));
+  e.rotation.x = Math.PI/2; e.position.set(-22.5, dy, zB-1.5); podGroup.add(e);
+}
+// 溫度感測貼片（金屬接觸片 + 感測 IC）
+const tempPad = new THREE.Mesh(new THREE.BoxGeometry(7.5, 14, 0.9), chromeMat);
+tempPad.position.set(20.5, 1.5, zB-0.9); tempPad.castShadow=true; podGroup.add(tempPad);
+const tempIC = new THREE.Mesh(new THREE.BoxGeometry(4.6, 4.6, 1.0), M(0x14181f, 0.5, 0.1, 0.5));
+tempIC.position.set(20.5, 1.5, zB-1.5); podGroup.add(tempIC);
+// 充電接觸點（pogo pin ×2）
+for (const dx of [-5.5, 5.5]) {
+  const p = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.7, 20), goldMat);
+  p.rotation.x = Math.PI/2; p.position.set(dx, -16.5, zB-0.9); podGroup.add(p);
 }
 
 // ══ 側壓式安全扣（貓用必備）══
@@ -1235,17 +1296,8 @@ const bmesh = new THREE.Mesh(bg, buckleMat); bmesh.castShadow=true; bk.add(bmesh
 for (const dx of [-5.5, 5.5]) { const p = box(4, 22, 3, buckleMat, dx, 0, 6.6); bk.add(p); }
 scene.add(bk);
 
-// ══ 展示頸柱（讓「戴在脖子上」一看就懂）══
-const neck = new THREE.Mesh(new THREE.CylinderGeometry(R_NECK-2.5, R_NECK-1.2, 78, 48, 1, true),
-  new THREE.MeshStandardMaterial({color:0xc9ced8, roughness:0.92, metalness:0.0,
-    side:THREE.DoubleSide, envMapIntensity:0.5}));
-neck.position.y = 0; neck.receiveShadow = true; scene.add(neck);
-const neckTop = new THREE.Mesh(new THREE.CircleGeometry(R_NECK-1.2, 48),
-  new THREE.MeshStandardMaterial({color:0xd6dae2, roughness:0.95}));
-neckTop.rotation.x = -Math.PI/2; neckTop.position.y = 39; scene.add(neckTop);
-
-// ══ 標籤 ══
-function label(text,x,y,z,size=14,color='#ffffff'){
+// ══ 標籤（正面／背面分組，依視角切換）══
+function label(text,x,y,z,size=14,color='#ffffff',group){
   const c=document.createElement('canvas'); const g0=c.getContext('2d');
   g0.font='bold 44px "PingFang TC","Heiti TC",sans-serif';
   c.width=Math.ceil(g0.measureText(text).width+40); c.height=64;
@@ -1254,24 +1306,36 @@ function label(text,x,y,z,size=14,color='#ffffff'){
   g.fillStyle=color; g.textBaseline='middle'; g.fillText(text,20,34);
   const t=new THREE.CanvasTexture(c);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));
-  const k=size/22*0.09; sp.scale.set(c.width*k, c.height*k, 1); sp.position.set(x,y,z); scene.add(sp);
+  const k=size/22*0.09; sp.scale.set(c.width*k, c.height*k, 1);
+  sp.position.set(x,y,z); scene.add(sp);
+  if(group) group.push(sp);
+  return sp;
 }
-label('顯示版表頭 64 × 34 × 17.8 mm', 0, 36, 70, 15, '#ffcf9a');
-label('0.96" OLED 開窗 22.5 × 12 mm', 0, -34, 62, 13, '#8fd7ff');
-label('項圈帶寬 20 mm', -56, -30, -6, 13);
-label('側壓式安全扣（貓用）', -56, 30, -32, 13, '#ffb4a2');
-label('示意頸圍 209 mm（約 21 cm，貓咪適用）', 40, 34, -26, 12, '#9aa2b1');
+const frontLabels=[], backLabels=[];
+label('表頭 66 × 42 × 17.8 mm', 0, 42, 72, 15, '#ffcf9a', frontLabels);
+label('1.69" 液晶螢幕（開窗 35 × 30 mm）', 0, -42, 70, 13, '#8fd7ff', frontLabels);
+label('項圈帶寬 20 mm', -64, -28, -8, 13, '#ffffff', frontLabels);
+label('側壓式安全扣（貓用）', -62, 32, -36, 13, '#ffb4a2', frontLabels);
+label('聽診器式金屬振膜 Ø28 mm', 0, 40, 26, 14, '#ffd9a0', backLabels);
+label('聲學收音孔 ×12（心音／呼吸音）', 0, -36, 26, 12, '#c9d6ff', backLabels);
+label('PPG 心率感測窗 ×2', -56, 6, 22, 12, '#a8ffd8', backLabels);
+label('溫度感測貼片', 56, 6, 22, 12, '#ffc4a3', backLabels);
 
 // ══ 自動取景：把模型放到畫面正中央 ══
+const BARE = q.get('bare') === '1';                 // 只留表頭（出圖檢查感測器用）
+if (BARE) { strap.visible = false; bk.visible = false; }
 const product = new THREE.Group();
-[strap, podGroup, bk, neck, neckTop].forEach(o => product.add(o));
+[strap, podGroup, bk].forEach(o => product.add(o));
 scene.add(product);
-const pbox = new THREE.Box3().setFromObject(product);
-const pc = pbox.getCenter(new THREE.Vector3());
-const pr = pbox.getSize(new THREE.Vector3()).length() / 2;
 const podBox = new THREE.Box3().setFromObject(podGroup);
 const podC = podBox.getCenter(new THREE.Vector3());
 const podR = podBox.getSize(new THREE.Vector3()).length() / 2;
+const frameObj = BARE ? podGroup : product;
+const pbox = new THREE.Box3().setFromObject(frameObj);
+const pc = pbox.getCenter(new THREE.Vector3());
+const pr = pbox.getSize(new THREE.Vector3()).length() / 2;
+const hideAllLabels = BARE || q.get('nolabel') === '1';
+frontLabels.concat(backLabels).forEach(s => { if (hideAllLabels) s.visible = false; });
 
 function frame(azDeg, elDeg, fov, pad = 1.15, center = pc, radius = pr) {
   const az = azDeg * Math.PI / 180, el = elDeg * Math.PI / 180;
@@ -1284,9 +1348,7 @@ function frame(azDeg, elDeg, fov, pad = 1.15, center = pc, radius = pr) {
     target: center.clone(), fov
   };
 }
-
-// 把「投影後的實際範圍」對準畫面正中心（透視會讓視覺重心偏移，所以用迭代修正）
-function centerView(view, obj = product) {
+function centerView(view, obj = frameObj) {
   const dir = new THREE.Vector3().subVectors(view.target, view.pos).normalize();
   const up0 = new THREE.Vector3(0, 1, 0);
   const right = new THREE.Vector3().crossVectors(dir, up0).normalize();
@@ -1314,9 +1376,7 @@ function centerView(view, obj = product) {
   }
   return view;
 }
-
-// 取景＝置中 + 填滿（讓模型佔畫面約 85%，不會太小也不會切邊）
-function wrap(view, fill = 0.85, obj = product) {
+function wrap(view, fill = 0.85, obj = frameObj) {
   const measure = (vw) => {
     const cam = new THREE.PerspectiveCamera(vw.fov, W / H, 1, 5000);
     cam.position.copy(vw.pos); cam.lookAt(vw.target);
@@ -1344,21 +1404,22 @@ function wrap(view, fill = 0.85, obj = product) {
 
 // ══ 視角 ══
 const VIEWS = {
-  iso:     wrap(frame(-42, 24, 38)),
-  top:     wrap(frame(0, 86, 36)),
-  closeup: wrap(frame(-18, 14, 34, 1.0, podC, podR), 0.9, podGroup),
-  worn:    wrap(frame(-58, 16, 40)),
+  iso:     wrap(frame(-40, 26, 38)),
+  top:     wrap(frame(0, 84, 36)),
+  front:   wrap(frame(0, 12, 36)),
+  back:    wrap(frame(182, 14, 34)),
+  closeup: wrap(frame(-14, 12, 32, 1.0, podC, podR), 0.92, podGroup),
 };
 const v = VIEWS[VIEW] || VIEWS.iso;
 camera.position.copy(v.pos); camera.fov = v.fov; camera.updateProjectionMatrix();
-// 環繞出圖用：?spin=<度數>（360° 轉盤影片）— 固定距離，轉動時不會忽大忽小
+// 環繞出圖：?spin=<度數>（固定距離，轉動時不會忽大忽小）
 const spin = parseFloat(q.get('spin') || 'NaN');
 let spinDist = 0;
 for (let a = 0; a < 360; a += 30) {
-  const t = wrap(frame(a, 22, 38));
+  const t = wrap(frame(a, 24, 38));
   spinDist = Math.max(spinDist, t.pos.distanceTo(t.target));
 }
-const spinView = centerView(frame(spin, 22, 38));
+const spinView = centerView(frame(spin, 24, 38));
 (() => {
   const d = new THREE.Vector3().subVectors(spinView.pos, spinView.target).normalize();
   spinView.pos.copy(spinView.target).addScaledVector(d, spinDist);
@@ -1367,15 +1428,23 @@ const spinView = centerView(frame(spin, 22, 38));
 if (!isNaN(spin)) {
   camera.position.copy(spinView.pos); camera.fov = spinView.fov; camera.updateProjectionMatrix();
 }
+// 依視角顯示正面或背面的標籤（避免標籤疊在模型上）
+const azNorm = ((spin % 360) + 360) % 360;
+const showBack = isNaN(spin) ? (VIEW === 'back') : (azNorm > 95 && azNorm < 265);
+frontLabels.forEach(s => { if (!hideAllLabels) s.visible = !showBack; });
+backLabels.forEach(s => { if (!hideAllLabels) s.visible = showBack; });
+
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.target.copy(isNaN(spin) ? v.target : spinView.target);
 controls.enableDamping=true; controls.dampingFactor=0.08;
 controls.minDistance=50; controls.maxDistance=900; controls.update();
 
 if (!SHOT) {
-  const ids=['b1','b2','b3','b4'], keys=['iso','top','closeup','worn'];
+  const ids=['b1','b2','b3','b4'], keys=['iso','top','closeup','back'];
   const set=n=>{const w=VIEWS[n];camera.position.copy(w.pos);camera.fov=w.fov;camera.updateProjectionMatrix();
     controls.target.copy(w.target);controls.update();
+    const b = (n==='back');
+    frontLabels.forEach(s=>s.visible=!b); backLabels.forEach(s=>s.visible=b);
     ids.forEach((id,i)=>document.getElementById(id).classList.toggle('on',keys[i]===n));};
   ids.forEach((id,i)=>document.getElementById(id).onclick=()=>set(keys[i]));
   const b5=document.getElementById('b5');
