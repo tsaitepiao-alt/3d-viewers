@@ -1325,7 +1325,7 @@ const ids={m1:'lift',m2:'nolift',m3:'both'};
 Object.keys(ids).forEach(id=>{ const el=document.getElementById(id);
   el.onclick=()=>{ mode=ids[id]; Object.keys(ids).forEach(k=>document.getElementById(k).classList.toggle('on',k===id));
     if(mode==='both'&&annot) annot.visible=labels; drawAll(); }; });
-document.getElementById('b1').onclick=()=>playing=true;
+document.getElementById('b1').onclick=()=>{ if(t>=0.999) t=0; playing=true; };
 document.getElementById('b2').onclick=()=>playing=false;
 [['s1',0.25],['s2',0.5],['s3',1]].forEach(([id,sp])=>{ const el=document.getElementById(id);
   el.onclick=()=>{ speed=sp; ['s1','s2','s3'].forEach(k=>document.getElementById(k).classList.toggle('on',k===id)); }; });
@@ -1342,7 +1342,11 @@ let last=performance.now();
 (function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  if(playing){ t+=dt*speed*0.32; if(t>1){ t=0; } document.getElementById('tl').value=Math.round(t*1000); }
+  if(playing){
+    t+=dt*speed*0.32; if(t>1){ t=0; }
+    document.getElementById('tl').value=Math.round(t*1000);
+    drawAll();                     // ← 這行是關鍵：每格重繪，動畫才會動
+  }
   if(mode!=='both') controls.update();
   renderer.render(scene,camera);
 })(performance.now());
