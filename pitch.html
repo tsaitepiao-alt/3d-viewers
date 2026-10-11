@@ -1245,11 +1245,11 @@ function drawFigure(fig, J, ghost){
   bone(J.shR,J.shL,0.045,jy,g);                          // 肩線
   bone(J.hipR,J.hipL,0.05,jy,g);                         // 髖線
   bone(J.shR,J.elbR,0.055,sk,g); bone(J.elbR,J.handR,0.05,sk,g); ball(0.06,sk,...J.handR,g);
-  const bb=new THREE.Mesh(new THREE.SphereGeometry(0.037,16,12), M(0xf7f5f0,0.5,0.02,0.6,ghost,op));
-  bb.position.set(J.handR[0]+0.02,J.handR[1]-0.05,J.handR[2]+0.06); bb.castShadow=true; g.add(bb);
+  const bb=new THREE.Mesh(new THREE.SphereGeometry(0.046,16,12), M(0xf7f5f0,0.5,0.02,0.6,ghost,op));
+  bb.position.set(J.handR[0]+0.03,J.handR[1]-0.09,J.handR[2]+0.11); bb.castShadow=true; g.add(bb);
   bone(J.shL,J.elbL,0.055,sk,g); bone(J.elbL,J.handL,0.05,sk,g);
   const glv=new THREE.Mesh(new THREE.SphereGeometry(0.11,18,14), M(0x8a5a2b,0.85,0.02,0.3,ghost,op));
-  glv.position.set(J.handL[0],J.handL[1],J.handL[2]); glv.scale.set(1,0.6,1); g.add(glv);
+  glv.position.set(J.handL[0]-0.03,J.handL[1]+0.02,J.handL[2]+0.04); glv.scale.set(1,0.62,1); g.add(glv);
   bone(J.hipR,J.kneeR,0.075,pt,g); bone(J.kneeR,J.footR,0.065,pt,g); bone(J.footR,[J.footR[0]+0.10,0.03,J.footR[2]+0.20],0.055,sh,g);
   bone(J.hipL,J.kneeL,0.075,pt,g); bone(J.kneeL,J.footL,0.065,pt,g); bone(J.footL,[J.footL[0]+0.10,0.03,J.footL[2]+0.20],0.055,sh,g);
   fig.J=J;
@@ -1268,7 +1268,13 @@ function updateAnnot(J, p){
   L([0,0,J.pelvis[2]],[0,2.05,J.pelvis[2]],0xffd166,0.95);
   ball(0.045, new THREE.MeshBasicMaterial({color:0xffd166}), 0, J.pelvis[1], J.pelvis[2], annot);
   // 肩線（藍）與髖線（橘）→ 肩髖分離
-  L(J.shR,J.shL,0x60a5fa,1); L(J.hipR,J.hipL,0xfb923c,1);
+  const ext=(a,b,k=0.14)=>[ [a[0]+(a[0]-b[0])*k, a[1], a[2]+(a[2]-b[2])*k], [b[0]+(b[0]-a[0])*k, b[1], b[2]+(b[2]-a[2])*k] ];
+  const [s1,s2]=ext(J.shR,J.shL), [h1,h2]=ext(J.hipR,J.hipL);
+  const tube=(a,b,c)=>{ const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b), Ln=A.distanceTo(B);
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,Ln,8), new THREE.MeshBasicMaterial({color:c}));
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize()); annot.add(m); };
+  tube(s1,s2,0x60a5fa); tube(h1,h2,0xfb923c);
   const lab=document.getElementById('mt');
   if(lab) lab.innerHTML = '肩髖分離 <b style="color:#60a5fa">'+Math.abs(Math.round(p.sep))+'°</b>　COM 高度 '
     + J.pelvis[1].toFixed(2)+' m　跨步 '+(p.stride*0.95).toFixed(2)+' m';
@@ -1329,7 +1335,9 @@ document.getElementById('g2').onclick=e=>{ labels=!labels; e.target.classList.to
 document.getElementById('v1').onclick=()=>{ setView('side'); ['v1','v2','v3'].forEach(k=>document.getElementById(k).classList.toggle('on',k==='v1')); };
 document.getElementById('v2').onclick=()=>{ setView('three'); ['v1','v2','v3'].forEach(k=>document.getElementById(k).classList.toggle('on',k==='v2')); };
 document.getElementById('v3').onclick=()=>{ setView('front'); ['v1','v2','v3'].forEach(k=>document.getElementById(k).classList.toggle('on',k==='v3')); };
-buildAnnot(); drawAll();
+buildAnnot();
+if(q.get('t')){ t=parseFloat(q.get('t')); const el=document.getElementById('tl'); if(el) el.value=Math.round(t*1000); }
+drawAll();
 let last=performance.now();
 (function loop(now){
   requestAnimationFrame(loop);
@@ -1338,6 +1346,5 @@ let last=performance.now();
   if(mode!=='both') controls.update();
   renderer.render(scene,camera);
 })(performance.now());
-if(q.get('t')){ t=parseFloat(q.get('t')); }
 addEventListener('resize',()=>{ camera.aspect=W()/H(); camera.updateProjectionMatrix(); renderer.setSize(W(),H()); });
 </script></body></html>
