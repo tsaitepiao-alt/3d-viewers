@@ -1379,6 +1379,13 @@ function buildField(){
   tr.rotation.x=-Math.PI/2; g.add(tr);
   const trProx=hitProx(new THREE.RingGeometry(FENCE_LINE-TRACK_W*1.6, FENCE_LINE+1200, 64, 1, -Math.PI*0.75, Math.PI*0.5), 0, gy+40, 0, 'track');
   trProx.rotation.x=-Math.PI/2; g.add(trProx);
+  // 警戒區內緣白線
+  (function(){
+    const pts=[]; for(let i=0;i<=80;i++){ const tt=i/80, a=-Math.PI*0.25+Math.PI*0.5*tt;
+      const r=FENCE_LINE+(FENCE_CF-FENCE_LINE)*Math.sin(Math.PI*tt)-TRACK_W;
+      pts.push(new THREE.Vector3(Math.sin(a)*r, gy+22, Math.cos(a)*r)); }
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 70, 8, false), white));
+  })();
   // ④ 全壘打牆（325/400/325 弧線）＋距離牌
   const wallPts=[]; const n=80;
   for(let i=0;i<=n;i++){ const tt=i/n, a=-Math.PI*0.25+Math.PI*0.5*tt;
@@ -1450,9 +1457,9 @@ function buildField(){
     const e=mkI(new THREE.BoxGeometry(thick,14,d), m, cx+w/2, y, cz, key); g.add(e);
     g.add(hitProx(new THREE.BoxGeometry(w*1.05,200,d*1.05), cx, y+60, cz, key));
   };
-  for(const s of [1,-1]) outlineRect(s*(PLATE_W/2+BOX_W/2+220), 420, BOX_W, BOX_D, 70, 0xf2f2ef, gy+16, 'box');
-  outlineRect(0, -1250, 1370, 2440, 70, 0xd8dbe0, gy+16, 'cbox');
-  for(const s of [1,-1]) outlineRect(s*7600, 6600, 3200, 1800, 70, 0xd8dbe0, gy+16, 'coach');
+  for(const s of [1,-1]) outlineRect(s*(PLATE_W/2+BOX_W/2+220), 420, BOX_W, BOX_D, 170, 0xffffff, gy+16, 'box');
+  outlineRect(0, -1250, 1370, 2440, 170, 0xe6e9ee, gy+16, 'cbox');
+  for(const s of [1,-1]) outlineRect(s*7600, 6600, 3200, 1800, 170, 0xe6e9ee, gy+16, 'coach');
   for(const s of [1,-1]){
     const ring=mkI(new THREE.TorusGeometry(1500,55,8,44), M(0xf2f2ef,0.85,0,0.5), s*8600, gy+18, -7200, 'ondeck');
     ring.rotation.x=Math.PI/2; g.add(ring);
