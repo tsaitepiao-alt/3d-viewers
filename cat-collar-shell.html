@@ -4799,6 +4799,7 @@ function setBg(w){
   gridDark.visible=!lightBg;gridLight.visible=lightBg;
   document.body.style.background=(lightBg?'#f2f4f7':'#101418');
   document.getElementById('bBg').textContent=(lightBg?'🌙 黑底':'☀️ 白底');
+  syncOutline();
 }
 window.setBg=setBg;
 document.getElementById('bBg').onclick=function(){setBg(!lightBg);};
@@ -4808,9 +4809,10 @@ document.getElementById('bBg').onclick=function(){setBg(!lightBg);};
    直接改 material.color，比逐面改頂點色快又準。 */
 var PAL=[{n:'紅',c:'#d8342a'},{n:'橙',c:'#e8801a'},{n:'黃',c:'#e8c516'},
          {n:'綠',c:'#33a04a'},{n:'藍',c:'#2a6fd6'},{n:'靛',c:'#3b3fb0'},
-         {n:'紫',c:'#8a35cf'},{n:'白',c:'#f2f2f2'}];
+         {n:'紫',c:'#8a35cf'},{n:'白',c:'#f2f2f2'},{n:'黑',c:'#23272e'}];
 var DEF={top:'#2e7d32',bot:'#1f4e79'};
 var shellTop=null,shellBot=null,curSel=-1;
+var olMeshes=[];                       /* 反殼輪廓（依殼/底色自動深或淺） */
 var PALETTE_ON=!!document.getElementById('palGrid');
 
 function paintPart(mesh,hex){
@@ -4819,11 +4821,23 @@ function paintPart(mesh,hex){
   mesh.material.color.set(hex);
   mesh.material.needsUpdate=true;
 }
-/* 同色但拉開明度：上蓋亮、下蓋暗，接縫才看得出來 */
+/* 同色但拉開明度：上蓋亮、下蓋暗，接縫才看得出來。
+   很暗的色（黑）用乘法拉不開（0.16×1.2 只到 0.19）→ 改用「加固定量」，才看得出分模線。 */
 function tone(hex,f){
   var c=new THREE.Color(hex),h={};
-  c.getHSL(h);c.setHSL(h.h,h.s,Math.min(0.93,Math.max(0.06,h.l*f)));
+  c.getHSL(h);
+  var l=(f>1)?Math.max(h.l*f,h.l+0.095):Math.min(h.l*f,h.l-0.055);
+  c.setHSL(h.h,h.s,Math.min(0.93,Math.max(0.045,l)));
   return c.getStyle();
+}
+/* 輪廓顏色：殼跟底色太接近時才跳出來（白殼白底、黑殼黑底這兩個死角）。
+   用 max(R,G,B) 判斷深淺——HSL 的 l 對飽和色會低估（綠 l=0.335 會被誤判成深色殼）。 */
+function syncOutline(){
+  if(!olMeshes.length||!shellTop||!scene.background)return;
+  var c=shellTop.material.color,bg=scene.background;
+  var v=Math.max(c.r,c.g,c.b),bv=Math.max(bg.r,bg.g,bg.b);
+  var col=(bv<0.5&&v<0.35)?0xd9e0e8:0x0d1319;
+  for(var i=0;i<olMeshes.length;i++)olMeshes[i].material.color.setHex(col);
 }
 function syncLegend(){
   var sws=document.querySelectorAll('#legend .sw');
@@ -4847,6 +4861,7 @@ function applyPal(i){
     nameEl.textContent='外殼顏色：'+PAL[i].n;
   }
   syncLegend();
+  syncOutline();
 }
 window.applyPal=applyPal;
 if(PALETTE_ON){
@@ -4912,10 +4927,11 @@ loader.parse(b64buf(B64),'',function(gl){
       var o=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x0d1319,side:THREE.BackSide}));
       o.position.copy(m.position);o.rotation.copy(m.rotation);o.scale.copy(m.scale);
       o.renderOrder=-1;
-      gl.scene.add(o);
+      gl.scene.add(o);olMeshes.push(o);
     });
+    syncOutline();
   }
-  window.__shell={top:shellTop,bot:shellBot,paletteOn:PALETTE_ON};
+  window.__shell={top:shellTop,bot:shellBot,paletteOn:PALETTE_ON,ol:olMeshes};
   scene.add(gl.scene);
   var bb=new THREE.Box3().setFromObject(gl.scene);
   var s=new THREE.Vector3();bb.getSize(s);
