@@ -1274,6 +1274,17 @@ function updateTrail(mode, show){
     m.position.set(...J.batEnd); traileGroup.add(m);
   }
 }
+/* 單一圖上畫該模式的軌跡點（區域座標，對照模式用） */
+function localTrail(fig, mode){
+  const g=fig.g, col=MODES[mode].trail;
+  for(let i=0;i<=18;i++){
+    const tt=0.22+(i/18)*0.72;
+    const J=joints(applyMode(poseAt(tt), mode));
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.032,10,8),
+      new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.9}));
+    m.position.set(...J.batEnd); g.add(m);
+  }
+}
 /* ── 場景 ── */
 const F1={g:new THREE.Group()}, GH=[];
 scene.add(F1.g);
@@ -1293,6 +1304,7 @@ function drawAll(){
     ['drop','chop','plane'].forEach(k=>{
       FG[k].g.visible=true; FG[k].g.position.set(...P[k]);
       drawFigure(FG[k], joints(applyMode(poseAt(t), k)), k, false);
+      if (trail) localTrail(FG[k], k);
     });
     F1.g.visible=false; GHOSTS.forEach(f=>f.g.visible=false);
     updateTrail('plane', false);
@@ -1314,7 +1326,7 @@ function drawAll(){
   const mm=currentMode();
   const src=poseAt(t);
   document.getElementById('ph').textContent = (mode==='both'? MODES[mm].name+'（並排比較）' : src.name);
-  document.getElementById('tx').textContent = (mode==='both'? '三種路徑同時播放：紅點是錯誤路徑、綠點是正確路徑，注意球棒在好球帶裡的停留時間差別。' : src.tx);
+  document.getElementById('tx').textContent = (mode==='both'? '三種路徑並排：前兩個是常見錯誤（紅點軌跡），第三個是正確的「提早進平面」（綠點軌跡）。看球棒與來球平面的貼合程度。' : src.tx);
   const inZone=counterZone(mm);
   document.getElementById('mt').innerHTML = (mode==='both') ? '' :
     `與來球同平面時間 <b>${inZone.pct}%</b>（平均夾角 ${inZone.avg}°）　<span style="color:${MODES[mm].ok?'#4ade80':'#ff8a80'}">${MODES[mm].ok?'✓ 正確路徑':'✗ '+MODES[mm].name.split(' ')[0]}</span>`
