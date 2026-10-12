@@ -23,6 +23,13 @@
  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px}
  #err{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#ff8a80;
    font-size:14px;background:rgba(30,10,10,.9);padding:14px 18px;border-radius:10px;display:none}
+ /* 點選後的尺寸說明卡 */
+ #finfo{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;display:none;
+   background:rgba(12,16,20,.92);border:1px solid #ff3b30;border-radius:12px;padding:11px 14px;
+   font-size:13px;line-height:1.65;max-width:420px;backdrop-filter:blur(6px)}
+ #finfo h4{margin:0 0 6px;font-size:14px;color:#ff6b60}
+ #finfo .x{position:absolute;right:9px;top:6px;cursor:pointer;color:#98a0ae;font-size:15px}
+ #finfo .x:hover{color:#fff}
  @media(max-width:760px){
    #legend,#dim{display:none}
    #hud{max-width:none;left:8px;right:8px;top:8px;font-size:12px;padding:9px 11px}
@@ -30,15 +37,18 @@
    #palette{left:8px;right:8px;bottom:8px;max-width:none;padding:9px 11px}
    #palette .grid{justify-content:center;margin-top:6px}
    #palette button{width:34px;height:34px}
+   #finfo{left:8px;right:8px;transform:none;bottom:112px;max-width:none;font-size:12.5px}
  }
 </style></head><body><div id="app"></div>
 <div id="hud" class="panel"><b>電子元件 3D（尺寸示意）</b><br><span style="color:#9fb3c8">拖曳即可上下左右旋轉 · 1 格 = 1 mm</span><br>
 <button id="bAuto">⏸ 自動旋轉</button><button id="bReset">重置視角</button>
 <button id="bBottom">看底面</button><button id="bAxes">座標軸</button>
-<button id="bBg">☀️ 白底</button>
-<br><span style="color:#8fa6bb">拖曳=旋轉　滾輪=縮放　右鍵=平移（手機：單指轉、雙指縮放）</span></div>
+<button id="bBg">☀️ 白底</button><button id="bDim">📐 尺寸</button>
+<br><span style="color:#8fa6bb">拖曳=旋轉　滾輪=縮放　右鍵=平移（手機：單指轉、雙指縮放）<br>
+👉 <b style="font-size:12.5px">點模型任何地方</b><span id="dimHint">就會在該處標出紅色尺寸線</span></span></div>
 <div id="legend" class="panel"><div><span class="sw" style="background:#1f4e79"></span>XIAO ESP32S3 主控</div><div><span class="sw" style="background:#8b5e00"></span>INMP441 麥克風</div><div><span class="sw" style="background:#2e7d32"></span>LSM6DS3TR-C IMU</div><div><span class="sw" style="background:#111111"></span>SSD1306 OLED</div><div><span class="sw" style="background:#a00000"></span>鋰電池 500mAh</div><div><span class="sw" style="background:#7b1fa2"></span>震動馬達</div><div><span class="sw" style="background:#9e9e9e"></span>磁鐵</div><div><span class="sw" style="background:#0288d1"></span>充電 pogo pin</div></div>
 
+<div id="finfo"></div>
 <div id="dim" class="panel">背景網格 1 格 = 1 mm　·　單位 mm</div>
 <div id="err"></div>
 <script>/**
@@ -4731,6 +4741,7 @@ var renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(window.devicePixelRatio||1);
 renderer.setSize(window.innerWidth,window.innerHeight);
 app.appendChild(renderer.domElement);
+window.renderer=renderer;
 
 var scene=new THREE.Scene();
 scene.background=new THREE.Color(0x101418);
@@ -4774,6 +4785,7 @@ var orbit=new THREE.OrbitControls(cam,renderer.domElement);
 orbit.target.copy(ctr);
 orbit.enableDamping=true;orbit.dampingFactor=0.08;
 orbit.update();
+window.orbit=orbit;
 
 var auto=true,showAxes=false;
 
@@ -4781,9 +4793,15 @@ function place(dx,dy,dz){
   cam.position.set(ctr.x+dx*radi,ctr.y+dy*radi,ctr.z+dz*radi);
   orbit.target.copy(ctr);cam.lookAt(ctr);orbit.update();
 }
+/* 開標註時要連紅色標註一起框進畫面，不然尺寸線會跑到畫面外 */
+var ctrBase=null,ctrDim=null,radiBase=0,radiDim=0;
+function useDimsView(on){
+  if(on&&ctrDim){ctr=ctrDim.clone();radi=radiDim;}
+  else if(ctrBase){ctr=ctrBase.clone();radi=radiBase;}
+}
 function resetView(){place(0.62,-0.78,0.42);}
 function lookBottom(){place(0.30,0.85,-0.62);}
-window.resetView=resetView;
+window.resetView=resetView;window.lookBottom=lookBottom;
 
 document.getElementById('bAuto').onclick=function(){auto=!auto;
   this.textContent=(auto?'⏸':'▶')+' 自動旋轉';};
@@ -4880,6 +4898,262 @@ if(PALETTE_ON){
   })();
 }
 
+/* ══════════ 尺寸標註（紅色，CAD 標註風格） ══════════
+   為什麼不用 THREE.Line：WebGL 的 linewidth 幾乎都被忽略（永遠 1px），
+   手機上細到看不見。改用「細圓柱」畫線，粗細才控制得住。 */
+var REDC=0xff3b30;
+var dimGroup=new THREE.Group();dimGroup.visible=false;scene.add(dimGroup);
+var pickGroup=new THREE.Group();scene.add(pickGroup);
+window.dimGroup=dimGroup;window.pickGroup=pickGroup;
+var SHELL_PAGE=false,shellBox=null,glRoot=null;
+
+function mkLabel(text,worldH){
+  var fs=64,pad=16;
+  var c=document.createElement('canvas').getContext('2d');
+  var ff='bold '+fs+'px -apple-system,"PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif';
+  c.font=ff;
+  var w=Math.ceil(c.measureText(text).width)+pad*2,h=fs+pad*2;
+  var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  c=cv.getContext('2d');c.font=ff;
+  var r=20;c.fillStyle='rgba(255,59,48,.95)';c.beginPath();
+  c.moveTo(r,0);c.lineTo(w-r,0);c.quadraticCurveTo(w,0,w,r);c.lineTo(w,h-r);
+  c.quadraticCurveTo(w,h,w-r,h);c.lineTo(r,h);c.quadraticCurveTo(0,h,0,h-r);
+  c.lineTo(0,r);c.quadraticCurveTo(0,0,r,0);c.closePath();c.fill();
+  c.fillStyle='#fff';c.textBaseline='middle';c.fillText(text,pad,h/2+2);
+  var tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,depthWrite:false,transparent:true}));
+  sp.scale.set(worldH*w/h,worldH,1);sp.renderOrder=999;
+  return sp;
+}
+function rodMat(col){return new THREE.MeshBasicMaterial({color:col,depthTest:false,transparent:true,opacity:.96});}
+function rod(a,b,rad,col){
+  var d=new THREE.Vector3().subVectors(b,a),len=d.length();
+  if(len<1e-6)return null;
+  var m=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,len,8),rodMat(col));
+  m.position.copy(a).add(d.clone().multiplyScalar(.5));
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
+  m.renderOrder=998;return m;
+}
+function torusAt(c,radius,axis,tube){
+  var m=new THREE.Mesh(new THREE.TorusGeometry(radius,tube,8,44),rodMat(REDC));
+  m.position.copy(c);
+  if(axis==='y')m.rotation.x=Math.PI/2;else if(axis==='x')m.rotation.y=Math.PI/2;
+  m.renderOrder=998;return m;
+}
+function clearGroup(g){while(g.children.length){var c=g.children.pop();if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();}}
+function perpOf(d){
+  var u=new THREE.Vector3(0,0,1),n=d.clone().normalize();
+  if(Math.abs(n.z)>0.9)u.set(1,0,0);
+  return new THREE.Vector3().crossVectors(n,u).normalize();
+}
+/* 一段標註：主線 ＋ 兩端 45° 刻度 ＋ 標籤 */
+function addDim(g,a,b,text,tick,labelH){
+  tick=tick||2.4;labelH=labelH||3.2;
+  g.add(rod(a,b,0.16,REDC));
+  var d=new THREE.Vector3().subVectors(b,a).normalize();
+  var p=perpOf(d).multiplyScalar(tick/Math.sqrt(2));
+  var q=d.clone().multiplyScalar(tick/Math.sqrt(2));
+  [a,b].forEach(function(pt){
+    g.add(rod(pt.clone().sub(p).sub(q),pt.clone().add(p).add(q),0.16,REDC));
+  });
+  var mid=a.clone().add(b).multiplyScalar(.5);
+  var lb=mkLabel(text,labelH);
+  lb.position.copy(mid);g.add(lb);
+  return mid;
+}
+function boxRods(box,rad,col){
+  var o=[];
+  var mn=box.min,mx=box.max;
+  var c=[[mn.x,mn.y,mn.z],[mx.x,mn.y,mn.z],[mx.x,mx.y,mn.z],[mn.x,mx.y,mn.z],
+         [mn.x,mn.y,mx.z],[mx.x,mn.y,mx.z],[mx.x,mx.y,mx.z],[mn.x,mx.y,mx.z]].map(function(p){return new THREE.Vector3(p[0],p[1],p[2]);});
+  var e=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  e.forEach(function(ab){var r=rod(c[ab[0]],c[ab[1]],rad,col);if(r)o.push(r);});
+  return o;
+}
+
+/* ── 整體尺寸（📐 尺寸 按鈕） ── */
+function buildMainDims(bx){
+  clearGroup(dimGroup);
+  var off=7.5,W=3.6;
+  var x0=bx.min.x,x1=bx.max.x,y0=bx.min.y,y1=bx.max.y,z0=bx.min.z,z1=bx.max.z;
+  var V=function(x,y,z){return new THREE.Vector3(x,y,z);};
+  var DX=(x1-x0).toFixed(0),DY=(y1-y0).toFixed(0),DZ=(z1-z0).toFixed(0);
+  /* 寬（X）：拉到 −Y 外側，附延伸線 */
+  var ya=y0-off;
+  dimGroup.add(rod(V(x0,y0,z0),V(x0,ya-3,z0),0.11,REDC));
+  dimGroup.add(rod(V(x1,y0,z0),V(x1,ya-3,z0),0.11,REDC));
+  addDim(dimGroup,V(x0,ya,z0),V(x1,ya,z0),DX+' mm',2.6,4.0);
+  /* 深（Y）：拉到 +X 外側 */
+  var xa=x1+off;
+  dimGroup.add(rod(V(x1,y0,z0),V(xa+3,y0,z0),0.11,REDC));
+  dimGroup.add(rod(V(x1,y1,z0),V(xa+3,y1,z0),0.11,REDC));
+  addDim(dimGroup,V(xa,y0,z0),V(xa,y1,z0),DY+' mm',2.6,4.0);
+  /* 高（Z）：拉到 +X 外側偏上 */
+  var xb=x1+off+5;
+  dimGroup.add(rod(V(x1,y1,z0),V(xb+3,y1,z0),0.11,REDC));
+  dimGroup.add(rod(V(x1,y1,z1),V(xb+3,y1,z1),0.11,REDC));
+  addDim(dimGroup,V(xb,y1,z0),V(xb,y1,z1),DZ+' mm',2.6,4.0);
+  /* 壁厚：在 +Y 壁中段 */
+  var yw=19.0;
+  addDim(dimGroup,V(24,y0,3),V(24,y0+1.6,3),'壁厚 1.6',1.6,2.8);
+  dimGroup.add(rod(V(24,y0-3,3),V(24,y0+4,3),0.08,0xffd166));
+  /* 孔徑／槽標註 */
+  [-7,7].forEach(function(x){dimGroup.add(torusAt(V(x,19.6,3),1.2,'y',0.16));});
+  [-14,14].forEach(function(x){dimGroup.add(torusAt(V(x,19.6,3),2.7,'y',0.16));});
+  [-0.7,0.7].forEach(function(x){dimGroup.add(torusAt(V(x,-19.6,3),0.5,'y',0.12));});
+  addDim(dimGroup,V(-7,25,3),V(7,25,3),'pogo ⌀2.4 · 距 14',1.8,2.8);
+  addDim(dimGroup,V(-14,30,3),V(14,30,3),'磁鐵槽 ⌀5.4 · 距 28',1.8,2.8);
+  var sl=mkLabel('走帶槽 22 × 3（貫穿兩側端壁）',2.9);sl.position.set(0,0,24);dimGroup.add(sl);
+  [1,-1].forEach(function(s){
+    var b2=new THREE.Box3(new THREE.Vector3(s>0?25.4:-29,-11,2.5),new THREE.Vector3(s>0?29:-25.4,11,5.5));
+    boxRods(b2,0.13,REDC).forEach(function(r){dimGroup.add(r);});
+  });
+}
+
+/* ── 點選判定 ── */
+function classifyShell(p){
+  var ax=Math.abs(p.x),ay=Math.abs(p.y);
+  /* 走帶槽：切穿 ±X 端壁，斷面 y∈[-11,11]、z∈[2.5,5.5] */
+  if(ax>18&&ay<12&&p.z>1.5&&p.z<7.5)return 'strap';
+  if(Math.abs(ax-14)<4.6&&p.y>10)return 'magnet';
+  if(Math.abs(ax-7)<3.0&&p.y>13)return 'pogo';
+  if(ax<7.5&&p.y<-13)return 'mic';
+  if(p.z>17.2)return 'topcap';
+  if(p.z<0.8)return 'bottom';
+  if(p.z>9.0)return 'wallTop';
+  return 'wallBot';
+}
+var FEAT={
+  strap:{t:'走帶槽 ×2',rows:['22 × 3 mm 貫穿兩側端壁（x = ±25.4~27）','穿 20 mm 尼龍帶','位於 z = 2.5–5.5，在電路板下方']},
+  magnet:{t:'磁鐵固定座',rows:['磁鐵 ⌀5 × 2 mm','槽 ⌀5.4 × 深 2.2 mm（留 0.6 外皮）','內壁 local 加厚至 3.8 mm','位置 x = ±14 mm']},
+  pogo:{t:'磁吸充電 pogo 孔',rows:['⌀2.4 mm 貫穿 +Y 壁','2 孔距 14 mm（x = ±7）','配 ⌀5 磁鐵定位']},
+  mic:{t:'麥克風進音孔 ×2',rows:['⌀1.0 mm（datasheet 建議 0.5–1.0）','孔距 1.4 mm（x = ±0.7）','對準 INMP441 底部進音口']},
+  topcap:{t:'上蓋頂面',rows:['頂蓋厚 1.6 mm','LED 導光孔 ⌀1.6 mm（x=16, y=−12）']},
+  bottom:{t:'下蓋底面',rows:['壁厚 1.6 mm','所有功能孔都在這片 z = 3 mm 高度']},
+  wallTop:{t:'上蓋側壁',rows:['壁厚 1.6 mm','分模面在 z = 9 mm']},
+  wallBot:{t:'下蓋側壁',rows:['壁厚 1.6 mm','分模面在 z = 9 mm']}
+};
+/* 零件頁：用 GLB 節點名對照真實規格 */
+var PART_D={
+  XIAO_ESP32S3:{t:'XIAO ESP32S3 主控',rows:['21.0 × 17.8 × 1.2 mm（外框）','USB-C 突出約 1.0 mm','8 MB PSRAM ＋ 8 MB Flash','XIAO 內建充電只有 50 mA']},
+  INMP441_IC:{t:'INMP441 麥克風',rows:['4.72 × 3.76 × 1.00 mm（9-pin LGA）','I²S 數位輸出，60 Hz–15 kHz','工作 2.2 mA／CHIPEN 拉低 4.5 µA']},
+  LSM6DS3TR_C_IC:{t:'LSM6DS3TR-C IMU',rows:['2.5 × 3.0 × 0.83 mm（LGA-14L）','I²C 位址 0x6A／WHO_AM_I = 0x6A','ODR 最高 416 Hz，±2 g']},
+  'OLED_0.96in':{t:'SSD1306 OLED 模組',rows:['模組 27.0 × 27.3 mm','128 × 64，I²C 位址 0x3C','模組 VCC 7–15 V（內建電荷泵）']},
+  OLED_glass:{t:'OLED 玻璃面板',rows:['可視區 26.7 × 19.26 mm','0.96 吋對角線']},
+  'LiPo_~500mAh':{t:'鋰電池 500 mAh',rows:['40 × 25 × 6 mm（示意值，待實物校正）','3.7 V 標稱／4.2 V 充飽','必須帶保護板']},
+  Vibration_motor:{t:'震動馬達',rows:['⌀10 × 3.4 mm 幣型 ERM','3 V 驅動，需 MOSFET 開關']},
+  Magnet_5x2:{t:'釹磁鐵',rows:['⌀5 × 2 mm','N35，磁吸充電定位用']},
+  Pogo_pin:{t:'pogo pin',rows:['⌀1.5 × 5 mm','與外殼 ⌀2.4 孔配合']},
+  USB_C:{t:'USB-C 連接器',rows:['XIAO 板端 USB-C','充電＋序列埠（CDC）']}
+};
+function partInfo(name){
+  if(!name)return null;
+  if(PART_D[name])return PART_D[name];
+  for(var k in PART_D){if(name.indexOf(k)===0||k.indexOf(name.split('_').slice(0,2).join('_'))===0)return PART_D[k];}
+  return null;
+}
+function shellThicknessDir(p){
+  if(Math.abs(p.x)>25)return new THREE.Vector3(p.x>0?1:-1,0,0);
+  if(Math.abs(p.y)>17)return new THREE.Vector3(0,p.y>0?1:-1,0);
+  if(p.z>17)return new THREE.Vector3(0,0,-1);
+  if(p.z<1)return new THREE.Vector3(0,0,1);
+  return new THREE.Vector3(0,0,1);
+}
+function showCard(title,rows,color){
+  var el=document.getElementById('finfo');
+  el.style.borderColor=color||'#ff3b30';
+  el.innerHTML='';
+  var h=document.createElement('h4');h.textContent=title;
+  var x=document.createElement('span');x.className='x';x.textContent='✕';
+  x.onclick=function(){el.style.display='none';clearGroup(pickGroup);};
+  h.appendChild(x);el.appendChild(h);
+  var b=document.createElement('div');
+  b.innerHTML=rows.map(function(r){return '• '+r;}).join('<br>');
+  el.appendChild(b);el.style.display='block';
+}
+window.hideCard=function(){document.getElementById('finfo').style.display='none';clearGroup(pickGroup);};
+
+/* ── 滑鼠／手指點選（位移 > 7px 視為拖曳，不算點選） ── */
+var rayc=new THREE.Raycaster(),ndc=new THREE.Vector2(),downPt=null;
+function pickAt(cx,cy){
+  if(!rayc)return;
+  var r=renderer.domElement.getBoundingClientRect();
+  ndc.x=((cx-r.left)/r.width)*2-1;ndc.y=-((cy-r.top)/r.height)*2+1;
+  rayc.setFromCamera(ndc,cam);
+  var targets=[];
+  if(shellTop)targets.push(shellTop);
+  if(shellBot)targets.push(shellBot);
+  if(!targets.length&&glRoot){
+    glRoot.traverse(function(o){if(o.isMesh&&!o.userData.__ol&&!(o.material&&o.material.color&&o.material.color.getHex()===0x0d1319))targets.push(o);});
+  }
+  var hits=rayc.intersectObjects(targets,false);
+  if(!hits.length)return null;
+  return hits[0];
+}
+function doPick(cx,cy){
+  clearGroup(pickGroup);
+  var hit=pickAt(cx,cy);
+  if(!hit){document.getElementById('finfo').style.display='none';return;}
+  var p=hit.point.clone();
+  /* ⚠️ 射線若穿過孔洞（例如點在 pogo 孔正中央），第一命中點會是「對面的內壁」→ 判錯。
+     改用射線與外框的「進入點」判定：真正碰到表面時進入點≈命中點，
+     穿過孔洞時進入點正好落在孔所在的外表面上。 */
+  if(shellBox){
+    var ent=new THREE.Vector3();
+    if(rayc.ray.intersectBox(shellBox,ent)&&ent.distanceTo(hit.point)<400)p=ent;
+  }
+  if(glRoot)p=glRoot.worldToLocal(p);
+  if(SHELL_PAGE){
+    var k=classifyShell(p),f=FEAT[k];
+    /* 就地畫紅色尺寸線 */
+    if(k==='pogo'){[-7,7].forEach(function(x){pickGroup.add(torusAt(new THREE.Vector3(x,19.6,3),1.2,'y',0.13));});
+      addDim(pickGroup,new THREE.Vector3(-7,22,3),new THREE.Vector3(7,22,3),'14 mm',1.6,3.0);}
+    else if(k==='magnet'){[-14,14].forEach(function(x){pickGroup.add(torusAt(new THREE.Vector3(x,19.6,3),2.7,'y',0.13));});
+      addDim(pickGroup,new THREE.Vector3(-14,26,3),new THREE.Vector3(14,26,3),'28 mm',1.6,3.0);}
+    else if(k==='mic'){[-0.7,0.7].forEach(function(x){pickGroup.add(torusAt(new THREE.Vector3(x,-19.6,3),0.5,'y',0.1));});
+      pickGroup.add(torusAt(new THREE.Vector3(0,-20.6,3),0.7,'y',0.1));
+      addDim(pickGroup,new THREE.Vector3(-0.7,-21.8,3),new THREE.Vector3(0.7,-21.8,3),'1.4 mm',1.2,2.6);}
+    else if(k==='strap'){
+      [1,-1].forEach(function(s){
+        var b=new THREE.Box3(new THREE.Vector3(s>0?25.4:-29,-11,2.5),new THREE.Vector3(s>0?29:-25.4,11,5.5));
+        boxRods(b,0.13,REDC).forEach(function(r){pickGroup.add(r);});});}
+    else{
+      var d=shellThicknessDir(p);
+      pickGroup.add(rod(p.clone(),p.clone().add(d.clone().multiplyScalar(1.6)),0.14,REDC));
+      var lb=mkLabel('壁厚 1.6 mm',3.0);
+      lb.position.copy(p).add(d.clone().multiplyScalar(3.2));pickGroup.add(lb);
+      var mk=new THREE.Mesh(new THREE.SphereGeometry(0.55,12,10),rodMat(REDC));
+      mk.position.copy(p);pickGroup.add(mk);
+    }
+    showCard(f.t,f.rows);
+  }else{
+    var nm=hit.object.name,inf=partInfo(nm);
+    /* 就地畫該零件的紅色外框 */
+    var bb2=new THREE.Box3().setFromObject(hit.object);
+    boxRods(bb2,0.09,REDC).forEach(function(r){pickGroup.add(r);});
+    var sz=new THREE.Vector3();bb2.getSize(sz);
+    if(inf)showCard(inf.t,inf.rows.concat(['模型尺寸 '+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm']));
+    else showCard(nm||'零件',['模型尺寸 '+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm']);
+  }
+}
+renderer.domElement.addEventListener('pointerdown',function(e){downPt={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('pointerup',function(e){
+  if(!downPt)return;
+  var moved=Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y);
+  downPt=null;
+  if(moved>7)return;
+  doPick(e.clientX,e.clientY);
+});
+window.__doPick=doPick;window.__classify=classifyShell;
+
+/* 📐 尺寸 開關 */
+document.getElementById('bDim').onclick=function(){
+  dimGroup.visible=!dimGroup.visible;
+  this.textContent=(dimGroup.visible?'📐 尺寸 ✓':'📐 尺寸');
+  useDimsView(dimGroup.visible);
+  resetView();
+};
+
 window.addEventListener('resize',function(){
   renderer.setSize(window.innerWidth,window.innerHeight);
   cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();});
@@ -4932,11 +5206,33 @@ loader.parse(b64buf(B64),'',function(gl){
     syncOutline();
   }
   window.__shell={top:shellTop,bot:shellBot,paletteOn:PALETTE_ON,ol:olMeshes};
+  glRoot=gl.scene;
+  gl.scene.updateMatrixWorld(true);
+  SHELL_PAGE=!!(PALETTE_ON&&shellTop&&shellBot);
+  if(SHELL_PAGE){
+    shellBox=new THREE.Box3();
+    shellBox.expandByObject(shellTop);shellBox.expandByObject(shellBot);
+    buildMainDims(shellBox);
+    /* 連標註一起算包圍盒 → 開標註時鏡頭拉遠一點，尺寸線才不會被切掉 */
+    dimGroup.updateMatrixWorld(true);
+    var db=new THREE.Box3().setFromObject(dimGroup);
+    var us=new THREE.Vector3();shellBox.clone().union(db).getSize(us);
+    ctrDim=shellBox.clone().union(db).getCenter(new THREE.Vector3());
+    radiDim=Math.max(us.x,us.y,us.z,1);
+    window.__dimTest={w:(shellBox.max.x-shellBox.min.x),d:(shellBox.max.y-shellBox.min.y),
+                      h:(shellBox.max.z-shellBox.min.z),labels:dimGroup.children.length,
+                      radiDim:radiDim};
+  }else{
+    var bd=document.getElementById('bDim');if(bd)bd.style.display='none';
+    var hi=document.getElementById('dimHint');if(hi)hi.style.display='none';
+  }
   scene.add(gl.scene);
   var bb=new THREE.Box3().setFromObject(gl.scene);
   var s=new THREE.Vector3();bb.getSize(s);
   ctr=bb.getCenter(new THREE.Vector3());
   radi=Math.max(s.x,s.y,s.z,1);
+  ctrBase=ctr.clone();radiBase=radi;
+  if(SHELL_PAGE)radiDim=Math.max(radiDim,radi);
   resetView();
   window.__loaded=true;window.__bbox=[s.x,s.y,s.z];
   console.log('GLB loaded, size',s.x.toFixed(1),s.y.toFixed(1),s.z.toFixed(1));
