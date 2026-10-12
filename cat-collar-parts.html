@@ -9,6 +9,13 @@
  #hud{left:14px;top:12px;max-width:340px}
  #legend{right:14px;top:12px;font-size:12px;line-height:1.85}
  #dim{left:14px;bottom:12px;font-size:12px;color:#9fb3c8;padding:7px 11px}
+ #palette{right:14px;bottom:12px;font-size:12px;padding:10px 12px;max-width:230px}
+ #palette .grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+ #palette button{width:32px;height:32px;min-height:32px;padding:0;margin:0;border-radius:9px;
+   border:2px solid #35485c;cursor:pointer}
+ #palette button.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.28)}
+ #palette button.reset{width:auto;padding:0 11px;font-size:12.5px;background:#1b2530}
+ #palName{color:#8fa6bb;margin-top:8px;font-size:12px}
  b{font-size:15px}
  button{margin:5px 6px 0 0;padding:7px 12px;border-radius:9px;border:1px solid #35485c;
    background:#1b2530;color:#dce6f0;font-size:13px;cursor:pointer}
@@ -16,12 +23,22 @@
  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px}
  #err{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#ff8a80;
    font-size:14px;background:rgba(30,10,10,.9);padding:14px 18px;border-radius:10px;display:none}
+ @media(max-width:760px){
+   #legend,#dim{display:none}
+   #hud{max-width:none;left:8px;right:8px;top:8px;font-size:12px;padding:9px 11px}
+   #hud b{font-size:14px}
+   #palette{left:8px;right:8px;bottom:8px;max-width:none;padding:9px 11px}
+   #palette .grid{justify-content:center;margin-top:6px}
+   #palette button{width:34px;height:34px}
+ }
 </style></head><body><div id="app"></div>
 <div id="hud" class="panel"><b>電子元件 3D（尺寸示意）</b><br><span style="color:#9fb3c8">拖曳即可上下左右旋轉 · 1 格 = 1 mm</span><br>
 <button id="bAuto">⏸ 自動旋轉</button><button id="bReset">重置視角</button>
 <button id="bBottom">看底面</button><button id="bAxes">座標軸</button>
+<button id="bBg">☀️ 白底</button>
 <br><span style="color:#8fa6bb">拖曳=旋轉　滾輪=縮放　右鍵=平移（手機：單指轉、雙指縮放）</span></div>
 <div id="legend" class="panel"><div><span class="sw" style="background:#1f4e79"></span>XIAO ESP32S3 主控</div><div><span class="sw" style="background:#8b5e00"></span>INMP441 麥克風</div><div><span class="sw" style="background:#2e7d32"></span>LSM6DS3TR-C IMU</div><div><span class="sw" style="background:#111111"></span>SSD1306 OLED</div><div><span class="sw" style="background:#a00000"></span>鋰電池 500mAh</div><div><span class="sw" style="background:#7b1fa2"></span>震動馬達</div><div><span class="sw" style="background:#9e9e9e"></span>磁鐵</div><div><span class="sw" style="background:#0288d1"></span>充電 pogo pin</div></div>
+
 <div id="dim" class="panel">背景網格 1 格 = 1 mm　·　單位 mm</div>
 <div id="err"></div>
 <script>/**
@@ -4737,10 +4754,13 @@ try{
   scene.environment=pm.fromEquirectangular(tex).texture;
 }catch(e){console.warn('env failed',e);}
 
-/* 背景網格：1 格 = 1 mm（400mm 見方、每 1mm 一格） */
-var grid=new THREE.GridHelper(400,400,0x33455a,0x1d2733);
-grid.material.transparent=true;grid.material.opacity=0.35;
-grid.position.z=-4;scene.add(grid);
+/* 背景網格：1 格 = 1 mm（400mm 見方、每 1mm 一格）→ 黑白底各一組，切換時對調 */
+var gridDark=new THREE.GridHelper(400,400,0x33455a,0x1d2733);
+gridDark.material.transparent=true;gridDark.material.opacity=0.35;
+gridDark.position.z=-4;scene.add(gridDark);
+var gridLight=new THREE.GridHelper(400,400,0x9aa8b8,0xccd4dd);
+gridLight.material.transparent=true;gridLight.material.opacity=0.55;
+gridLight.position.z=-4;gridLight.visible=false;scene.add(gridLight);
 
 var axHelper=new THREE.AxesHelper(30);axHelper.visible=false;scene.add(axHelper);
 
@@ -4771,6 +4791,80 @@ document.getElementById('bReset').onclick=resetView;
 document.getElementById('bBottom').onclick=lookBottom;
 document.getElementById('bAxes').onclick=function(){showAxes=!showAxes;axHelper.visible=showAxes;};
 
+/* ── 黑底／白底切換（白底出圖給簡報用；面板維持深色，兩邊都讀得清楚）── */
+var lightBg=false;
+function setBg(w){
+  lightBg=!!w;
+  scene.background=new THREE.Color(lightBg?0xf2f4f7:0x101418);
+  gridDark.visible=!lightBg;gridLight.visible=lightBg;
+  document.body.style.background=(lightBg?'#f2f4f7':'#101418');
+  document.getElementById('bBg').textContent=(lightBg?'🌙 黑底':'☀️ 白底');
+}
+window.setBg=setBg;
+document.getElementById('bBg').onclick=function(){setBg(!lightBg);};
+
+/* ── 外殼換色（8 色：紅橙黃綠藍靛紫白）＋「原色」回雙色 ──
+   做法：GLB 帶的是 per-face COLOR_0（頂點色）。換色時把 vertexColors 關掉、
+   直接改 material.color，比逐面改頂點色快又準。 */
+var PAL=[{n:'紅',c:'#d8342a'},{n:'橙',c:'#e8801a'},{n:'黃',c:'#e8c516'},
+         {n:'綠',c:'#33a04a'},{n:'藍',c:'#2a6fd6'},{n:'靛',c:'#3b3fb0'},
+         {n:'紫',c:'#8a35cf'},{n:'白',c:'#f2f2f2'}];
+var DEF={top:'#2e7d32',bot:'#1f4e79'};
+var shellTop=null,shellBot=null,curSel=-1;
+var PALETTE_ON=!!document.getElementById('palGrid');
+
+function paintPart(mesh,hex){
+  if(!mesh||!mesh.material)return;
+  mesh.material.vertexColors=false;
+  mesh.material.color.set(hex);
+  mesh.material.needsUpdate=true;
+}
+/* 同色但拉開明度：上蓋亮、下蓋暗，接縫才看得出來 */
+function tone(hex,f){
+  var c=new THREE.Color(hex),h={};
+  c.getHSL(h);c.setHSL(h.h,h.s,Math.min(0.93,Math.max(0.06,h.l*f)));
+  return c.getStyle();
+}
+function syncLegend(){
+  var sws=document.querySelectorAll('#legend .sw');
+  if(sws.length>=2&&shellTop&&shellBot){
+    sws[0].style.background='#'+shellTop.material.color.getHexString();
+    sws[1].style.background='#'+shellBot.material.color.getHexString();
+  }
+}
+function applyPal(i){
+  if(!PALETTE_ON||!shellTop||!shellBot)return;
+  curSel=i;
+  var bs=document.querySelectorAll('#palGrid button[data-i]');
+  for(var k=0;k<bs.length;k++)bs[k].className=(+bs[k].getAttribute('data-i')===i)?'on':'';
+  var nameEl=document.getElementById('palName');
+  if(i<0){
+    paintPart(shellTop,DEF.top);paintPart(shellBot,DEF.bot);
+    nameEl.textContent='原色（上蓋綠／下蓋藍）';
+  }else{
+    paintPart(shellTop,tone(PAL[i].c,1.20));
+    paintPart(shellBot,tone(PAL[i].c,0.72));
+    nameEl.textContent='外殼顏色：'+PAL[i].n;
+  }
+  syncLegend();
+}
+window.applyPal=applyPal;
+if(PALETTE_ON){
+  (function(){
+    var g=document.getElementById('palGrid');
+    for(var i=0;i<PAL.length;i++){(function(i){
+      var b=document.createElement('button');
+      b.style.background=PAL[i].c;b.title=PAL[i].n;
+      b.setAttribute('data-i',i);
+      b.onclick=function(){applyPal(i);};
+      g.appendChild(b);
+    })(i);}
+    var r=document.createElement('button');
+    r.className='reset';r.textContent='原色';r.onclick=function(){applyPal(-1);};
+    g.appendChild(r);
+  })();
+}
+
 window.addEventListener('resize',function(){
   renderer.setSize(window.innerWidth,window.innerHeight);
   cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();});
@@ -4786,12 +4880,42 @@ var loader=new THREE.GLTFLoader();
 loader.parse(b64buf(B64),'',function(gl){
   gl.scene.traverse(function(o){
     if(o.isMesh&&o.material){
+      /* GLTFLoader 會把相同參數的材質去重成同一個實例 → 上下蓋改色會互相蓋掉。
+         一律 clone 一份自己的材質再改。 */
+      o.material=o.material.clone();
       var m=o.material;
       m.envMapIntensity=(m.metalness&&m.metalness>0.5)?1.35:0.18;
       m.side=THREE.DoubleSide;
       m.needsUpdate=true;
+      /* 外殼頁：抓出上蓋／下蓋兩個 mesh（GLB 節點名 shell_top / shell_bottom） */
+      if(/^shell[_-]?top/i.test(o.name))shellTop=o;
+      else if(/^shell[_-]?bottom/i.test(o.name))shellBot=o;
     }
   });
+  /* 保險：名字對不上時，用世界座標 z 高度判定（z 大的＝上蓋） */
+  if(PALETTE_ON&&(!shellTop||!shellBot)){
+    var ms=[];gl.scene.traverse(function(o){if(o.isMesh)ms.push(o);});
+    if(ms.length>=2){
+      ms.sort(function(a,b){
+        return new THREE.Box3().setFromObject(b).getCenter(new THREE.Vector3()).z
+             - new THREE.Box3().setFromObject(a).getCenter(new THREE.Vector3()).z;});
+      shellTop=ms[0];shellBot=ms[ms.length-1];
+    }
+  }
+  if(PALETTE_ON)applyPal(curSel);
+  /* 深色反殼輪廓：白殼配白底才看得出形狀。深色底上幾乎與背景同色（看不出來）。 */
+  if(PALETTE_ON&&shellTop&&shellBot){
+    [shellTop,shellBot].forEach(function(m){
+      var g=m.geometry.clone();g.computeBoundingBox();
+      var c=g.boundingBox.getCenter(new THREE.Vector3());
+      g.translate(-c.x,-c.y,-c.z);g.scale(1.012,1.012,1.012);g.translate(c.x,c.y,c.z);
+      var o=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x0d1319,side:THREE.BackSide}));
+      o.position.copy(m.position);o.rotation.copy(m.rotation);o.scale.copy(m.scale);
+      o.renderOrder=-1;
+      gl.scene.add(o);
+    });
+  }
+  window.__shell={top:shellTop,bot:shellBot,paletteOn:PALETTE_ON};
   scene.add(gl.scene);
   var bb=new THREE.Box3().setFromObject(gl.scene);
   var s=new THREE.Vector3();bb.getSize(s);
