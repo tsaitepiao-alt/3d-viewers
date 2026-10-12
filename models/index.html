@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f1116">
+<title>智慧項圈 3D 模型檔下載</title>
+<style>
+ :root{--bg:#0f1116;--card:#191c23;--line:#2b303b;--txt:#e9eaee;--dim:#98a0ae;--acc:#e8734a}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--txt);
+   font-family:-apple-system,"PingFang TC","Heiti TC",system-ui,sans-serif}
+ .wrap{max-width:680px;margin:0 auto;padding:22px 16px 48px}
+ h1{font-size:22px;margin:0 0 6px}
+ p.sub{color:var(--dim);font-size:14px;line-height:1.65;margin:0 0 20px}
+ h2{font-size:14px;color:var(--acc);margin:26px 0 10px;letter-spacing:.04em}
+ a.f{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+   text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
+   border-radius:12px;padding:13px 16px;margin:0 0 9px}
+ a.f:active{background:#20242d}
+ .n{font-size:15px;font-weight:600}
+ .d{font-size:12.5px;color:var(--dim);text-align:right;flex:0 0 auto}
+ .back{display:inline-block;margin-top:26px;color:var(--acc);text-decoration:none;font-size:14px}
+ .note{margin-top:26px;font-size:13px;color:var(--dim);line-height:1.7;
+   border-top:1px solid var(--line);padding-top:16px}
+ b{color:#fff}
+</style></head><body><div class="wrap">
+<h1>智慧項圈 3D 模型檔</h1>
+<p class="sub">全部是可下載的原始檔。<b>STL 可直接丟進切片軟體列印</b>、GLB 可匯入 Blender。<br>
+單位一律 <b>mm</b>。</p>
+<h2>外殼（可直接 3D 列印）</h2>
+<a class="f" href="stl/shell_top.stl"><span class="n">外殼上蓋</span><span class="d">水密，FDM 列印</span></a>
+<a class="f" href="stl/shell_bottom.stl"><span class="n">外殼下蓋</span><span class="d">水密，含所有開孔</span></a>
+<a class="f" href="cat-collar-shell.glb"><span class="n">外殼組合 GLB</span><span class="d">可匯入 Blender / 其他 3D 軟體</span></a>
+<h2>零件 STL</h2>
+<a class="f" href="stl/XIAO_ESP32S3.stl"><span class="n">XIAO ESP32S3</span><span class="d">21 × 17.8 mm</span></a>
+<a class="f" href="stl/INMP441_IC.stl"><span class="n">INMP441 麥克風</span><span class="d">4.72 × 3.76 × 1.00 mm</span></a>
+<a class="f" href="stl/LSM6DS3TR_C_IC.stl"><span class="n">LSM6DS3TR-C IMU</span><span class="d">2.5 × 3.0 × 0.83 mm</span></a>
+<a class="f" href="stl/OLED_0.96in.stl"><span class="n">SSD1306 OLED</span><span class="d">27 × 27.3 mm</span></a>
+<a class="f" href="stl/OLED_glass.stl"><span class="n">OLED 玻璃面板</span><span class="d">26.7 × 19.26 mm</span></a>
+<a class="f" href="stl/LiPo_~500mAh.stl"><span class="n">鋰電池 500mAh</span><span class="d">40 × 25 × 6 mm（示意）</span></a>
+<a class="f" href="stl/Vibration_motor.stl"><span class="n">震動馬達</span><span class="d">⌀10 × 3.4 mm</span></a>
+<a class="f" href="stl/Magnet_5x2.stl"><span class="n">磁鐵</span><span class="d">⌀5 × 2 mm</span></a>
+<a class="f" href="stl/Pogo_pin.stl"><span class="n">pogo pin</span><span class="d">⌀1.5 × 5 mm</span></a>
+<a class="f" href="stl/USB_C.stl"><span class="n">USB-C 連接器</span><span class="d">XIAO 板端</span></a>
+<h2>其他</h2>
+<a class="f" href="cat-collar-parts.glb"><span class="n">零件組合 GLB</span><span class="d">10 件，已上色</span></a>
+<a class="f" href="元件四視圖.png"><span class="n">零件四視圖 PNG</span><span class="d">上/前/側/等角</span></a>
+<a class="f" href="外殼四視圖.png"><span class="n">外殼四視圖 PNG</span><span class="d">上/前/側/等角</span></a>
+
+<div class="note">
+<b>列印建議：</b>壁厚 1.6 mm，0.4 mm 噴嘴 × 4 圈；外殼 PLA 約 <b>12.1 g</b>。<br>
+<b>尺寸來源：</b>XIAO（Seeed 官方）、INMP441／LSM6DS3TR-C（原廠 datasheet）、OLED（業界標準模組）。<br>
+<b>注意：</b>電池與 INMP441／LSM6DS3 的「模組底板」是示意值，收到實物量測後要校正再列印。
+</div>
+<a class="back" href="../">← 回 3D 模型庫</a>
+</div></body></html>
