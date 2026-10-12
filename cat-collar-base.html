@@ -181,14 +181,21 @@ RP2350 的 I/O 是 3.3V，ESP32-C3 的 I/O 也是 3.3V，UART 直接對接即可
 <p class="dn">⚠️ 但項圈端的採購清單<b>不變</b>——這塊板子不會上貓脖子。</p>
 </div>
 
-<h2>⑦ 韌體分工</h2>
+<h2>⑥ 韌體分工</h2>
 <div class="card">
-<h3>ESP32-C3（無線橋）</h3>
+<h3>ESP32-C3（無線橋）— 已編譯驗證 <span class="tag ok">664 KB / 50%</span></h3>
 <ul>
-<li>BLE server，等項圈連上來（Nordic UART Service 或自訂 GATT）</li>
+<li><b>必須當 BLE Central</b>：項圈是 Peripheral（會廣播），基地台要主動掃描並連上去</li>
+<li>掃描 → 認 <code>PET-COLLAR</code> 名稱或 NUS service UUID → 連線 → 訂閱 notify</li>
 <li>收到事件 → 用 UART 丟一行 JSON 給 RP2350：<code>{"t":"event","cls":"餓","conf":0.86}</code></li>
-<li>RP2350 下來的指令 → 轉成 BLE 寫回項圈</li>
+<li>RP2350 下來的指令 → 寫回項圈的 RX 特徵值</li>
+<li>掉線後週期性重掃（項圈可能在睡覺）</li>
 </ul>
+<div class="warnbox"><b>⚠️ 這個坑不會報錯，只會「永遠連不上」：</b><br>
+BLE 連線必須<b>一邊 Central、一邊 Peripheral</b>。項圈端是 <code>BLEServer</code>（Peripheral），
+所以基地台這顆一定要當 <code>BLEClient</code>（Central）。<br>
+第一版我把橋接也寫成 <code>BLEServer</code> —— 兩個都在廣播，<b>永遠連不起來</b>，
+而且不會有任何錯誤訊息，只會兩邊都顯示「未連線」。</div>
 <h3>RP2350（基地台本體）</h3>
 <ul>
 <li>LVGL 介面：事件時間軸、每類叫聲的次數統計、電量</li>
@@ -197,12 +204,35 @@ RP2350 的 I/O 是 3.3V，ESP32-C3 的 I/O 也是 3.3V，UART 直接對接即可
 </ul>
 </div>
 
-<h2>⑧ 下一步</h2>
+<h2>⑦ 另一個不會報錯的坑：BLE MTU</h2>
 <div class="card">
+<p style="font-size:13.5px;line-height:1.75;margin:0">
+BLE 預設單包只有 <b>20 bytes</b>（MTU 23 − 3）。項圈的 <code>bleLine()</code> 緩衝區開到 192 bytes，
+若沒先協商 MTU，<b>超過 20 bytes 的部分會被悄悄截斷</b>——不報錯，你只會覺得「資料偶爾怪怪的」。
+</p>
+<div class="okbox" style="margin-top:12px"><b>✅ 修法（兩邊都要做，只有一邊要求沒用）</b>
+<ul style="margin-top:6px">
+<li>兩端都 <code>BLEDevice::setMTU(247)</code></li>
+<li>項圈端在 <code>onConnect</code> 用 <code>srv->getPeerMTU(conn_id)</code> 問出<b>實際協商值</b>，據此分段送</li>
+<li>預設值保守設 20，連線後才放大</li>
+</ul></div>
+</div>
+
+<h2>⑧ 進度</h2>
+<div class="card">
+<p style="font-size:13.5px;line-height:1.8;margin:0 0 8px"><b>已完成</b></p>
 <ul>
-<li><b>基地台外殼 3D</b> — 44 × 29.1 × 9.6mm 的板子 ＋ C3 ＋ 2000mAh 電池，做一個桌上立架（可傾角，方便看螢幕）</li>
-<li><b>PIO 版 I2S 範例</b> — 如果在基地台端也要收音（例如現場錄一段比對），RP2350 沒有硬體 I2S，要用 PIO 做</li>
-<li><b>採購清單</b> — 加入這塊板子與 ESP32-C3，並扣掉省下的模組</li>
+<li>✅ 接線圖與腳位表（本頁）</li>
+<li>✅ INMP441 收音程式 — 實編譯通過（<span class="tag ok">64 KB / 1%</span>）</li>
+<li>✅ ESP32-C3 無線橋 — 實編譯通過（<span class="tag ok">664 KB / 50%</span>）</li>
+<li>✅ 基地台立架 3D — <a href="cat-collar-stand.html" style="color:var(--acc)">可旋轉檢視</a>、水密可列印、PLA 约 106 g</li>
+<li>✅ 採購查價 — RP2350 板 US$22.39、ESP32-C3 SuperMini ¥8.68</li>
+</ul>
+<p style="font-size:13.5px;line-height:1.8;margin:14px 0 8px"><b>還沒做</b></p>
+<ul>
+<li>RP2350 端收 UART JSON → LVGL 顯示（基地台的本體 UI）</li>
+<li>項圈端把 <code>bleLine()</code> 的呼叫改成新的事件 JSON 格式</li>
+<li>收到實物後校正電池與模組尺寸，重跑立架 3D</li>
 </ul>
 </div>
 
