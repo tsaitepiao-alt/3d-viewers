@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f1116">
+<title>貓叫聲翻譯機 — 基地台架構與接線（RP2350 AMOLED）</title>
+<style>
+ :root{--bg:#0f1116;--card:#191c23;--line:#2b303b;--txt:#e9eaee;--dim:#98a0ae;
+       --acc:#e8734a;--ok:#4cc26a;--warn:#ffb020;--bad:#ff5b4a}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--txt);
+   font-family:-apple-system,"PingFang TC","Heiti TC",system-ui,sans-serif;
+   -webkit-text-size-adjust:100%}
+ .wrap{max-width:820px;margin:0 auto;padding:24px 16px 60px}
+ h1{font-size:23px;margin:0 0 6px;line-height:1.35}
+ p.sub{color:var(--dim);font-size:14px;line-height:1.7;margin:0 0 24px}
+ h2{font-size:16px;margin:30px 0 12px;color:var(--acc);letter-spacing:.02em}
+ h3{font-size:14.5px;margin:20px 0 8px}
+ .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+   padding:16px 18px;margin:0 0 14px}
+ table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0}
+ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+ th{color:var(--dim);font-weight:600;font-size:12.5px}
+ tr:last-child td{border-bottom:none}
+ code{background:#0d1117;border:1px solid var(--line);border-radius:6px;
+   padding:1.5px 6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+ .tag{display:inline-block;font-size:11.5px;border-radius:20px;padding:2px 9px;
+   font-weight:700;color:#0f1116;background:var(--acc);margin-right:6px}
+ .tag.ok{background:var(--ok)} .tag.warn{background:var(--warn)} .tag.bad{background:var(--bad);color:#fff}
+ ul{margin:6px 0 0;padding-left:20px;line-height:1.85;font-size:13.5px}
+ li{margin:2px 0}
+ .warnbox{background:#2a1a12;border:1px solid #6b3a1f;border-radius:12px;
+   padding:14px 16px;margin:12px 0;font-size:13.5px;line-height:1.75}
+ .warnbox b{color:var(--warn)}
+ .okbox{background:#122419;border:1px solid #2f5c3c;border-radius:12px;
+   padding:14px 16px;margin:12px 0;font-size:13.5px;line-height:1.75}
+ svg{width:100%;height:auto;display:block;margin:4px 0 2px}
+ .dn{color:var(--dim);font-size:12.5px;line-height:1.7;margin-top:10px}
+ a.back{display:inline-block;margin-top:30px;color:var(--acc);text-decoration:none;font-size:14px}
+ @media(max-width:620px){ table{font-size:12.5px} th,td{padding:7px 7px} h1{font-size:20px} }
+</style></head><body><div class="wrap">
+
+<h1>貓叫聲翻譯機 · 基地台</h1>
+<p class="sub">用 <b>Waveshare RP2350-Touch-AMOLED-1.64</b> 當桌面基地台，負責顯示與觸控。<br>
+這塊板子<b>沒有 WiFi/BT</b>（官方規格確認），所以另外串一顆 ESP32-C3 只做無線。兩顆都是 3.3V 邏輯，直接接。</p>
+
+<h2>① 系統架構</h2>
+<div class="card">
+<svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="項圈經 BLE 連到 ESP32-C3，再經 UART 連到 RP2350 基地台">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8734a"/>
+    </marker>
+  </defs>
+  <style>
+    .bx{fill:#191c23;stroke:#2b303b;stroke-width:1.5;rx:12}
+    .t1{fill:#e9eaee;font-size:14px;font-weight:700;font-family:-apple-system,"PingFang TC",sans-serif}
+    .t2{fill:#98a0ae;font-size:11.5px;font-family:-apple-system,"PingFang TC",sans-serif}
+    .ln{stroke:#e8734a;stroke-width:2;fill:none;marker-end:url(#ar)}
+    .lb{fill:#e8734a;font-size:11.5px;font-weight:700;font-family:-apple-system,"PingFang TC",sans-serif}
+    .pn{fill:#4cc26a;font-size:11.5px;font-family:-apple-system,"PingFang TC",sans-serif}
+  </style>
+
+  <!-- 項圈 -->
+  <rect class="bx" x="10" y="95" width="180" height="110" rx="12"/>
+  <text class="t1" x="26" y="122">貓項圈</text>
+  <text class="t2" x="26" y="144">XIAO ESP32S3</text>
+  <text class="t2" x="26" y="163">INMP441 · LSM6DS3TR-C</text>
+  <text class="t2" x="26" y="182">500mAh · 震動馬達</text>
+  <text class="pn" x="26" y="199">掛在貓身上 · ~30g</text>
+
+  <!-- BLE -->
+  <path class="ln" d="M190,150 L268,150"/>
+  <text class="lb" x="196" y="140">BLE 5.0</text>
+  <text class="t2" x="196" y="170">叫聲事件 JSON</text>
+
+  <!-- ESP32-C3 -->
+  <rect class="bx" x="270" y="95" width="170" height="110" rx="12"/>
+  <text class="t1" x="286" y="122">ESP32-C3</text>
+  <text class="t2" x="286" y="144">SuperMini 裸板</text>
+  <text class="t2" x="286" y="163">只做無線橋接</text>
+  <text class="t2" x="286" y="182">WiFi + BLE</text>
+  <text class="pn" x="286" y="199">NT$100 級</text>
+
+  <!-- UART -->
+  <path class="ln" d="M440,150 L518,150"/>
+  <text class="lb" x="446" y="140">UART 115200</text>
+  <text class="t2" x="446" y="170">4 條線 · 3.3V</text>
+
+  <!-- RP2350 -->
+  <rect class="bx" x="520" y="60" width="250" height="180" rx="12"/>
+  <text class="t1" x="536" y="87">RP2350 AMOLED 基地台</text>
+  <text class="t2" x="536" y="111">1.64" 觸控 AMOLED 280×456</text>
+  <text class="t2" x="536" y="131">microSD（歷史紀錄）</text>
+  <text class="t2" x="536" y="151">QMI8658 6軸 IMU（板載）</text>
+  <text class="t2" x="536" y="171">PCF85063 RTC（板載）</text>
+  <text class="t2" x="536" y="191">MX1.25 電池座（內建充放電）</text>
+  <text class="pn" x="536" y="214">44 × 29.1 × 9.6 mm</text>
+  <text class="pn" x="536" y="231">放在家裡桌上</text>
+</svg>
+<p class="dn">訊號是單向為主（項圈 → 基地台），回向只有控制指令（改靈敏度／靜音／校準）。</p>
+</div>
+
+<h2>② 為什麼要兩顆</h2>
+<div class="card">
+<table>
+<tr><th>元件</th><th>負責</th><th>為什麼不是它單獨做</th></tr>
+<tr><td>RP2350 這塊</td><td>螢幕、觸控、UI、SD 儲存、音訊分析</td><td><b>完全沒有 WiFi 也沒有藍牙</b>，碰不到手機或項圈</td></tr>
+<tr><td>ESP32-C3</td><td>BLE 收項圈事件、WiFi 上傳</td><td>不用它跑螢幕——它沒有那麼多腳位與算力做 LVGL</td></tr>
+</table>
+<div class="okbox"><b>✅ 好消息：不用電平轉換。</b><br>
+RP2350 的 I/O 是 3.3V，ESP32-C3 的 I/O 也是 3.3V，UART 直接對接即可。（如果是 5V 的 Arduino 就要加轉換）</div>
+</div>
+
+<h2>③ 實際接線：只有 4 條線</h2>
+<div class="card">
+<table>
+<tr><th>RP2350 基地台</th><th></th><th>ESP32-C3</th><th>說明</th></tr>
+<tr><td><code>GP16</code>（UART0 TX）</td><td>→</td><td><code>GPIO20</code>（RXD）</td><td>基地台送指令給 C3</td></tr>
+<tr><td><code>GP17</code>（UART0 RX）</td><td>←</td><td><code>GPIO21</code>（TXD）</td><td>C3 送資料給基地台</td></tr>
+<tr><td><code>3V3</code></td><td>→</td><td><code>3V3</code></td><td>供電（見下方警告）</td></tr>
+<tr><td><code>GND</code></td><td>—</td><td><code>GND</code></td><td>一定要共地，否則 UART 亂碼</td></tr>
+</table>
+<div class="warnbox"><b>⚠️ TX/RX 一定要交叉。</b>TX 接 TX 是新手最常犯的錯，症狀是「完全沒反應」而不是報錯，很難查。</div>
+</div>
+
+<h3>基地台排針上的可用腳位（官方腳位圖）</h3>
+<div class="card">
+<table>
+<tr><th>排針</th><th>腳位</th><th>預設功能</th><th>可用嗎</th></tr>
+<tr><td rowspan="6">右側</td><td><code>GP1</code></td><td>UART0 RX / SPI0 CSn</td><td>✅ 空</td></tr>
+<tr><td><code>GP0</code></td><td>UART0 TX / SPI0 RX</td><td>✅ 空</td></tr>
+<tr><td><code>GP25</code></td><td>SPI1 CSn / UART1 RX</td><td>✅ 空</td></tr>
+<tr><td><code>GP24</code></td><td>SPI1 RX</td><td>✅ 空</td></tr>
+<tr><td><code>GP6</code></td><td>I2C1 SDA（＝觸控＋IMU 的 I2C）</td><td>⚠️ 已被佔用（可共用匯流排）</td></tr>
+<tr><td><code>GP7</code></td><td>I2C1 SCL（＝觸控＋IMU 的 I2C）</td><td>⚠️ 已被佔用</td></tr>
+<tr><td rowspan="10">左側</td><td><code>GP2</code> <code>GP3</code></td><td>I2C1 / SPI0</td><td>✅ 空</td></tr>
+<tr><td><code>GP4</code> <code>GP5</code></td><td>UART1 TX/RX</td><td>✅ 空（備用 UART）</td></tr>
+<tr><td><code>GP16</code> <code>GP17</code></td><td>UART0 TX/RX</td><td>🔌 <b>本設計用來接 C3</b></td></tr>
+<tr><td><code>GP22</code></td><td>I2C1 SDA（與 SD 共用 D2）</td><td>⚠️ 共用</td></tr>
+<tr><td><code>GP27</code> <code>GP28</code> <code>GP29</code></td><td>ADC1／ADC2／ADC3</td><td>✅ 空（類比）</td></tr>
+</table>
+<p class="dn">已被佔用不能拿來用的：<b>GP9–GP15</b>（AMOLED QSPI ＋ reset）、<b>GP18–GP21</b>（microSD，GP21 是 SD_D1）、<b>GP23</b>（SD_CS）、<b>GP8</b>（IMU 中斷 INT1）、<b>GP26</b>（電池電壓 BAT_ADC）。<br>
+資料來源：Waveshare 官方 wiki 腳位圖 ＋ 原廠 PDF 線路圖。</p>
+</div>
+
+<h2>④ 供電：三個一定要知道的坑</h2>
+<div class="card">
+<div class="warnbox"><b>坑 1：「5V」腳是 USB 的 VBUS，不是升壓出來的 5V。</b><br>
+拔掉 USB 線（改用電池）時這隻腳就沒電。<b>所以不能用它餵 ESP32-C3</b>，不然基地台一拔線 C3 就死。<br>
+→ 請用 <code>3V3</code> 腳。</div>
+<div class="warnbox"><b>坑 2：「BAT」腳是電池的原始電壓（最高 4.2V）。</b><br>
+千萬不要把它接到任何 3.3V 的輸入腳，會燒。<br>
+（板子內部有分壓到 GP26/BAT_ADC 做電量偵測，要看電量請讀 GP26，不要去碰 BAT。）</div>
+<div class="warnbox"><b>坑 3：ESP32-C3 SuperMini 的「3V3」腳是它自己 LDO 的輸出。</b><br>
+從外面回灌 3.3V 實務上可行（LDO 閒置），但那不是正統做法。<br>
+要講究的話改用裸模組 <code>ESP32-C3-MINI-1</code>，直接吃 3.3V，體積也更小、更省電。</div>
+</div>
+
+<h2>⑤ 續航估算（基地台不像項圈那麼吃緊）</h2>
+<div class="card">
+<table>
+<tr><th>狀態</th><th>電流</th><th>2000mAh 電池</th></tr>
+<tr><td>待機（AMOLED 關閉、C3 modem-sleep）</td><td>約 15–25 mA</td><td><b>4–5 天</b></td></tr>
+<tr><td>使用中（螢幕全亮＋BLE 連線）</td><td>約 120–160 mA</td><td>約 12–16 小時</td></tr>
+</table>
+<p class="dn">AMOLED 是最大消耗。因為是放在桌上的基地台，建議直接插 USB-C 常供電，電池只當停電備援。</p>
+</div>
+
+<h2>⑥ 這塊板子幫你省下的零件</h2>
+<div class="card">
+<table>
+<tr><th>原本要買</th><th>現在</th><th>省下</th></tr>
+<tr><td>LSM6DS3TR-C IMU 模組</td><td>板載 QMI8658 6 軸</td><td>✅ NT$60–120</td></tr>
+<tr><td>RTC 模組</td><td>板載 PCF85063</td><td>✅</td></tr>
+<tr><td>microSD 模組</td><td>板載卡座</td><td>✅</td></tr>
+<tr><td>鋰電充電模組</td><td>MX1.25 座內建充放電</td><td>✅（而且電流比 XIAO 的 50mA 大得多）</td></tr>
+<tr><td>SSD1306 OLED</td><td>不需要了</td><td>✅ 1.64" AMOLED 好太多</td></tr>
+</table>
+<p class="dn">⚠️ 但項圈端的採購清單<b>不變</b>——這塊板子不會上貓脖子。</p>
+</div>
+
+<h2>⑦ 韌體分工</h2>
+<div class="card">
+<h3>ESP32-C3（無線橋）</h3>
+<ul>
+<li>BLE server，等項圈連上來（Nordic UART Service 或自訂 GATT）</li>
+<li>收到事件 → 用 UART 丟一行 JSON 給 RP2350：<code>{"t":"event","cls":"餓","conf":0.86}</code></li>
+<li>RP2350 下來的指令 → 轉成 BLE 寫回項圈</li>
+</ul>
+<h3>RP2350（基地台本體）</h3>
+<ul>
+<li>LVGL 介面：事件時間軸、每類叫聲的次數統計、電量</li>
+<li>把事件寫進 microSD（CSV，之後可以畫趨勢圖）</li>
+<li>觸控操作：靜音、調整偵測靈敏度、手動標記「這其實是撒嬌」</li>
+</ul>
+</div>
+
+<h2>⑧ 下一步</h2>
+<div class="card">
+<ul>
+<li><b>基地台外殼 3D</b> — 44 × 29.1 × 9.6mm 的板子 ＋ C3 ＋ 2000mAh 電池，做一個桌上立架（可傾角，方便看螢幕）</li>
+<li><b>PIO 版 I2S 範例</b> — 如果在基地台端也要收音（例如現場錄一段比對），RP2350 沒有硬體 I2S，要用 PIO 做</li>
+<li><b>採購清單</b> — 加入這塊板子與 ESP32-C3，並扣掉省下的模組</li>
+</ul>
+</div>
+
+<a class="back" href="./">← 回 3D 模型庫</a>
+</div></body></html>
