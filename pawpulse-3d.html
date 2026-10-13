@@ -1263,7 +1263,7 @@ addBox(46,3.6,30, new THREE.MeshStandardMaterial({color:0x0b1210, roughness:1}),
 // 爆炸中心軸（虛線，讓人一眼看懂組裝方向）
 (function(){
   const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-46,0), new THREE.Vector3(0,96,0)]);
-  const l = new THREE.Line(g, new THREE.LineDashedMaterial({color:0x4aa3ff, dashSize:7, gapSize:5, transparent:true, opacity:0.8}));
+  const l = new THREE.Line(g, new THREE.LineDashedMaterial({color:0x2f8fff, dashSize:8, gapSize:5, transparent:true, opacity:0.95}));
   l.computeLineDistances(); group.add(l);
 })();
 
@@ -1292,10 +1292,10 @@ labeled.forEach((p,i)=>{
 // ── 相機控制 ──
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.075;
-controls.minDistance = 90; controls.maxDistance = 520; controls.target.set(0,0,0);
+controls.minDistance = 90; controls.maxDistance = 520; controls.target.set(0,14,0);
 
 const VIEWS = {
-  iso:    {az: 0.62, el: 0.78, d: 265},
+  iso:    {az: 0.62, el: 0.72, d: 340},
   front:  {az: 0.0,  el: 0.10, d: 210},
   side:   {az: Math.PI/2, el: 0.12, d: 210},
   top:    {az: 0.0,  el: 1.30, d: 230},
@@ -1310,7 +1310,7 @@ function setView(name, instant){
     const k = dur? Math.min(1,(performance.now()-t0)/dur) : 1;
     const e = 1-Math.pow(1-k,3);
     camera.position.lerpVectors(from, to, e);
-    controls.target.set(0,0,0); controls.update();
+    controls.target.set(0,14,0); controls.update();
     if (k<1) requestAnimationFrame(anim);
   })();
 }
