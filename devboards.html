@@ -1557,6 +1557,50 @@ function makeComp(c) {
       add(top, 0, h + 0.06, 0);
       break;
     }
+    case 'usb_c': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT(SILVER, { metalness: 0.85, roughness: 0.25 })), 0, h / 2, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.55, h * 0.38, d * 0.22), MAT('#2a2d33', { roughness: 0.9 })), 0, h * 0.48, -d / 2 + d * 0.11);
+      break;
+    }
+    case 'jack35': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT('#16181c', { roughness: 0.8 })), 0, h / 2, 0);
+      const jc = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 3.4, 18), MAT('#050505', { roughness: 0.95 }));
+      jc.rotation.z = Math.PI / 2; add(jc, -w / 2 + 0.8, h / 2, 0);
+      break;
+    }
+    case 'hdmi_micro': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT('#1b1e22', { roughness: 0.7 })), 0, h / 2, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.5, h * 0.5, d * 0.3), MAT('#3a3e45', { metalness: 0.6 })), 0, h / 2, -d / 2 + d * 0.16);
+      break;
+    }
+    case 'rj45': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT('#2a2d33', { roughness: 0.6, metalness: 0.3 })), 0, h / 2, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.34, h * 0.5, d * 0.62), MAT('#0a0b0d', { roughness: 0.95 })), w / 2 - w * 0.15, h * 0.42, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.5, h * 0.16, d * 0.8), MAT('#6a6f78', { metalness: 0.8 })), w / 2 - w * 0.22, h * 0.1, 0);
+      break;
+    }
+    case 'usb_a_dual': {
+      [-1, 1].forEach(s => {
+        const yy = h / 2 + s * (h / 4);
+        add(new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.44, d * 0.96), MAT(c.color, { roughness: 0.6, metalness: 0.25 })), 0, yy, 0);
+        add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.2, h * 0.3, d * 0.5), MAT('#0a0b0d', { roughness: 0.95 })), w / 2 - w * 0.1, yy, 0);
+      });
+      break;
+    }
+    case 'microsd': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT('#3a3d44', { roughness: 0.7 })), 0, h / 2, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.78, h * 0.55, d * 0.78), MAT(SILVER, { metalness: 0.85, roughness: 0.3 })), 0, h * 0.48, 0);
+      break;
+    }
+    case 'bme280': {
+      add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT(c.color, { roughness: 0.6 })), 0, h / 2, 0);
+      add(new THREE.Mesh(new THREE.BoxGeometry(w * 0.42, h * 0.3, d * 0.46), MAT(SILVER, { metalness: 0.9, roughness: 0.3 })), 0, h + h * 0.15, 0);
+      for (let i = 0; i < 4; i++) {
+        const px = -w / 2 + w * (i + 1) / 5;
+        add(new THREE.Mesh(new THREE.BoxGeometry(0.64, 7, 0.64), MAT(GOLD, { metalness: 0.9, roughness: 0.25 })), px, -3.5, d / 2 - 2.2);
+      }
+      break;
+    }
     default:
       add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT(c.color)), 0, h / 2, 0);
   }
@@ -1565,6 +1609,73 @@ function makeComp(c) {
   return g;
 }
 
+/* ── 標籤 Sprite（兩個頁面共用） ── */
+function mkLabel(text, color) {
+  const cv = document.createElement('canvas');
+  const pad = 8, fs = 40;
+  const ctx0 = cv.getContext('2d');
+  ctx0.font = `bold ${fs}px Helvetica`;
+  const tw = ctx0.measureText(text).width;
+  cv.width = Math.ceil(tw + pad * 2); cv.height = fs + pad * 2;
+  const x = cv.getContext('2d');
+  x.fillStyle = 'rgba(12,16,22,0.86)';
+  x.fillRect(0, 0, cv.width, cv.height);
+  x.strokeStyle = color; x.lineWidth = 3; x.strokeRect(1.5, 1.5, cv.width - 3, cv.height - 3);
+  x.font = `bold ${fs}px Helvetica`; x.fillStyle = color;
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, cv.width / 2, cv.height / 2);
+  const t = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
+  sp.scale.set(cv.width / cv.height * 3.0, 3.0, 1);
+  return sp;
+}
+
+
+/* ───────────────────────── 電路板本體（共用） ─────────────────────────
+   6 面材質陣列順序：+x, −x, +y(頂), −y(底), +z, −z
+   頂面貼絲印畫布 → 阻焊色／銅箔／白字／商標全部即時繪製，放大不糊。 */
+function makePCB(b) {
+  const sideMat = MAT(b.maskDark, { roughness: 0.65, metalness: 0.05 });
+  const cv = makeSilkCanvas(b);
+  if (silkTex) silkTex.dispose();
+  silkTex = new THREE.CanvasTexture(cv);
+  silkTex.flipY = true;          // ★ 實測值（見檔頭說明），不是推導值
+  silkTex.anisotropy = 8;
+  const topMat = new THREE.MeshStandardMaterial({ map: silkTex, roughness: 0.5, metalness: 0.06 });
+
+  const bcv = document.createElement('canvas');
+  bcv.width = 256; bcv.height = Math.max(1, Math.round(256 * b.h / b.w));
+  const bx = bcv.getContext('2d');
+  bx.fillStyle = b.mask; bx.fillRect(0, 0, bcv.width, bcv.height);
+  bx.fillStyle = 'rgba(255,255,255,0.28)';
+  for (let i = 0; i < 260; i++) {
+    bx.beginPath();
+    bx.arc(((i * 97) % 100) / 100 * bcv.width, ((i * 53) % 100) / 100 * bcv.height, 2, 0, 7);
+    bx.fill();
+  }
+  const botTex = new THREE.CanvasTexture(bcv); botTex.flipY = true;
+  const botMat = new THREE.MeshStandardMaterial({ map: botTex, roughness: 0.62 });
+
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.t, b.h),
+    [sideMat, sideMat, topMat, botMat, sideMat, sideMat]);
+  pcb.userData.pcb = true;
+  return pcb;
+}
+
+/* ── 畫布貼圖小工具（外殼、面板文字用） ── */
+function makeTex(wpx, hpx, draw) {
+  const cv = document.createElement('canvas');
+  cv.width = wpx; cv.height = hpx;
+  draw(cv.getContext('2d'), wpx, hpx);
+  const t = new THREE.CanvasTexture(cv);
+  t.flipY = true;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   開發板 3D 寫實模型 — 頁面邏輯（共用核心在 core.js）
+   ══════════════════════════════════════════════════════════════════════ */
 /* ───────────────────────── 建板 ───────────────────────── */
 function clearBoard() {
   if (boardGroup) {
@@ -1580,40 +1691,7 @@ function buildBoard(b) {
   clearBoard();
   cur = b;
 
-  // ── 電路板本體：6 面材質，頂面貼絲印畫布 ──
-  const maskMat = MAT(b.mask, { roughness: 0.6, metalness: 0.05 });
-  const sideMat = MAT(b.maskDark, { roughness: 0.65, metalness: 0.05 });
-  const cv = makeSilkCanvas(b);
-  if (silkTex) silkTex.dispose();
-  silkTex = new THREE.CanvasTexture(cv);
-  // ★ flipY：這裡是實測出來的，不是推導出來的。
-  //   BoxGeometry 的 +Y 面 u 沿 +x、v 沿 −z；配合 flipY=true 才會讓
-  //   「畫布 y 向下」對到「世界 z 增加」。寫 false 會整片絲印上下顛倒
-  //   —— 而且畫布本身完全正常，只有讀渲染後的像素才看得出來。
-  //   自我檢查用板角的洋紅／萊姆綠兩塊定位標驗這一項。
-  silkTex.flipY = true;
-  silkTex.anisotropy = 8;
-  const topMat = new THREE.MeshStandardMaterial({ map: silkTex, roughness: 0.5, metalness: 0.06 });
-
-  // 底面：只畫焊點與板名
-  const bcv = document.createElement('canvas');
-  bcv.width = 256; bcv.height = Math.max(1, Math.round(256 * b.h / b.w));
-  const bx = bcv.getContext('2d');
-  bx.fillStyle = b.mask; bx.fillRect(0, 0, bcv.width, bcv.height);
-  bx.fillStyle = 'rgba(255,255,255,0.28)';
-  for (let i = 0; i < 260; i++) {
-    bx.beginPath();
-    bx.arc(((i * 97) % 100) / 100 * bcv.width, ((i * 53) % 100) / 100 * bcv.height, 2, 0, 7);
-    bx.fill();
-  }
-  const botTex = new THREE.CanvasTexture(bcv); botTex.flipY = true;
-  const botMat = new THREE.MeshStandardMaterial({ map: botTex, roughness: 0.62 });
-
-  const pcb = new THREE.Mesh(
-    new THREE.BoxGeometry(b.w, b.t, b.h),
-    [sideMat, sideMat, topMat, botMat, sideMat, sideMat]);
-  pcb.userData.pcb = true;
-  boardGroup.add(pcb);
+  boardGroup.add(makePCB(b));      // 電路板本體（核心 makePCB）
 
   // ── 元件 ──
   b.comps.forEach(c => {
@@ -1656,26 +1734,6 @@ function applyExplode(t, instant) {
 }
 
 /* ───────────────────────── 尺寸標註 ───────────────────────── */
-function mkLabel(text, color) {
-  const cv = document.createElement('canvas');
-  const pad = 8, fs = 40;
-  const ctx0 = cv.getContext('2d');
-  ctx0.font = `bold ${fs}px Helvetica`;
-  const tw = ctx0.measureText(text).width;
-  cv.width = Math.ceil(tw + pad * 2); cv.height = fs + pad * 2;
-  const x = cv.getContext('2d');
-  x.fillStyle = 'rgba(12,16,22,0.86)';
-  x.fillRect(0, 0, cv.width, cv.height);
-  x.strokeStyle = color; x.lineWidth = 3; x.strokeRect(1.5, 1.5, cv.width - 3, cv.height - 3);
-  x.font = `bold ${fs}px Helvetica`; x.fillStyle = color;
-  x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.fillText(text, cv.width / 2, cv.height / 2);
-  const t = new THREE.CanvasTexture(cv);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
-  sp.scale.set(cv.width / cv.height * 3.0, 3.0, 1);
-  return sp;
-}
-
 function dimRod(a, b, color) {
   const dir = new THREE.Vector3().subVectors(b, a);
   const len = dir.length();
