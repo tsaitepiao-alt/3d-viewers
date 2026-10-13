@@ -1301,19 +1301,33 @@ const VIEWS = {
   top:    {az: 0.0,  el: 1.30, d: 230},
   bottom: {az: 0.0,  el:-1.20, d: 230},
 };
+// 依畫面長寬自動抓距離，任何視窗比例都不會被裁掉（手機直式也適用）
+function fitDistance(){
+  const box = new THREE.Box3().setFromObject(group);
+  const sph = box.getBoundingSphere(new THREE.Sphere());
+  const vFov = camera.fov * Math.PI/180;
+  const hFov = 2*Math.atan(Math.tan(vFov/2) * camera.aspect);
+  return {center: sph.center.clone(), dist: Math.max(sph.radius/Math.sin(vFov/2), sph.radius/Math.sin(hFov/2)) * 1.24};
+}
 function setView(name, instant){
   const v = VIEWS[name] || VIEWS.iso;
-  const x = Math.sin(v.az)*Math.cos(v.el)*v.d, y = Math.sin(v.el)*v.d, z = Math.cos(v.az)*Math.cos(v.el)*v.d;
-  const from = camera.position.clone(), to = new THREE.Vector3(x,y,z);
-  const t0 = performance.now(), dur = instant?0:520;
+  const dir = new THREE.Vector3(Math.sin(v.az)*Math.cos(v.el), Math.sin(v.el), Math.cos(v.az)*Math.cos(v.el)).normalize();
+  const f = fitDistance();
+  const to = f.center.clone().addScaledVector(dir, f.dist);
+  const from = camera.position.clone(), tgtFrom = controls.target.clone();
+  const t0 = performance.now(), dur = instant?0:560;
   (function anim(){
     const k = dur? Math.min(1,(performance.now()-t0)/dur) : 1;
     const e = 1-Math.pow(1-k,3);
     camera.position.lerpVectors(from, to, e);
-    controls.target.set(0,14,0); controls.update();
+    controls.target.lerpVectors(tgtFrom, f.center, e);
+    controls.update();
     if (k<1) requestAnimationFrame(anim);
   })();
 }
+function refit(){ const f = fitDistance();
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+  controls.target.copy(f.center); camera.position.copy(f.center).addScaledVector(dir, f.dist); controls.update(); }
 
 // ── 爆炸 / 組合（分層間距加大＋左右交錯，避免上層遮住下層） ──
 let explode = 0, target = 0, autoRotate = false, showLabels = true;
@@ -1379,8 +1393,9 @@ function updateLabels(){
 }
 
 // 相機初始
-const iv = VIEWS.iso;
-camera.position.set(Math.sin(iv.az)*Math.cos(iv.el)*iv.d, Math.sin(iv.el)*iv.d, Math.cos(iv.az)*Math.cos(iv.el)*iv.d);
+(function(){ const v = VIEWS.iso;
+  const dir = new THREE.Vector3(Math.sin(v.az)*Math.cos(v.el), Math.sin(v.el), Math.cos(v.az)*Math.cos(v.el)).normalize();
+  const f = fitDistance(); controls.target.copy(f.center); camera.position.copy(f.center).addScaledVector(dir, f.dist); controls.update(); })();
 
 let spin = 0;
 function tick(){
@@ -1390,13 +1405,13 @@ function tick(){
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
-addEventListener('resize', ()=>{ renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); });
+addEventListener('resize', ()=>{ renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); refit(); });
 applyExplode(0); tick();
 
 // 供 headless 截圖用：?shot=1&exp=1&view=front
 if (SHOT) {
   const e = parseFloat(q.get('exp') || '0'); explode = target = e; applyExplode(e);
-  setView(q.get('view') || 'iso', true);
+  setView(q.get('view') || 'iso', true); refit();
   const az = parseFloat(q.get('az')||'NaN'), el2 = parseFloat(q.get('el')||'NaN');
   if (!isNaN(az) && !isNaN(el2)) { const d=220; camera.position.set(Math.sin(az)*Math.cos(el2)*d, Math.sin(el2)*d, Math.cos(az)*Math.cos(el2)*d); }
   controls.update();
