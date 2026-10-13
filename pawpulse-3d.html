@@ -1377,8 +1377,9 @@ function updateLabels(){
     for (let i=1;i<arr.length;i++) if (arr[i]._ly===undefined) arr[i]._ly = arr[i]._realY;
     arr.forEach(p=>{ p._ly = p._realY; });
     for (let i=1;i<arr.length;i++) if (arr[i]._ly - arr[i-1]._ly < GAP) arr[i]._ly = arr[i-1]._ly + GAP;
-    const over = arr.length ? (arr[arr.length-1]._ly - (H2-42)) : 0;
+    const over = arr.length ? (arr[arr.length-1]._ly - (H2-64)) : 0;
     if (over > 0) arr.forEach(p=>p._ly -= over);
+    arr.forEach(p=>{ p._ly = Math.max(64, p._ly); });
     arr.forEach(p=>{
       const bx = side === 'left' ? 16 : W2 - 16;
       const ax = side === 'left' ? bx + p.el.offsetWidth : bx - p.el.offsetWidth;
