@@ -79,6 +79,7 @@
  <button id="bBottom">底部</button>
  <button id="bRot">自動旋轉</button>
  <button id="bLab" class="on">零件標籤</button>
+ <button id="bGyr">📱 手機體感</button>
 </div>
 
 <script>/**
@@ -1353,6 +1354,68 @@ bind('bRot', ()=>{ autoRotate = !autoRotate; setOn('bRot', autoRotate); });
 bind('bLab', ()=>{ showLabels = !showLabels; labelBox.style.display = showLabels?'block':'none'; setOn('bLab', showLabels); });
 function setOn(id, on){ const el=document.getElementById(id); if(el) el.classList.toggle('on', !!on); }
 
+// ── 📱 手機體感：用重力／陀螺儀感測器直接轉動模型 ─────────────
+// 用法：手機開這頁 → 點「📱 手機體感」→ 允許「動作與方向」→ 把手機放平再左右／前後傾斜
+let gyr = false, gBase = null, gAz = 0, gEl = 0, gAz0 = 0, gEl0 = 0, gTgtAz = null, gTgtEl = null;
+
+function toast(msg){
+  let el = document.getElementById('toast');
+  if (!el){
+    el = document.createElement('div'); el.id = 'toast';
+    el.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99;'+
+      'background:rgba(11,18,16,.93);border:1px solid rgba(201,238,121,.45);color:#dceee2;'+
+      'padding:9px 15px;border-radius:10px;font-size:12.5px;transition:opacity .35s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg; el.style.opacity = '1';
+  clearTimeout(el._t); el._t = setTimeout(()=>{ el.style.opacity = '0'; }, 4000);
+}
+
+function curAngles(){                       // 目前視角換算成方位角／仰角
+  const d = new THREE.Vector3().subVectors(camera.position, controls.target);
+  gAz = Math.atan2(d.x, d.z); gEl = Math.asin(d.y / d.length());
+}
+
+function onMotion(ev){
+  const g = ev.accelerationIncludingGravity;
+  if (!g) return;
+  if (!gBase){ gBase = {x:g.x||0, y:g.y||0, z:g.z||0}; return; }   // 第一筆當基準點
+  const dx = (g.x||0) - gBase.x, dy = (g.y||0) - gBase.y;
+  gTgtAz = gAz0 + dx * 0.085;                                      // 左右傾 → 水平轉（用起始角度當基準，避免累積）
+  gTgtEl = Math.max(-1.15, Math.min(1.15, gEl0 - dy * 0.06));      // 前後傾 → 上下轉
+}
+
+function startGyr(){
+  curAngles(); gAz0 = gAz; gEl0 = gEl; gTgtAz = gAz; gTgtEl = gEl; gBase = null; gyr = true;
+  setOn('bGyr', true); addEventListener('devicemotion', onMotion, true);
+  toast('手機體感中 — 先把手機放平當基準，再左右／前後傾斜');
+}
+function stopGyr(){
+  gyr = false; setOn('bGyr', false);
+  removeEventListener('devicemotion', onMotion, true); gTgtAz = null;
+  toast('已停止體感控制，可改用滑鼠拖曳');
+}
+function toggleGyr(){
+  if (gyr){ stopGyr(); return; }
+  const D = window.DeviceMotionEvent;
+  if (!D){ toast('這台裝置沒有動作感測器 — 請用手機開這一頁'); return; }
+  if (typeof D.requestPermission === 'function'){        // iOS 13+ 要使用者手勢授權
+    D.requestPermission().then(r => {
+      if (r === 'granted') startGyr();
+      else toast('未授權「動作與方向」— 請到 設定 › Safari › 動作與方向 開啟');
+    }).catch(()=> toast('授權失敗，請改用滑鼠拖曳'));
+  } else startGyr();                                     // Android Chrome 直接可用
+}
+bind('bGyr', toggleGyr);
+// 除錯用（給自動化測試讀狀態，不影響操作）
+window.__pp = {
+  get gyr(){ return gyr; }, get gAz(){ return gAz; }, get gEl(){ return gEl; },
+  get tgt(){ return [gTgtAz, gTgtEl]; }, get cam(){ return camera.position.toArray().map(v=>+v.toFixed(2)); },
+  get tgtObj(){ return controls.target.toArray().map(v=>+v.toFixed(2)); },
+  dm(x,y,z){ const e=new Event('devicemotion'); Object.defineProperty(e,'accelerationIncludingGravity',{value:{x,y,z},configurable:true}); window.dispatchEvent(e); }
+};
+
+
 // 首次載入：自動表演一次爆炸
 let intro = !SHOT;
 setTimeout(()=>{ if(intro){ target = 1; slider.value='100'; setOn('bExp', true); } }, 700);
@@ -1401,6 +1464,13 @@ function updateLabels(){
 let spin = 0;
 function tick(){
   if (autoRotate) { spin += 0.0045; group.rotation.y = spin; }
+  if (gyr && gTgtAz !== null){                     // 體感：平滑追上手勢角度
+    gAz += (gTgtAz - gAz) * 0.12; gEl += (gTgtEl - gEl) * 0.12;
+    const f = fitDistance();
+    const dir = new THREE.Vector3(Math.sin(gAz)*Math.cos(gEl), Math.sin(gEl), Math.cos(gAz)*Math.cos(gEl)).normalize();
+    controls.target.copy(f.center); camera.position.copy(f.center).addScaledVector(dir, f.dist);
+    controls.update();
+  }
   if (Math.abs(target - explode) > 0.001) { explode += (target-explode)*0.09; applyExplode(explode); }
   controls.update(); updateLabels();
   renderer.render(scene, camera);
@@ -1408,6 +1478,8 @@ function tick(){
 }
 addEventListener('resize', ()=>{ renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); refit(); });
 applyExplode(0); tick();
+
+if (q.get('gyro') === '1' && window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission !== 'function') startGyr();
 
 // 供 headless 截圖用：?shot=1&exp=1&view=front
 if (SHOT) {
