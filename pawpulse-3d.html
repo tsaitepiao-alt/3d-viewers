@@ -1161,14 +1161,14 @@ const camera = new THREE.PerspectiveCamera(38, W/H, 1, 6000);
 scene.add(new THREE.HemisphereLight(0xdfe8e4, 0x121a17, 0.5));
 const key = new THREE.DirectionalLight(0xffffff, 1.45); key.position.set(-110,170,140); key.castShadow=true;
 key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera; sc.left=-180; sc.right=180; sc.top=180; sc.bottom=-180;
-key.shadow.bias=-0.0004; scene.add(key);
+key.shadow.bias=-0.0015; scene.add(key);
 const fill = new THREE.DirectionalLight(0xbcd8ff, 0.3); fill.position.set(150,90,-110); scene.add(fill);
 const rim  = new THREE.DirectionalLight(0xff9d7a, 0.42); rim.position.set(40,-130,-60); scene.add(rim);
 const back = new THREE.DirectionalLight(0xf2fff8, 0.55); back.position.set(-50,140,-170); scene.add(back);
 
 const group = new THREE.Group(); scene.add(group);
 const plane = new THREE.Mesh(new THREE.PlaneGeometry(1600,1600), new THREE.MeshStandardMaterial({color:0x060c0a, roughness:1, metalness:0, envMapIntensity:0.12}));
-plane.rotation.x = -Math.PI/2; plane.position.y = -135; plane.receiveShadow = true; scene.add(plane);
+plane.rotation.x = -Math.PI/2; plane.position.y = -135; plane.receiveShadow = false; scene.add(plane);
 
 // ── 材質（真實規格、非 AI 生成圖） ──
 const M = {
