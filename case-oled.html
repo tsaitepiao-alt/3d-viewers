@@ -20,6 +20,24 @@ button:hover{background:#2f3746}
 #dims div:last-child{border:0}#dims b{color:#7fa8ff;font-weight:600}
 #tip{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-size:11.5px;
  color:#79808f;background:rgba(22,25,32,.9);padding:7px 15px;border-radius:9px}
+#infoBtn{position:fixed;bottom:16px;right:16px;background:#242a36;color:#dfe4ee;
+ border:1px solid #333b4a;border-radius:999px;padding:9px 16px;font-size:13px;cursor:pointer;
+ display:none;z-index:30;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+/* ★ 手機／窄螢幕：面板不要蓋住模型 —— HUD 縮小、尺寸卡預設收起、按鈕展開 */
+@media (max-width:900px){
+  #hud{max-width:calc(100vw - 24px);padding:9px 11px;border-radius:12px;top:10px;left:10px}
+  #hud h1{font-size:13.5px}.sub{font-size:9.5px;margin-bottom:7px}
+  .sw{gap:4px;margin-bottom:7px}.sw i{width:21px;height:21px;border-radius:6px}
+  #hud button{padding:4px 8px;font-size:10.5px;margin:0 4px 4px 0}
+  #dims{top:auto;bottom:62px;left:10px;right:10px;min-width:0;max-height:40vh;
+        overflow-y:auto;font-size:11px;display:none}
+  #dims.show{display:block}
+  #infoBtn{display:block}
+  #tip{display:none}
+}
+@media (max-width:900px) and (orientation:landscape){
+  #hud{max-width:44vw}#dims{left:auto;right:10px;width:44vw;bottom:56px}
+}
 </style></head><body>
 <div id="c"></div>
 <div id="hud">
@@ -30,12 +48,15 @@ button:hover{background:#2f3746}
 </div>
 <div id="dims"></div>
 <div id="tip">拖曳旋轉　滾輪縮放　右鍵平移</div>
+<button id="infoBtn">📋 尺寸資訊</button>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 const DIMS=[["外殼", "63.0 × 39.0 × 15.0 mm"], ["PCB", "58.1 × 34.1 × 1.6 mm"], ["內腔", "59.4 × 35.4 mm"], ["壁厚", "1.8 mm"], ["邊緣圓角", "R7.0（12 條邊全圓角）"], ["OLED 視窗", "24.0 × 13.0 mm"], ["電池槽", "32.0 × 21.0 × 4.5 mm（500mAh）"], ["麥克風孔", "2 × ⌀1.0 mm"], ["磁吸充電孔", "2 × ⌀2.4 mm"], ["走帶槽", "3.0 mm 高（±X 兩端貫穿）"], ["上蓋", "63.0 × 39.0 × 6.8 mm"], ["下蓋", "63.0 × 39.0 × 8.2 mm"], ["預估 PLA", "約 12.6 g"]], COLORS=["#FFFFFF", "#F2F2F2", "#1A1A1A", "#D9342B", "#2B62D9", "#2FA35C", "#F2C230", "#E86AA6", "#E87A2B", "#8B4FD9", "#C0C0C0", "#7A5C3E"];
 document.getElementById('dims').innerHTML=DIMS.map(d=>`<div><span>${d[0]}</span><b>${d[1]}</b></div>`).join('');
+document.getElementById('infoBtn').onclick=e=>{e.stopPropagation();
+  document.getElementById('dims').classList.toggle('show');};
 const sc=new THREE.Scene();sc.background=new THREE.Color(0x111318);
 const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,3000);
 cam.position.set(78,-96,72);
