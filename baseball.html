@@ -41,12 +41,12 @@
 <canvas id="cv"></canvas>
 <div id="t" class="panel"><b>棒球 3D 互動學習</b><br>
  <span id="ttl">標準棒球場</span><br>
- <span style="color:#9aa2b1">滑鼠拖曳旋轉、滾輪縮放；數字為真實規格</span></div>
+ <span style="color:#9aa2b1">滑鼠拖曳旋轉、滾輪縮放；數字為真實規格・<b>點「人」看守位深度</b></span></div>
 <div id="spec" class="panel"><h4 id="sh">規格</h4><div id="sb"></div></div>
 <button id="specBtn" class="panel" style="display:none;top:12px;right:12px;padding:9px 13px;font-size:13px;cursor:pointer">規格 ▾</button>
 <div id="c" class="panel">
  <button id="m1" class="on">棒球場</button><button id="m2">棒球</button>
- <button id="m3">球棒</button><button id="m4">手套</button><button id="m5">自動旋轉</button><button id="m6">📐 數據</button>
+ <button id="m3">球棒</button><button id="m4">手套</button><button id="m5">自動旋轉</button><button id="m6">📐 數據</button><button id="m7" class="on">守備 9 人</button>
 </div>
 <div id="finfo" class="panel" style="display:none;left:12px;bottom:112px;flex-direction:column;align-items:stretch;max-width:330px;cursor:default"></div>
 <div id="gpanel" class="panel" style="display:none;left:50%;transform:translateX(-50%);bottom:112px;flex-direction:column;align-items:stretch;max-width:560px;width:calc(100% - 24px);gap:6px">
@@ -1244,6 +1244,15 @@ const FIELD_INFO={
   coach:{t:'教練區',rows:['3.2 × 1.8 m','一、三壘側各一']},
   foularea:{area:true, t:'界外區（ foul territory ）',rows:['壘線以外的區域','界外飛球接殺也算出局','練習圈、教練區、捕手區都在此區']},
   homecircle:{t:'本壘土圈',rows:['半徑 3.8 m','打者與捕手活動範圍']},
+  pos_p:{t:'投手（P）',rows:['站在投手丘上・投手板距本壘 18.44 m（60 ft 6 in）','球一投出就變成內野手：補位一壘／本壘','投手丘半徑 2.74 m・高 25.4 cm']},
+  pos_c:{t:'捕手（C）',rows:['本壘板後方・捕手區 1.37 × 2.44 m','唯一面向全場的守備員：接球、阻殺盜壘、指揮守備','用無分指的捕手手套（圍長 81–86 cm）']},
+  pos_1b:{t:'一壘手（1B）',rows:['MLB 標準站位：距本壘 85–130 ft・角度 +23°～+42°','此圖取 105 ft（32.0 m）・+34°（正常深度）','有跑者時站上壘包（90 ft・+45°）持球守備','低位球用底部有「挖球勺」的一壘手手套撈球']},
+  pos_2b:{t:'二壘手（2B）',rows:['MLB 標準站位：距本壘 130–160 ft・角度 0°～+18°（對右打者）','此圖取 145 ft（44.2 m）・+14°','雙殺的樞紐（4-6-3）：接游擊手傳球再轉傳一壘']},
+  pos_ss:{t:'游擊手（SS）',rows:['MLB 標準站位：距本壘 130–160 ft・角度 0°～−18°（對右打者）','此圖取 145 ft（44.2 m）・−14°','內野守備機會最多・常被叫「內野的隊長」']},
+  pos_3b:{t:'三壘手（3B）',rows:['MLB 標準站位：距本壘 80–130 ft・角度 −30°～−42°（對右打者）','此圖取 110 ft（33.5 m）・−35°','離本壘最近的守備員：反應時間最短，比別人更容易被盜']},
+  pos_lf:{t:'左外野手（LF）',rows:['MLB 標準站位：距本壘 260–320 ft・角度 −21°～−33°','此圖取 290 ft（88.4 m）・−27°','外野三步：前進、後退、左右；球打到牆邊要提醒內野手（cut-off）']},
+  pos_cf:{t:'中外野手（CF）',rows:['MLB 標準站位：距本壘 280–350 ft・角度 −8°～+7°','此圖取 310 ft（94.5 m）・0°（正中外野）','外野的指揮官：喊「我來」（call off）決定誰接球']},
+  pos_rf:{t:'右外野手（RF）',rows:['MLB 標準站位：距本壘 260–320 ft・角度 +21°～+33°','此圖取 290 ft（88.4 m）・+27°','通常是外野臂力最強的人：要阻止跑者從一壘衝三壘']},
 };
 const mkI=(geo,mat,x,y,z,key)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x||0,y||0,z||0);
   if(key) m.userData.info=FIELD_INFO[key]; return m; };
@@ -1260,6 +1269,105 @@ const mkSprite=(txt,x,y,z,size,col,scale)=>{
   const k=(size||14)/22*0.09*(scale||LS); sp.scale.set(c.width*k,c.height*k,1); sp.position.set(x,y,z);
   return sp;
 };
+// ══ 守備 9 人 ══
+// 位置＝MLB Statcast「標準站位」區間（mlb.com/glossary/statcast/shifts）：距離本壘 + 角度
+// 角度定義：0° = 正中外野、+45° = 一壘線、−45° = 三壘線；d 為 mm
+const POSITIONS=[
+  {k:'pos_p', ab:'P',  name:'投手',    d:18440, a:0,   mound:true},
+  {k:'pos_c', ab:'C',  name:'捕手',    d:1800,  a:180, crouch:true},
+  {k:'pos_1b',ab:'1B', name:'一壘手',  d:32004, a:34},
+  {k:'pos_2b',ab:'2B', name:'二壘手',  d:44196, a:14},
+  {k:'pos_ss',ab:'SS', name:'游擊手',  d:44196, a:-14},
+  {k:'pos_3b',ab:'3B', name:'三壘手',  d:33528, a:-35},
+  {k:'pos_lf',ab:'LF', name:'左外野手',d:88392, a:-27},
+  {k:'pos_cf',ab:'CF', name:'中外野手',d:94488, a:0},
+  {k:'pos_rf',ab:'RF', name:'右外野手',d:88392, a:27},
+];
+const isOF=k=>(k==='pos_lf'||k==='pos_cf'||k==='pos_rf');
+const PLR={ skin:M(0xd8b48c,0.85,0.02,0.3), jersey:M(0x1e3f7a,0.8,0.03,0.4),
+            pants:M(0xe8eaee,0.8,0.02,0.35), dark:M(0x141922,0.65,0.05,0.4),
+            glove:M(0x8a5a2b,0.85,0.02,0.3), shoe:M(0x1b1e24,0.55,0.06,0.5) };
+function bone(a,b,r,mat,parent){
+  const A=new THREE.Vector3(...a), B=new THREE.Vector3(...b), L=A.distanceTo(B);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,L,10), mat);
+  m.position.copy(A).add(B).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize());
+  m.castShadow=true; parent.add(m); return m;
+}
+function blob(r,mat,x,y,z,parent){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10), mat);
+  m.position.set(x,y,z); m.castShadow=true; parent.add(m); return m;
+}
+// 關節座標（mm）：站姿「準備接球」與捕手蹲姿
+const POSE_STAND={
+  pelvis:[0,950,0], chest:[0,1400,0], neck:[0,1540,0], head:[0,1665,0],
+  shR:[180,1500,0], shL:[-180,1500,0], elbR:[250,1240,40], handR:[270,1030,130],
+  elbL:[-250,1240,40], handL:[-270,1030,130],
+  hipR:[95,930,0], hipL:[-95,930,0], kneeR:[125,500,-30], footR:[135,40,10],
+  kneeL:[-125,500,-30], footL:[-135,40,10] };
+const POSE_CROUCH={
+  pelvis:[0,640,0], chest:[0,1010,70], neck:[0,1130,80], head:[0,1245,90],
+  shR:[175,1100,70], shL:[-175,1100,70], elbR:[240,900,150], handR:[170,760,270],
+  elbL:[-240,900,150], handL:[-170,760,270],
+  hipR:[115,640,0], hipL:[-115,640,0], kneeR:[215,420,-70], footR:[225,60,40],
+  kneeL:[-215,420,-70], footL:[-225,60,40] };
+function playerFigure(crouch){
+  const g=new THREE.Group(), J=crouch?POSE_CROUCH:POSE_STAND, m=PLR;
+  bone(J.pelvis,J.chest,150,m.jersey,g);                     // 軀幹（球衣）
+  blob(145,m.pants,J.pelvis[0],J.pelvis[1],J.pelvis[2],g);   // 骨盆
+  bone(J.chest,J.neck,72,m.skin,g);                          // 脖子
+  blob(115,m.skin,J.head[0],J.head[1],J.head[2],g);          // 頭
+  blob(122,m.dark,J.head[0],J.head[1]+58,J.head[2],g);       // 帽子
+  const brim=new THREE.Mesh(new THREE.BoxGeometry(200,26,150), m.dark);
+  brim.position.set(J.head[0],J.head[1]+25,J.head[2]+115); brim.castShadow=true; g.add(brim);
+  bone(J.shR,J.shL,56,m.jersey,g);                           // 肩線
+  bone(J.hipR,J.hipL,60,m.pants,g);                          // 髖線
+  bone(J.shR,J.elbR,58,m.skin,g); bone(J.elbR,J.handR,52,m.skin,g);
+  bone(J.shL,J.elbL,58,m.skin,g); bone(J.elbL,J.handL,52,m.skin,g);
+  const glv=new THREE.Mesh(new THREE.SphereGeometry(145,16,12), m.glove);
+  glv.position.set(J.handL[0]-35,J.handL[1]+15,J.handL[2]+45); glv.scale.set(1,0.72,1.18);
+  glv.castShadow=true; g.add(glv);                           // 左手手套
+  bone(J.hipR,J.kneeR,76,m.pants,g); bone(J.kneeR,J.footR,70,m.pants,g);
+  bone(J.hipL,J.kneeL,76,m.pants,g); bone(J.kneeL,J.footL,70,m.pants,g);
+  bone(J.footR,[J.footR[0],40,J.footR[2]+175],62,m.shoe,g);
+  bone(J.footL,[J.footL[0],40,J.footL[2]+175],62,m.shoe,g);
+  return g;
+}
+let PLAYERS=null;
+const PLAYER_SCALE=2.0;   // 人形示意放大倍率（真實身高約 1.85 m；標籤／規格面板都有註明）
+function buildPlayers(){
+  const G=new THREE.Group(); G.name='players';
+  for(const P of POSITIONS){
+    const rad=P.a*Math.PI/180;
+    const x=Math.sin(rad)*P.d, z=Math.cos(rad)*P.d;
+    const grp=new THREE.Group(); grp.position.set(x,0,z);
+    grp.userData.info=FIELD_INFO[P.k];                        // 點人／圓環都會跳出這個守位的資料
+    const holder=new THREE.Group(); holder.position.y=P.mound?MOUND_H:0;
+    holder.scale.setScalar(PLAYER_SCALE);                     // 示意放大（真實 1.85 m 在全場視圖只有幾 px）
+    holder.rotation.y = P.crouch ? Math.atan2(x,z) : Math.atan2(-x,-z);   // 捕手面向投手，其他人面向本壘
+    if(P.crouch) holder.rotation.y=Math.atan2(x,z);
+    holder.add(playerFigure(!!P.crouch)); grp.add(holder);
+    const col=isOF(P.k)?0x7dd3fc:0xffd166;
+    const ring=new THREE.Mesh(new THREE.RingGeometry(2900,4000,48),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.95,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2; ring.position.y=34; grp.add(ring);
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(2900,48),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.16,side:THREE.DoubleSide,depthWrite:false}));
+    disc.rotation.x=-Math.PI/2; disc.position.y=26; grp.add(disc);
+    const proxy=new THREE.Mesh(new THREE.CylinderGeometry(3800,3800,4000,12), proxyMat);
+    proxy.position.y=2000; grp.add(proxy);                    // 手機好點：加大點擊範圍
+    P._g=grp; G.add(grp);
+  }
+  return G;
+}
+function playerLabels(){
+  if(!PLAYERS || PLAYERS.userData.labelled) return;
+  for(const P of POSITIONS){ if(!P._g) continue;
+    const sp=mkSprite(P.name+'（'+P.ab+'）', 0, 1900*PLAYER_SCALE+900, 0, 13, isOF(P.k)?'#bae6fd':'#ffe08a');
+    P._g.add(sp);
+  }
+  PLAYERS.userData.labelled=true;
+}
 const FIELD_LABELS=[
   ['本壘板 43.18 × 21.6 cm（17 × 8.5 in）',0,900,-4200,14,'#ffcf9a'],
   ['壘間 27.43 m（90 ft）',9700,900,14000,14,'#8fd7ff'],
@@ -1418,7 +1526,7 @@ function buildField(){
   })();
   // ⑤ 壘線（本壘→一壘→二壘→三壘）＋邊線
   const B=BASE_PATH*Math.SQRT1_2, C2=BASE_PATH*Math.SQRT2;
-  const bl=[[0,0,B,-B],[B,-B,0,C2],[0,C2,-B,-B],[0,0,-B,B]];
+  const bl=[[0,0,B,B],[B,B,0,C2],[0,C2,-B,B],[0,0,-B,B]];   // 修正：一壘／二→三壘壘線原本 z 正負顛倒（白線跑到本壘後方界外）
   for(const [x1,z1,x2,z2] of bl){
     const dx=x2-x1, dz=z2-z1, L=Math.hypot(dx,dz);
     const m=mkI(new THREE.BoxGeometry(120, 18, L), white, (x1+x2)/2, gy+14, (z1+z2)/2, 'baseline');
@@ -1479,6 +1587,7 @@ function buildField(){
   dim([0,gy+60,C2],[-B,gy+60,B],0x8fd7ff);
   dim([-B,gy+60,B],[0,gy+60,0],0x8fd7ff);
   dim([0,gy+60,0],[0,gy+60,MOUND_DIST],0xa8ffd8);
+  PLAYERS=buildPlayers(); g.add(PLAYERS);    // 守備 9 人
   g.rotation.y = 15*Math.PI/180;
   return g;
 }
@@ -1710,7 +1819,11 @@ const SPECS={
   ['內野土弧','半徑 28.96 m（95 ft）'],
   ['全壘打牆','邊線 99.06 m（325 ft）・中外野 121.92 m（400 ft）'],
   ['警戒區','寬 3 m（此圖設定；MLB 標準 15 ft ≈ 4.6 m）'],['打擊區','1.22 × 1.83 m（4 × 6 ft）'],
-  ['投手板','61 × 15.2 cm（24 × 6 in）']]},
+  ['投手板','61 × 15.2 cm（24 × 6 in）'],
+  ['守備 9 人','投手＋捕手・內野 4 人・外野 3 人（標準站位）'],
+  ['守位深度','MLB 標準站位：內野 80–160 ft・外野 260–350 ft'],
+  ['守備人形','示意放大 2 倍（真實身高約 1.85 m・實際比例在全場只有幾像素）'],
+  ['地面圓環','只是站位標記（顏色區分內野／外野），不是守備範圍']]},
  ball:{t:'棒球', h:'棒球規格（MLB）', rows:[
   ['直徑','7.3–7.5 cm'],['周長','22.9–23.5 cm（9–9.25 in）'],
   ['重量','141.7–148.8 g（5–5.25 oz）'],['縫線','108 針・紅棉線'],
@@ -1846,6 +1959,7 @@ FOCUS.glove_inf=FOCUS.glove_out=FOCUS.glove_pit=FOCUS.glove_cat=FOCUS.glove_firs
 const F=FOCUS[MODEL]||FOCUS.field;
 VIEWS.zoom=fitBoxSub(F.az,F.el,F.fov,new THREE.Vector3(...F.c),F.r,1.06);   // 特寫：以對焦半徑計算
 LS = ((VIEW==='zoom') ? F.r : pr)/(MODEL==='field' ? 155 : 90);   // 標籤大小跟著取景半徑（球場用的字小一點）
+playerLabels();                                                    // 守位名稱（要在 LS 算完後才建）
 makeLabels();
 const v=VIEWS[VIEW]||VIEWS.iso;
 camera.position.copy(v.pos); camera.fov=v.fov; camera.updateProjectionMatrix();
@@ -2093,6 +2207,12 @@ function gameFinish(){
 fieldClickInit();
 const m6=document.getElementById('m6');
 if(m6) m6.onclick=()=>{ const on=!(FIELD_LAB_GROUP&&FIELD_LAB_GROUP.visible); fieldLabelSprites(on); m6.classList.toggle('on', on); };
+const m7=document.getElementById('m7');
+if(m7){
+  if(MODEL!=='field') m7.style.display='none';
+  m7.classList.toggle('on', !!PLAYERS && PLAYERS.visible);
+  m7.onclick=()=>{ if(!PLAYERS) return; PLAYERS.visible=!PLAYERS.visible; m7.classList.toggle('on', PLAYERS.visible); };
+}
 if(MODEL!=='field'){ const fi=document.getElementById('finfo'); if(fi) fi.style.display='none'; }
 if(q.get('game')==='1') setTimeout(()=>{ gameInit3D(); gameStart(); }, 400);
 
