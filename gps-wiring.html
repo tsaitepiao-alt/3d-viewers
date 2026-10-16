@@ -1366,4 +1366,5 @@ if (!SHOT) {
   addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 }
 (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
-</script></body></html>
+</script><script src="scroll-fx.js" defer></script>
+</body></html>

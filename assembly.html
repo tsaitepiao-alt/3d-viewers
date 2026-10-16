@@ -162,4 +162,5 @@ document.getElementById('menuBtn').onclick=e=>{e.stopPropagation();const h=docum
   h.classList.toggle('show');if(h.classList.contains('show'))_hide('hud');};
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();rn.setSize(innerWidth,innerHeight);});
 (function loop(){requestAnimationFrame(loop);if(spin)sc.rotation.y+=.006;oc.update();rn.render(sc,cam);})();
-</script></body></html>
+</script><script src="scroll-fx.js" defer></script>
+</body></html>
