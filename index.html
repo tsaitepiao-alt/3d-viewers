@@ -172,10 +172,8 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
-(function(){
+function boot3d(){
   var cv=document.getElementById('h3d');
   if(!cv||!window.THREE||!THREE.GLTFLoader) return;
   var renderer;
@@ -218,6 +216,19 @@
     renderer.setSize(innerWidth,innerHeight);
   });
   tick();
+}
+/* 動態載入 three.js：不阻塞頁面，CDN 失敗時網站照常運作 */
+(function(){
+  function load(src,next,err){ var s=document.createElement('script'); s.src=src; s.async=true;
+    s.onload=next; s.onerror=err||function(){}; document.head.appendChild(s); }
+  function start(){
+    if(!window.THREE||!THREE.GLTFLoader) return;
+    if(!document.getElementById('h3d')) return;
+    try{ boot3d(); }catch(e){}
+  }
+  load('https://unpkg.com/three@0.128.0/build/three.min.js',function(){
+    load('https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js',start,start);
+  },function(){ /* 沒網路就純首頁，不影響瀏覽 */ });
 })();
 </script>
 <script src="scroll-fx.js" defer></script>
