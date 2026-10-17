@@ -27,7 +27,12 @@
 <style>
   /* ===== 滾動驅動 3D hero ===== */
   body{background:#0f1116}
-  #h3d{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+  #h3d{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none}
+  #h3d.on{display:block}
+  #hstart{position:relative;z-index:3;margin-top:18px;pointer-events:auto;align-self:flex-start;
+    background:var(--acc);color:#0f1116;border:0;border-radius:999px;padding:11px 20px;
+    font:800 14px/1 -apple-system,"PingFang TC",sans-serif;letter-spacing:.5px;cursor:pointer}
+  #hstart[disabled]{opacity:.6}
   #hveil{position:fixed;inset:0;z-index:1;pointer-events:none;
     background:radial-gradient(140% 100% at 50% 0%,rgba(15,17,22,0) 0%,rgba(15,17,22,.28) 62%,rgba(15,17,22,.88) 100%)}
   .wrap{position:relative;z-index:2}
@@ -53,6 +58,7 @@
   <h1>往下滾，模型跟著轉</h1>
   <p>整個網站都是滾動驅動的：捲動時 3D 模型旋轉、鏡頭移動、卡片淡入。<br>
      下面每一張卡片都可以點進去，用手指轉動真實尺寸的 3D 模型。</p>
+  <button id="hstart" type="button">▶ 開啟 3D 展示（手機可略過）</button>
   <div class="scrolltip">▼ 往下滾</div>
 </div>
 <div class="wrap">
@@ -221,14 +227,27 @@ function boot3d(){
 (function(){
   function load(src,next,err){ var s=document.createElement('script'); s.src=src; s.async=true;
     s.onload=next; s.onerror=err||function(){}; document.head.appendChild(s); }
-  function start(){
-    if(!window.THREE||!THREE.GLTFLoader) return;
-    if(!document.getElementById('h3d')) return;
-    try{ boot3d(); }catch(e){}
+  var started=false;
+  function start(btn){
+    if(started||!window.THREE||!THREE.GLTFLoader) return;
+    var cv=document.getElementById('h3d'); if(!cv) return;
+    started=true; cv.classList.add('on');
+    if(btn){ btn.textContent='3D 載入中…'; btn.disabled=true; }
+    setTimeout(function(){ try{ boot3d(); }catch(e){} if(btn) btn.style.display='none'; },60);
   }
-  load('https://unpkg.com/three@0.128.0/build/three.min.js',function(){
-    load('https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js',start,start);
-  },function(){ /* 沒網路就純首頁，不影響瀏覽 */ });
+  function arm(){
+    var btn=document.getElementById('hstart'); if(!btn||btn.__a) return; btn.__a=true;
+    btn.addEventListener('click',function(){
+      btn.textContent='載入 3D…';
+      load('https://unpkg.com/three@0.128.0/build/three.min.js',function(){
+        load('https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js',function(){ start(btn); },
+             function(){ btn.textContent='3D 載入失敗（可繼續瀏覽）'; });
+      },function(){ btn.textContent='需要網路才能看 3D'; });
+    });
+  }
+  if(document.readyState!=='loading') arm(); else document.addEventListener('DOMContentLoaded',arm);
+  setTimeout(arm,800);
+  /* 不在進站時自動載入 three.js（手機才不會卡）；改由按鈕觸發 */
 })();
 </script>
 <script src="scroll-fx.js" defer></script>

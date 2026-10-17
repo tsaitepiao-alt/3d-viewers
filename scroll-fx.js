@@ -1,9 +1,11 @@
-/* scroll-fx.js — 3D 模型庫網站共用「滾動特效」層
+/* scroll-fx.js — 3D 模型庫網站共用「滾動特效」層（v2：安全版）
    ・頂部滾動進度條
-   ・[data-reveal] 元素進入畫面時淡入上移（可用 data-reveal-delay 微調）
-   ・[data-parallax="0.2"] 元素隨滾動位移（正=往下慢、負=往上快）
-   ・首頁若有 #hero3d 會回報進度給 window.__heroProgress
-   設計原則：純 DOM/CSS、不碰各頁的 three.js，任何頁面都可安全載入（無效果時自動略過）。 */
+   ・[data-reveal] 元素進入畫面時淡入（data-reveal-delay 可錯開）
+   ・[data-parallax="0.2"] 元素隨滾動位移
+   ・首頁若有 3D 場景，會把滾動進度寫到 window.__heroProgress
+   安全原則（重要）：內容一律預設可見。只有「這支 JS 真的執行到」才會加上 .sfx-ready
+   去隱藏待淡入元素；JS 載入失敗、被擋、有例外 → 內容完全不受影響。
+   另外 1.5s／3s 兩道保險，確保動畫沒觸發時內容一定會出現。 */
 (function () {
   if (window.__scrollFx) return; window.__scrollFx = true;
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,30 +25,45 @@
     document.body.appendChild(bar);
 
     var maxScroll = 1;
-    function measure() {
-      maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    }
+    function measure() { maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); }
 
-    // ② 淡入
+    // ② 淡入（CSS 由這支 JS 注入；沒跑到這裡就完全不會隱藏內容）
     var items = [].slice.call(document.querySelectorAll('[data-reveal]'));
-    items.forEach(function (el) {
-      el.style.opacity = 0;
-      el.style.transform = 'translateY(28px)';
-      el.style.transition = 'opacity .75s cubic-bezier(.2,.7,.3,1), transform .75s cubic-bezier(.2,.7,.3,1)';
-    });
-    var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var d = parseInt(e.target.getAttribute('data-reveal-delay') || '0', 10);
-        setTimeout(function () {
-          e.target.style.opacity = 1;
-          e.target.style.transform = 'translateY(0)';
-        }, d);
-        io.unobserve(e.target);
-      });
-    }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' }) : null;
-    if (io) items.forEach(function (el) { io.observe(el); });
-    else items.forEach(function (el) { el.style.opacity = 1; el.style.transform = 'none'; });
+    if (items.length) {
+      var st = document.createElement('style');
+      st.textContent =
+        '.sfx-ready [data-reveal]{opacity:0;transform:translateY(28px)}' +
+        '.sfx-ready [data-reveal].sfx-in{opacity:1;transform:none;' +
+        'transition:opacity .75s cubic-bezier(.2,.7,.3,1),transform .75s cubic-bezier(.2,.7,.3,1)}';
+      document.head.appendChild(st);
+      document.documentElement.classList.add('sfx-ready');
+
+      var show = function (el) { el.classList.add('sfx-in'); };
+      var showAll = function (inViewOnly) {
+        var vh = innerHeight;
+        items.forEach(function (el) {
+          if (!inViewOnly) { show(el); return; }
+          var r = el.getBoundingClientRect();
+          if (r.top < vh * 0.95 && r.bottom > 0) show(el);
+        });
+      };
+
+      if ('IntersectionObserver' in window && !reduce) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            var d = parseInt(e.target.getAttribute('data-reveal-delay') || '0', 10);
+            setTimeout(function () { show(e.target); }, d);
+            io.unobserve(e.target);
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+        items.forEach(function (el) { io.observe(el); });
+      } else {
+        items.forEach(show);
+      }
+      setTimeout(function () { showAll(true); }, 1500);   // 保險一：畫面內的一定顯示
+      setTimeout(function () { showAll(false); }, 3000);  // 保險二：全部顯示
+    }
 
     // ③ 視差
     var px = [].slice.call(document.querySelectorAll('[data-parallax]')).map(function (el) {
@@ -56,10 +73,7 @@
     var ticking = false, progress = 0;
     function onScroll() {
       progress = Math.max(0, Math.min(1, scrollY / maxScroll));
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(render);
-      }
+      if (!ticking) { ticking = true; requestAnimationFrame(render); }
     }
     function render() {
       ticking = false;
@@ -67,8 +81,7 @@
       window.__heroProgress = progress;
       if (px.length && !reduce) {
         for (var i = 0; i < px.length; i++) {
-          var p = px[i];
-          var r = p.el.getBoundingClientRect();
+          var p = px[i], r = p.el.getBoundingClientRect();
           var center = r.top + r.height / 2 - innerHeight / 2;
           p.el.style.transform = 'translate3d(0,' + (-center * p.k).toFixed(1) + 'px,0)';
         }
