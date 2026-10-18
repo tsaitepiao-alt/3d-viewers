@@ -4823,7 +4823,7 @@ let HOME = null, BOTTOM = null;
 // 地面網格（提供尺度感，1 格 = 1 mm）
 const grid = new THREE.GridHelper(16, 16, 0x3a4050, 0x2a2f3a);
 grid.position.z = -3.0; grid.rotation.x = Math.PI/2;
-grid.material.transparent = true; grid.material.opacity = 0.28;
+grid.material.transparent = true; grid.material.opacity = 0.10;
 scene.add(grid);
 const axes = new THREE.AxesHelper(4); axes.visible = false; scene.add(axes);
 
