@@ -7,11 +7,12 @@
 (function () {
   if (!window.THREE) { console.warn('[qfn] 需要 THREE'); return; }
   var T = window.THREE;
+  var IS_MOBILE = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
   var _tex = null;
 
   function markingTexture() {
     if (_tex) return _tex;
-    var W = 1024, c = document.createElement('canvas');
+    var W = IS_MOBILE ? 512 : 1024, c = document.createElement('canvas');
     c.width = c.height = W;
     var x = c.getContext('2d');
     x.fillStyle = '#0b0c0f'; x.fillRect(0, 0, W, W);
@@ -55,8 +56,12 @@
       var tex = markingTexture();
       var mBody = new T.MeshStandardMaterial({ map: tex, roughness: 0.62, metalness: 0.05, envMapIntensity: 0.22 });
       var mSide = new T.MeshStandardMaterial({ color: 0x07080a, roughness: 0.74, metalness: 0.03, envMapIntensity: 0.18 });
-      var mGold = new T.MeshStandardMaterial({ color: 0xd8b45c, roughness: 0.26, metalness: 1.0 });
-      var mGoldDull = new T.MeshStandardMaterial({ color: 0xb9994c, roughness: 0.38, metalness: 1.0 });
+      var mGold = new T.MeshStandardMaterial(IS_MOBILE
+        ? { color: 0xd9b45c, roughness: 0.34, metalness: 0.45 }
+        : { color: 0xd8b45c, roughness: 0.26, metalness: 1.0 });
+      var mGoldDull = new T.MeshStandardMaterial(IS_MOBILE
+        ? { color: 0xbf9c4a, roughness: 0.45, metalness: 0.4 }
+        : { color: 0xb9994c, roughness: 0.38, metalness: 1.0 });
 
       // ── 本體 ──
       var body = new T.Mesh(new T.BoxGeometry(S, H, S),
