@@ -203,6 +203,7 @@ function setState(s, opts = {}){
   }
   if (s === 'happy') caption.innerHTML = '孫子數學考 <b>100 分</b>！', caption.classList.add('show');
   if (s !== 'happy' && s !== 'talk') caption.classList.remove('show');
+  if (s === 'idle'){ const c = caption; setTimeout(() => { if (state === 'idle') c.innerHTML = ''; }, 420); }
 
   clearTimeout(idleTimer);
   if (s !== 'idle' && !speaking){
