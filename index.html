@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0f1116">
-<title>3D 模型庫 — 可旋轉</title>
+<title>小威 3D 模型庫 — 可旋轉</title>
 <style>
  :root{--bg:#0f1116;--card:#191c23;--line:#2b303b;--txt:#e9eaee;--dim:#98a0ae;--acc:#e8734a}
  *{box-sizing:border-box}
@@ -23,90 +23,127 @@
  .hint{margin-top:22px;font-size:13px;color:var(--dim);line-height:1.7;
    border-top:1px solid var(--line);padding-top:16px}
  b{color:#fff}
-</style></head><body>
+</style>
+<style>
+  /* ===== 滾動驅動 3D hero ===== */
+  body{background:#0f1116}
+  #h3d{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none}
+  #h3d.on{display:block}
+  #hstart{position:relative;z-index:3;margin-top:18px;pointer-events:auto;align-self:flex-start;
+    background:var(--acc);color:#0f1116;border:0;border-radius:999px;padding:11px 20px;
+    font:800 14px/1 -apple-system,"PingFang TC",sans-serif;letter-spacing:.5px;cursor:pointer}
+  #hstart[disabled]{opacity:.6}
+  #hveil{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(140% 100% at 50% 0%,rgba(15,17,22,0) 0%,rgba(15,17,22,.28) 62%,rgba(15,17,22,.88) 100%)}
+  .wrap{position:relative;z-index:2}
+  .hero{position:relative;z-index:2;min-height:78vh;display:flex;flex-direction:column;justify-content:center;
+    padding:16px 16px 34px;max-width:640px;margin:0 auto;pointer-events:none}
+  .hero .eb{font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:2.6px;color:var(--acc);opacity:.9}
+  .hero h1{font-size:30px;margin:10px 0 8px;letter-spacing:.5px}
+  .hero p{color:var(--dim);font-size:14.5px;line-height:1.7;margin:0}
+  .hero .scrolltip{margin-top:22px;font-size:12.5px;color:#7d8798;letter-spacing:1px;animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+  .hero .badge{display:inline-block;font-size:11px;color:#0f1116;background:var(--acc);border-radius:20px;
+    padding:3px 11px;font-weight:800;letter-spacing:.5px;margin-bottom:12px}
+  /* 卡片淡入由 scroll-fx.js 的 [data-reveal] 控制 */
+</style>
+</head><body>
+
+<canvas id="h3d"></canvas>
+<div id="hveil"></div>
+
+<div class="hero">
+  <span class="badge">SCROLL · 3D · NO VIDEO</span>
+  <div class="eb">3D MODEL LIBRARY</div>
+  <h1>往下滾，模型跟著轉</h1>
+  <p>整個網站都是滾動驅動的：捲動時 3D 模型旋轉、鏡頭移動、卡片淡入。<br>
+     下面每一張卡片都可以點進去，用手指轉動真實尺寸的 3D 模型。</p>
+  <button id="hstart" type="button">▶ 開啟 3D 展示（手機可略過）</button>
+  <div class="scrolltip">▼ 往下滾</div>
+</div>
 <div class="wrap">
-  <h1>3D 模型庫</h1>
+  <h1>小威 3D 模型庫</h1>
   <p class="sub">用手指就能上下左右轉動。<b>單指拖曳＝旋轉</b>、<b>雙指＝縮放</b>、<b>兩指拖曳＝平移</b>。</p>
 
-  <a class="card" href="collar.html">
+  <a class="card" data-reveal href="collar.html">
     <span class="tag">產品外觀</span>
     <p class="t">寵物智慧項圈（磁吸拆裝版）</p>
     <p class="d">表頭 56 × 44 × 17.8 mm、2.4" 滿版玻璃、套框磁吸拆裝。<br>背面聽診器式振膜＋PPG＋溫度貼片。附「拆裝示意」。</p>
   </a>
 
-  <a class="card" href="cat-collar-parts.html">
+  <a class="card" data-reveal href="cat-collar-parts.html">
     <span class="tag">零件尺寸</span>
     <p class="t">智慧項圈 · 電子元件 3D</p>
     <p class="d">XIAO ESP32S3（21 × 17.8）＋ INMP441 ＋ LSM6DS3TR-C ＋ SSD1306 OLED ＋ 電池 ＋ 震動馬達 ＋ 磁鐵 ＋ pogo pin。<br>背景網格 <b>1 格 = 1 mm</b>，可直接目視比例。</p>
   </a>
 
-  <a class="card" href="cat-collar-shell.html">
+  <a class="card" data-reveal href="cat-collar-shell.html">
     <span class="tag">外殼可列印</span>
     <p class="t">智慧項圈 · 外殼 3D</p>
     <p class="d">54 × 38 × 18 mm、壁厚 1.6 mm、上下蓋（<b>水密、可直接列印</b>）。<br>麥克風進音孔 ×2／磁吸充電孔 ×2／磁鐵槽 ×2／走帶槽 ×2／LED 導光孔。</p>
   </a>
 
-  <a class="card" href="case-oled.html">
-    <span class="tag">★ 最新外殼（OLED 版）</span>
+  <a class="card" data-reveal href="case-oled.html">
+    <span class="tag">★ 最新外殼（1.47 吋彩色 LCD 版）</span>
     <p class="t">智慧頸環 · 外殼 3D — 配合新 PCB</p>
-    <p class="d">配合 <b>新 PCB 58.1 × 34.1 mm</b>：63 × 39 × 15 mm、壁厚 1.8 mm、<b>12 條邊全圓弧</b>。<br>OLED 視窗 24×13／電池槽 32×21×4.5（500mAh）／磁吸充電孔 ×2／麥克風孔 ×2／走帶槽。<br><b>可旋轉 ＋ 12 色色票（預設白）＋ 上下蓋可分離</b>。</p>
+    <p class="d">配合 <b>新 PCB 58.1 × 34.1 mm</b>：63 × 39 × 15 mm、壁厚 1.8 mm、<b>12 條邊全圓弧</b>。<br>螢幕換成 <b>1.47 吋 172×320 ST7789V3 IPS 彩色</b>（4-wire SPI，8-pin 1.25 mm 排線）→ 視窗 <b>33×18 圓角R3</b>／電池槽 32×21×4.5（500mAh）／磁吸充電孔 ×2／麥克風孔 ×2／走帶槽。<br><b>可旋轉 ＋ 12 色色票（預設白）＋ 上下蓋可分離</b>。</p>
   </a>
 
-  <a class="card" href="ic-qfn48.html">
+  <a class="card" data-reveal href="ic-qfn48.html">
     <span class="tag">IC 封裝</span>
     <p class="t">QFN-48 6×6 標準封裝</p>
     <p class="d">JEDEC MO-220 尺寸，可看底面 48 支接腳與散熱墊。<br>（給廠商的模擬圖用）</p>
   </a>
 
-  <a class="card" href="gps-wiring.html">
+  <a class="card" data-reveal href="gps-wiring.html">
     <span class="tag">電路實作</span>
     <p class="t">GPS 追蹤器實體接線</p>
     <p class="d">麵包板 ＋ Raspberry Pi Pico W ＋ GPS ＋ 編碼器 ＋ TFT，<br>照著插就能做出來。</p>
   </a>
 
-  <a class="card" href="baseball.html">
+  <a class="card" data-reveal href="baseball.html">
     <span class="tag">棒球學習</span>
     <p class="t">棒球 3D 互動學習</p>
     <p class="d">標準棒球場（紅土內野／紅警戒區／綠外野、壘線、打擊區、投手丘）＋棒球、球棒、五種守位手套。<br><b>點球場上的元素</b>就會顯示該項目的尺寸說明。</p>
   </a>
 
-  <a class="card" href="hitting.html">
+  <a class="card" data-reveal href="hitting.html">
     <span class="tag">動作解析</span>
     <p class="t">打擊：球棒軌跡 3D</p>
     <p class="d">三種揮棒路徑對照：<b>✗棒頭下墜</b>／<b>✗手部下砍</b>／<b>✓提早進平面</b>。<br>紅／綠軌跡點 ＋ 即時算出「球棒與來球同平面」的時間比例。</p>
   </a>
-    <a class="card" href="pawpulse-3d.html">
+    <a class="card" data-reveal href="pawpulse-3d.html">
     <span class="tag">硬體設計</span>
     <p class="t">PawPulse 智慧頸環：3D 爆炸圖</p>
     <p class="d">一體式頸環分層拆解：<b>上蓋／螢幕／中框／FPC／主機板／電池／PPG 背蓋／磁吸套框／頸帶</b>。<br>可拖曳旋轉、拉滑桿分層，零件標籤＋組裝序號 ①–⑩（真實尺寸建模）。</p>
   </a>
 
-  <a class="card" href="pitch.html">
+  <a class="card" data-reveal href="pitch.html">
     <span class="tag">動作解析</span>
     <p class="t">投球動作 3D 解析</p>
     <p class="d">9 個動作分期時間軸 ＋ 慢動作 ＋ <b>殘影（連續動作）</b> ＋ 標註線（質心 COM、肩線／髖線＝肩髖分離角度）。<br>可切換「抬腿 / 不抬腿 / 對照」。</p>
   </a>
 
-  <a class="card" href="tactics.html">
+  <a class="card" data-reveal href="tactics.html">
     <span class="tag">戰術遊戲</span>
     <p class="t">棒球戰術小遊戲</p>
     <p class="d">選戰術（強攻／打帶跑／盜壘／犧牲觸擊／強迫取分）→ 機率模型跑出結果 → 3D 球場上演。<br>共 3 局，第 2 局是「關鍵一分」局面，最後幫你結算。</p>
   </a>
 
 
-  <a class="card" href="cat-collar-base.html">
+  <a class="card" data-reveal href="cat-collar-base.html">
     <span class="tag">系統架構</span>
     <p class="t">貓叫聲翻譯機 · 基地台（RP2350 AMOLED）</p>
     <p class="d">項圈 <b>BLE →</b> ESP32-C3 <b>UART →</b> RP2350 觸控 AMOLED 基地台。<br>完整腳位表、4 條線接線表、供電三個坑、續航估算、韌體分工。</p>
   </a>
 
-  <a class="card" href="cat-collar-stand.html">
+  <a class="card" data-reveal href="cat-collar-stand.html">
     <span class="tag">外殼可列印</span>
     <p class="t">貓叫聲翻譯機 · 基地台立架 3D</p>
     <p class="d">60 × 80 × 60 mm 薄殼楔形、<b>前面板後傾 20°</b>，板子嵌進凹槽。<br>背面開放入口放電池與 ESP32-C3。PLA 約 106 g，水密可列印。</p>
   </a>
 
-  <a class="card" href="devboards.html">
+  <a class="card" data-reveal href="devboards.html">
     <span class="tag">3D 可拆解</span>
     <p class="t">開發板 3D 寫實模型（4 款）</p>
     <p class="d">Raspberry Pi Pico／ESP32-DevKitC／Arduino Uno R3／STM32 Blue Pill。<br>
@@ -114,7 +151,7 @@
     尺寸取自官方規格。內建 29 項程式自我檢查。</p>
   </a>
 
-  <a class="card" href="pet-collar-a.html">
+  <a class="card" data-reveal href="pet-collar-a.html">
     <span class="tag">硬體設計</span>
     <p class="t">寵物智慧頸環 A 版 — 3D 拆解與接線</p>
     <p class="d">ESP32-S3 項圈（56×36×17.9mm）：<b>可拉滑桿拆解</b>（上蓋／PCB／電池／底殼）、
@@ -122,22 +159,96 @@
     含磁吸耳設計與 STL 下載。</p>
   </a>
 
-  <a class="card" href="netguard.html">
+  <a class="card" data-reveal href="netguard.html">
     <span class="tag">整合概念圖</span>
     <p class="t">NetGuard Pi — 3D 整合概念圖</p>
     <p class="d">樹莓派 Pi-hole 廣告阻擋器：<b>3D 等角爆炸圖</b>（外殼底盤/樹莓派 4/<br>
     BME280/上蓋/螺絲）＋ <b>編號 1–4 引線標註</b>（跟著模型轉動即時重畫）＋接線圖＋電線顏色圖例。</p>
   </a>
 
-  <a class="card" href="models/">
+  <a class="card" data-reveal href="models/">
     <span class="tag">下載</span>
     <p class="t">模型檔（STL / GLB / 四視圖）</p>
     <p class="d">外殼上下蓋 STL（直接列印）＋零件 STL＋GLB＋四視圖 PNG。點進去有完整清單。</p>
   </a>
 
-  <div class="hint">
+  <div class="hint" data-reveal>
     <b>沒有網路也能用：</b>這些檔案的原始 HTML 都存在你 Mac 上（智慧項圈 3D 在 `~/cat-translator/3d/`；棒球在 `~/Desktop/棒球3D學習/`），雙擊即可開啟。<br><br>
     <b>小技巧：</b>轉到喜歡的角度後，用螢幕截圖就能直接當簡報或給客戶看的圖。
   </div>
 </div>
+
+<script>
+function boot3d(){
+  var cv=document.getElementById('h3d');
+  if(!cv||!window.THREE||!THREE.GLTFLoader) return;
+  var renderer;
+  try{ renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); }
+  catch(e){ return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,1,4000);
+  camera.position.set(0,42,148);
+  scene.add(new THREE.HemisphereLight(0xdfe6ee,0x20242c,1.25));
+  var d1=new THREE.DirectionalLight(0xffffff,1.5); d1.position.set(90,140,110); scene.add(d1);
+  var d2=new THREE.DirectionalLight(0xe8734a,0.5); d2.position.set(-90,-40,-80); scene.add(d2);
+  var holder=new THREE.Group(); scene.add(holder);
+  var model=null;
+  new THREE.GLTFLoader().load('models/case-oled.glb',function(g){
+    model=g.scene;
+    var b=new THREE.Box3().setFromObject(model), c=new THREE.Vector3(), s=new THREE.Vector3();
+    b.getCenter(c); b.getSize(s);
+    model.position.sub(c);                                  // 置中
+    var k=150/Math.max(s.x,s.y,s.z);                        // 統一縮放到畫面內
+    model.scale.setScalar(k);
+    holder.add(model);
+  },undefined,function(){});
+  var cur=0,tgt=0,spin=0;
+  function tick(){
+    requestAnimationFrame(tick);
+    tgt=(typeof window.__heroProgress==='number')?window.__heroProgress:0;
+    cur+=(tgt-cur)*0.06;
+    holder.rotation.y=cur*Math.PI*1.15;                      // 隨滾動轉一圈多
+    holder.rotation.x=Math.sin(cur*Math.PI)*0.18;
+    holder.position.y=Math.sin(cur*Math.PI*2)*6-4;
+    camera.position.z=148-cur*72;
+    camera.position.y=42+cur*46;
+    camera.lookAt(0,0,0);
+    renderer.render(scene,camera);
+  }
+  addEventListener('resize',function(){
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+  tick();
+}
+/* 動態載入 three.js：不阻塞頁面，CDN 失敗時網站照常運作 */
+(function(){
+  function load(src,next,err){ var s=document.createElement('script'); s.src=src; s.async=true;
+    s.onload=next; s.onerror=err||function(){}; document.head.appendChild(s); }
+  var started=false;
+  function start(btn){
+    if(started||!window.THREE||!THREE.GLTFLoader) return;
+    var cv=document.getElementById('h3d'); if(!cv) return;
+    started=true; cv.classList.add('on');
+    if(btn){ btn.textContent='3D 載入中…'; btn.disabled=true; }
+    setTimeout(function(){ try{ boot3d(); }catch(e){} if(btn) btn.style.display='none'; },60);
+  }
+  function arm(){
+    var btn=document.getElementById('hstart'); if(!btn||btn.__a) return; btn.__a=true;
+    btn.addEventListener('click',function(){
+      btn.textContent='載入 3D…';
+      load('https://unpkg.com/three@0.128.0/build/three.min.js',function(){
+        load('https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js',function(){ start(btn); },
+             function(){ btn.textContent='3D 載入失敗（可繼續瀏覽）'; });
+      },function(){ btn.textContent='需要網路才能看 3D'; });
+    });
+  }
+  if(document.readyState!=='loading') arm(); else document.addEventListener('DOMContentLoaded',arm);
+  setTimeout(arm,800);
+  /* 不在進站時自動載入 three.js（手機才不會卡）；改由按鈕觸發 */
+})();
+</script>
+<script src="scroll-fx.js" defer></script>
 </body></html>
