@@ -1,0 +1,81 @@
+ELDERCHAT 老智系統 — 驗證報告
+==============================================================
+產出時間：2026-10-21（台北）
+
+【1】互動 3D 頁（單檔自包含 three.js r128）
+    檔案：elderchat-system.html
+    大小：678560 bytes（662.7 KB）
+    瀏覽器實測（Chrome headless / file://）：
+      typeof THREE        = object（REVISION 128）
+      可點零件 PARTS 數    = 17
+      .lbl 標籤數         = 17（與零件數一致：是）
+      #lead 引線數        = 17
+      console error 數    = 0（無錯誤）
+      模型包圍盒 (mm)     = [201.74, 193.18, 175.91]
+      模式切換測試        = asm / exploded / dims 皆正常（?view= 參數）
+      點選測試            = 17 個零件投影點擊，15 個命中自身（前框↔螢幕同心、
+                            散熱孔↔右麥克風被遮擋，屬正常）
+      資訊卡測試          = 點「緊急呼叫按鈕」→ 卡片顯示名稱/尺寸/材質/用途 OK
+
+【2】出圖像素統計（headless Chrome 1400×900）
+    判定：(a) 純天空取樣 max < 52 → 深色底、沒洗白
+          (b) 亮於 240 的像素 < 12% → 沒有過曝
+          (c) 中央量測窗內亮部覆蓋寬 ≥ 20%、高 ≥ 18% → 模型真的有畫出來且不小
+    preview-asm.png        1400×900   382.9 KB
+      背景取樣 RGB    : [[11.0, 16.0, 14.0], [11.0, 16.0, 14.0], [11.0, 16.0, 14.0]]  max 16.0  PASS
+      平均亮度 / 過曝 : 89.4 / 0.05%  PASS
+      亮部像素占比    : 17.4%（模型亮部／量測窗）
+      模型覆蓋 寬×高  : 59.0% × 81.3%  PASS（bbox px [470, 233, 966, 745]）
+    preview-exploded.png   1400×900   371.6 KB
+      背景取樣 RGB    : [[11.0, 16.0, 14.0], [11.0, 16.0, 14.0], [11.0, 16.0, 14.0]]  max 16.0  PASS
+      平均亮度 / 過曝 : 50.5 / 0.0%  PASS
+      亮部像素占比    : 3.4%（模型亮部／量測窗）
+      模型覆蓋 寬×高  : 99.8% × 76.5%  PASS（bbox px [280, 279, 1118, 761]）
+    preview-dims.png       1400×900   353.2 KB
+      背景取樣 RGB    : [[11.0, 16.0, 14.0], [11.0, 16.0, 14.0], [11.0, 16.0, 14.0]]  max 16.0  PASS
+      平均亮度 / 過曝 : 79.1 / 0.07%  PASS
+      亮部像素占比    : 12.8%（模型亮部／量測窗）
+      模型覆蓋 寬×高  : 62.6% × 75.9%  PASS（bbox px [434, 253, 960, 731]）
+【3】STL 讀回驗證（trimesh 重新載入，逐檔檢查）
+    檔案                     大小    頂點   面    水密  法線一致  體積(mm³)   包圍盒 W×H×D (mm)      規格             誤差
+    01_主機殼.stl              17484    176   348  是   是       231703.0   200.00×  95.00× 150.00  200×95×150       0.000 mm  PASS
+    02_前框.stl               17684    176   352  是   是        24388.0   165.00×   6.00× 105.00  165×6×105        0.000 mm  PASS
+    03_緊急按鈕座.stl            25484    256   508  是   是        16822.2    66.00×  20.00×  66.00  66×20×66         0.000 mm  PASS
+    04_麥克風座.stl              6484     64   128  是   是          892.3    22.00×   6.00×  17.00  22×6×17          0.000 mm  PASS
+    05_底座.stl               47084    472   940  是   是       238132.1   200.00×   8.00× 150.00  200×8×150        0.000 mm  PASS
+
+    全部 5 件：PASS（水密 manifold、法線一致、包圍盒誤差 0.000 mm）
+    註：01 主機殼壁厚 2.5 / 底部開口，頂板 2.5；05 底座 4 個 Ø12.3 凹槽（配合 Ø12 防滑墊）
+
+【4】檔案清單
+    README.md                                      12521 bytes
+    VERIFY.txt                                      5661 bytes
+    _dom_check.json                                  204 bytes
+    elderchat-system.html                         678560 bytes
+    preview-asm.png                               392119 bytes
+    preview-dims.png                              361715 bytes
+    preview-exploded.png                          380503 bytes
+    tools/build_elderchat.py                       49900 bytes
+    tools/make_stl.py                               6407 bytes
+    tools/verify.py                                 8504 bytes
+    stl/01_主機殼.stl                                 17484 bytes
+    stl/02_前框.stl                                  17684 bytes
+    stl/03_緊急按鈕座.stl                               25484 bytes
+    stl/04_麥克風座.stl                                 6484 bytes
+    stl/05_底座.stl                                  47084 bytes
+    stl/_stl_report.json                            1737 bytes
+
+【5】已知設計取捨（尺寸衝突的處理）
+    • 7 吋螢幕 165×105 比機身 95 高 → 螢幕斜背必然高出機身，模型總高 191mm；
+      README 與規格都寫「高 95（不含螢幕斜背）」，故尺寸視圖標 95（機身）＋總高 191。
+    • 正面 200mm 寬放不下「160mm LED ＋ Ø60 按鈕」並排 → LED 視窗 132mm、
+      模組仍為真實 160×80×12（右側 28mm 藏於按鈕座後方），點選時顯示實際模組尺寸。
+    • 木質側板 4mm 外貼（殼體 200 寬 → 總寬 200.4），因為殼壁只有 2.5mm，
+      铣 4mm 嵌槽會把側壁削穿；外貼也讓木紋在側面完整露出。
+    • 按鈕 Ø60 凸出正面 25mm，模型深向包圍盒因此為 175.9mm（150 殼深＋25 按鈕）。
+
+【6】可重現
+    python3 tools/build_elderchat.py .            # 產生 HTML
+    python3 tools/make_stl.py ./stl               # 產生 STL（需 trimesh + manifold3d + scipy）
+    chrome --headless=new --virtual-time-budget=9000 --window-size=1400,900 \
+      --screenshot=preview-asm.png 'file://…/elderchat-system.html?shot=1&view=asm'

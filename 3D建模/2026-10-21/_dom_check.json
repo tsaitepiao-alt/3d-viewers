@@ -1,0 +1,10 @@
+{
+ "three": "object",
+ "rev": "128",
+ "parts": 17,
+ "labels": 17,
+ "leads": 17,
+ "bbox": [201.74, 193.18, 175.91],
+ "errors": [],
+ "exploded": {"labels": 17, "leads": 17, "bbox": [670.4, 372.5, 624.2]}
+}

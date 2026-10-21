@@ -1,0 +1,132 @@
+[
+ {
+  "file": "01_主機殼.stl",
+  "bytes": 17484,
+  "verts": 176,
+  "faces": 348,
+  "watertight": true,
+  "winding": true,
+  "volume_mm3": 231703.0,
+  "bbox_mm": [
+   200.0,
+   95.0,
+   150.0
+  ],
+  "spec_mm": [
+   200.0,
+   95.0,
+   150.0
+  ],
+  "bbox_err_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "euler": 2,
+  "note": "200×150×95 壁厚2.5 R8 底部開口"
+ },
+ {
+  "file": "02_前框.stl",
+  "bytes": 17684,
+  "verts": 176,
+  "faces": 352,
+  "watertight": true,
+  "winding": true,
+  "volume_mm3": 24388.0,
+  "bbox_mm": [
+   165.0,
+   6.0,
+   105.0
+  ],
+  "spec_mm": [
+   165.0,
+   6.0,
+   105.0
+  ],
+  "bbox_err_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "euler": 0,
+  "note": "165×105×6 視窗154×86"
+ },
+ {
+  "file": "03_緊急按鈕座.stl",
+  "bytes": 25484,
+  "verts": 256,
+  "faces": 508,
+  "watertight": true,
+  "winding": true,
+  "volume_mm3": 16822.2,
+  "bbox_mm": [
+   66.0,
+   20.0,
+   66.0
+  ],
+  "spec_mm": [
+   66.0,
+   20.0,
+   66.0
+  ],
+  "bbox_err_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "euler": 2,
+  "note": "Ø66×20 內孔Ø60.4"
+ },
+ {
+  "file": "04_麥克風座.stl",
+  "bytes": 6484,
+  "verts": 64,
+  "faces": 128,
+  "watertight": true,
+  "winding": true,
+  "volume_mm3": 892.3,
+  "bbox_mm": [
+   22.0,
+   6.0,
+   17.0
+  ],
+  "spec_mm": [
+   22.0,
+   6.0,
+   17.0
+  ],
+  "bbox_err_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "euler": 0,
+  "note": "22×17×6 內腔20×15"
+ },
+ {
+  "file": "05_底座.stl",
+  "bytes": 47084,
+  "verts": 472,
+  "faces": 940,
+  "watertight": true,
+  "winding": true,
+  "volume_mm3": 238132.1,
+  "bbox_mm": [
+   200.0,
+   8.0,
+   150.0
+  ],
+  "spec_mm": [
+   200.0,
+   8.0,
+   150.0
+  ],
+  "bbox_err_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "euler": 2,
+  "note": "200×150×8 4×Ø12.3凹槽"
+ }
+]

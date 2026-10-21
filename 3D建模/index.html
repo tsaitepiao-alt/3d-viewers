@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f1116">
+<title>3D 建模資料庫 — 依日期分類</title>
+<style>
+ :root{--bg:#0f1116;--card:#191c23;--line:#2b303b;--txt:#e9eaee;--dim:#98a0ae;--acc:#e8734a;--ok:#3ecf8e}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--txt);
+   font-family:-apple-system,"PingFang TC","Heiti TC",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+ .wrap{max-width:680px;margin:0 auto;padding:22px 16px 48px}
+ h1{font-size:22px;margin:0 0 6px}
+ p.sub{color:var(--dim);font-size:14px;line-height:1.65;margin:0 0 22px}
+ .date{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+ .date .d{font:700 13px/1 ui-monospace,Menlo,monospace;color:var(--acc);letter-spacing:1px}
+ .date .ln{flex:1;height:1px;background:var(--line)}
+ a.card{display:block;text-decoration:none;color:inherit;background:var(--card);
+   border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 12px}
+ a.card:active{background:#20242d}
+ .tag{display:inline-block;font-size:12px;color:#0f1116;background:var(--acc);
+   border-radius:20px;padding:2px 10px;margin-bottom:8px;font-weight:700}
+ .tag.ok{background:var(--ok)}
+ .t{font-size:17px;font-weight:700;margin:0 0 5px}
+ .dd{font-size:13.5px;color:var(--dim);line-height:1.6}
+ .files{margin-top:10px;font-size:12.5px;color:#7d8798;font-family:ui-monospace,Menlo,monospace;
+   line-height:1.8;border-top:1px dashed var(--line);padding-top:9px}
+ .files span{color:#aeb6c2}
+ .hint{margin-top:28px;font-size:13px;color:var(--dim);line-height:1.75;
+   border-top:1px solid var(--line);padding-top:16px}
+ a{color:var(--acc)}
+ b{color:#fff}
+</style>
+</head><body>
+<div class="wrap">
+  <h1>3D 建模資料庫</h1>
+  <p class="sub">所有專案的建模檔、STL 可列印件、架構文件與 BOM。<b>依建立日期分類</b>，新的在上。</p>
+
+  <div class="date"><span class="d">2026-10-21</span><span class="ln"></span></div>
+
+  <a class="card" href="2026-10-21/elderchat-system.html">
+    <span class="tag ok">★ 全新</span>
+    <p class="t">老智系統 ELDERCHAT — 老人陪伴裝置</p>
+    <p class="dd">200 × 150 × 95 mm 封閉式機身、7 吋觸控主螢幕 ＋ 64×32 LED 點陣輔助面板 ＋ Ø60 緊急呼叫按鈕。<br>
+    三種檢視：<b>組裝成品</b>（含螢幕 UI 模擬）／<b>爆炸圖</b>（15 個元件逐層拆解）／<b>尺寸標註</b>。</p>
+    <div class="files">
+      elderchat-system.html <span>· 互動 3D</span><br>
+      README.md <span>· 架構 ＋ BOM ＋ 接線表</span><br>
+      stl/ <span>· 5 件可直接列印</span>
+    </div>
+  </a>
+
+  <a class="card" href="2026-10-21/stl/01_主機殼.stl">
+    <span class="tag">STL 下載</span>
+    <p class="t">主機殼 200×150×95，壁厚 2.5，R8</p>
+    <p class="dd">PLA+ 或 PETG，列印約 9 小時，需支撐（底部懸空）。</p>
+  </a>
+
+  <a class="card" href="2026-10-21/README.md">
+    <span class="tag">文件</span>
+    <p class="t">老智系統 架構書 v1.0</p>
+    <p class="dd">系統架構圖、BOM（NT$5,595）、接線表、軟體架構、安全規則、時程規劃、待決問題。</p>
+  </a>
+
+  <div class="date"><span class="d">2026-10-13</span><span class="ln"></span></div>
+
+  <a class="card" href="../cat-collar-parts.html">
+    <span class="tag">零件尺寸</span>
+    <p class="t">智慧項圈 · 電子元件 3D</p>
+    <p class="dd">XIAO ESP32S3、INMP441、LSM6DS3TR-C、SSD1306 OLED、電池、震動馬達、磁鐵、pogo pin。背景網格 1 格 = 1 mm。</p>
+  </a>
+
+  <a class="card" href="../cat-collar-shell.html">
+    <span class="tag">外殼可列印</span>
+    <p class="t">智慧項圈 · 外殼 3D</p>
+    <p class="dd">含四視圖與 STL 匯出。</p>
+  </a>
+
+  <a class="card" href="../case-oled.html">
+    <span class="tag">外殼</span>
+    <p class="t">智慧頸環 · 1.47 吋彩色 LCD 版外殼</p>
+    <p class="dd">配合新 PCB 的外殼設計。</p>
+  </a>
+
+  <div class="date"><span class="d">2026-10-12</span><span class="ln"></span></div>
+
+  <a class="card" href="../collar.html">
+    <span class="tag">產品外觀</span>
+    <p class="t">寵物智慧項圈（磁吸拆裝版）</p>
+    <p class="dd">表頭 56 × 44 × 17.8 mm、2.4" 滿版玻璃、套框磁吸拆裝。</p>
+  </a>
+
+  <div class="hint">
+    <b>檔案結構約定</b><br>
+    <code>3D建模/&lt;YYYY-MM-DD&gt;/</code><br>
+    ├─ <code>README.md</code>（架構 ＋ BOM ＋ 接線）<br>
+    ├─ <code>&lt;name&gt;-system.html</code>（互動 3D）<br>
+    ├─ <code>preview-*.png</code>（各視圖截圖）<br>
+    ├─ <code>stl/</code>（可直接列印）<br>
+    └─ <code>tools/</code>（產生器腳本，可改尺寸重跑）<br><br>
+    尺寸一律標真實公制（mm），並註明「示意」或「可量產」等級。
+  </div>
+</div>
+</body></html>
