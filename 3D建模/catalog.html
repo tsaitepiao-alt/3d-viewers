@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>嘉蘭智慧科技 · 產品型錄 2026</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<style>
+  :root{
+    --ink:#1d1723; --dim:#6b6273; --line:#e4dcec;
+    --purple:#4a1a63; --purple2:#8a5aa3; --gold:#b8862b; --gold-l:#e8c26a;
+    --bg:#fbf9fc; --card:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%;line-height:1.65}
+  .page{max-width:920px;margin:0 auto;padding:26px 20px 60px}
+
+  /* ── 封面 ── */
+  .cover{background:linear-gradient(150deg,#2a0f3d,#5a2183 55%,#7d3fa5);
+    border-radius:22px;padding:34px 30px;color:#fff;position:relative;overflow:hidden;
+    margin-bottom:30px}
+  .cover::after{content:"";position:absolute;right:-70px;top:-70px;width:280px;height:280px;
+    border-radius:50%;background:radial-gradient(circle,rgba(232,194,106,.30),transparent 68%)}
+  .cov-top{display:flex;gap:18px;align-items:center;position:relative;z-index:1}
+  .cov-top img{width:104px;height:auto;max-height:108px;object-fit:contain;
+    background:#fff;border-radius:14px;padding:6px;box-shadow:0 8px 26px rgba(0,0,0,.28)}
+  .cov-name{font-size:24px;font-weight:800;letter-spacing:.8px;margin:0}
+  .cov-en{font:600 9.5px/1.7 ui-monospace,Menlo,monospace;color:#e0c9f5;letter-spacing:1.4px;margin-top:3px}
+  .cov-tag{font-size:13px;color:#f3e8ff;margin-top:8px}
+  .cov-sub{margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,.20);
+    font-size:12.5px;color:#e6d6f7;position:relative;z-index:1}
+  .cov-sub b{color:var(--gold-l)}
+
+  /* ── 區塊 ── */
+  h2.sec{font-size:13px;letter-spacing:2.4px;color:var(--purple2);font-weight:800;
+    text-transform:uppercase;margin:34px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+
+  /* ── 產品卡 ── */
+  .prod{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    margin:0 0 20px;overflow:hidden;page-break-inside:avoid}
+  .prod-head{display:flex;align-items:baseline;gap:12px;padding:16px 20px 12px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fdfbff,#fff)}
+  .pno{font:800 11px/1 ui-monospace,Menlo,monospace;color:#fff;background:var(--purple);
+    border-radius:6px;padding:5px 8px;letter-spacing:1px}
+  .pname{font-size:18px;font-weight:800;margin:0;color:var(--purple)}
+  .pen{font:600 9.5px/1 ui-monospace,Menlo,monospace;color:var(--purple2);letter-spacing:1.2px}
+  .pbody{display:grid;grid-template-columns:280px 1fr;gap:0}
+  .pimg{background:#0c1014;display:flex;align-items:center;justify-content:center;padding:10px}
+  .pimg img{width:100%;height:auto;border-radius:10px;display:block}
+  .pinfo{padding:16px 20px}
+  .pdesc{font-size:13.5px;color:var(--dim);margin:0 0 14px}
+  table.spec{width:100%;border-collapse:collapse;font-size:13px}
+  table.spec th{text-align:left;font-weight:700;color:var(--purple);width:34%;
+    padding:6px 8px 6px 0;vertical-align:top;border-bottom:1px solid #f2eef6}
+  table.spec td{padding:6px 0;color:var(--ink);border-bottom:1px solid #f2eef6;vertical-align:top}
+  table.spec tr:last-child th,table.spec tr:last-child td{border-bottom:0}
+  .chips{margin-top:12px}
+  .chip{display:inline-block;font-size:11.5px;color:var(--purple);background:#f3ecfa;
+    border:1px solid #e2d3ee;border-radius:20px;padding:3px 10px;margin:0 6px 6px 0;font-weight:600}
+  .chip.g{color:#7a5a12;background:#fdf6e3;border-color:#efe0b8}
+
+  /* ── 頁尾 ── */
+  .foot{margin-top:38px;padding-top:18px;border-top:1px solid var(--line);
+    text-align:center;font-size:12px;color:var(--dim)}
+  .foot b{color:var(--purple)}
+
+  /* ── 手機 ── */
+  @media (max-width:700px){
+    .pbody{grid-template-columns:1fr}
+    .pimg{padding:8px}
+    .cov-top{flex-direction:column;align-items:flex-start;gap:12px}
+    .cov-name{font-size:20px}
+    .page{padding:16px 14px 44px}
+  }
+
+  /* ── 列印 A4 ── */
+  @media print{
+    @page{size:A4;margin:12mm}
+    html,body{background:#fff}
+    .page{max-width:none;padding:0}
+    .cover{background:#3a1354 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
+      border-radius:0;padding:22px 24px;margin-bottom:18px}
+    .prod{break-inside:avoid;page-break-inside:avoid;box-shadow:none}
+    .pbody{grid-template-columns:230px 1fr}
+    .pimg{background:#fff}
+    .prod-head{background:#fff}
+    .chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .noprint{display:none !important}
+  }
+</style>
+</head><body>
+<div class="page">
+
+  <div class="cover">
+    <div class="cov-top">
+      <img src="assets/logo-catlove-web.png" alt="CAT LOVE">
+      <div>
+        <div class="cov-name">嘉蘭智慧科技有限公司</div>
+        <div class="cov-en">JIALAN SMART TECHNOLOGY CO., LTD.</div>
+        <div class="cov-tag">AI · 物聯網 · 智慧生活產品</div>
+      </div>
+    </div>
+    <div class="cov-sub">
+      產品型錄 <b>2026</b>　｜　整合硬體、軟體與服務<br>
+      本型錄所有機型均附 <b>可列印 STL</b>、<b>互動 3D 爆炸圖</b>與 <b>BOM 料件表</b>
+    </div>
+  </div>
+
+  <div class="noprint" style="text-align:right;margin:-14px 0 18px">
+    <button onclick="window.print()" style="background:#4a1a63;color:#fff;border:0;border-radius:999px;
+      padding:10px 20px;font:700 13px/1 -apple-system,'PingFang TC',sans-serif;cursor:pointer">
+      🖨 列印 / 存成 PDF
+    </button>
+  </div>
+
+  <h2 class="sec">產品線</h2>
+
+  <!-- ───────── 智賢1號 ───────── -->
+  <div class="prod">
+    <div class="prod-head">
+      <span class="pno">01</span>
+      <div>
+        <p class="pname">智賢1號</p>
+        <div class="pen">ZHIXIAN 1 · 老人陪伴／對話裝置</div>
+      </div>
+    </div>
+    <div class="pbody">
+      <div class="pimg"><img src="2026-10-21/preview-asm.png" alt="智賢1號"></div>
+      <div class="pinfo">
+        <p class="pdesc">桌上型 AI 陪伴裝置：遠場收音、台語／國語雙語對話、大字顯示與一鍵緊急呼叫。封閉式機身設計，適合臥室與客廳。</p>
+        <table class="spec">
+          <tr><th>外觀尺寸</th><td>200 × 150 × 95 mm（含螢幕斜背總高 191 mm）</td></tr>
+          <tr><th>主螢幕</th><td>7 吋觸控 1024 × 600</td></tr>
+          <tr><th>輔助顯示</th><td>LED 點陣 64 × 32（P5）</td></tr>
+          <tr><th>緊急按鈕</th><td>Ø60 mm 紅色蘑菇頭</td></tr>
+          <tr><th>主控</th><td>Raspberry Pi Zero 2W</td></tr>
+          <tr><th>收音／發聲</th><td>雙 MEMS 麥克風陣列 ／ 40 mm 3 W</td></tr>
+          <tr><th>可列印件</th><td>5 件（主機殼／前框／按鈕座／麥克風座／底座）</td></tr>
+          <tr><th>參考 BOM</th><td>NT$ 5,595</td></tr>
+        </table>
+        <div class="chips">
+          <span class="chip">封閉式機身</span>
+          <span class="chip">台語 TTS</span>
+          <span class="chip">跌倒關鍵詞通報</span>
+          <span class="chip g">3D 爆炸圖 15 件</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── MEOWBASE ───────── -->
+  <div class="prod">
+    <div class="prod-head">
+      <span class="pno">02</span>
+      <div>
+        <p class="pname">MEOWBASE</p>
+        <div class="pen">貓語翻譯基地台 · 立架 ＋ RP2350 AMOLED</div>
+      </div>
+    </div>
+    <div class="pbody">
+      <div class="pimg"><img src="2026-10-21/preview-base-asm.png" alt="MEOWBASE"></div>
+      <div class="pinfo">
+        <p class="pdesc">搭配智慧頸環的桌上基地台：接收項圈資料、即時翻譯貓叫情緒，並顯示距離與活動量。</p>
+        <table class="spec">
+          <tr><th>外觀尺寸</th><td>60 × 80 × 60 mm（前面板後傾 20°）</td></tr>
+          <tr><th>主控</th><td>RP2350 ＋ ESP32-C3（無線橋接）</td></tr>
+          <tr><th>顯示</th><td>AMOLED 觸控面板</td></tr>
+          <tr><th>收音／發聲</th><td>INMP441 數位麥克風 ／ Ø14 mm 喇叭</td></tr>
+          <tr><th>介面</th><td>USB-C 供電與資料</td></tr>
+          <tr><th>可列印件</th><td>楔形立架 ＋ 主機前後殼</td></tr>
+        </table>
+        <div class="chips">
+          <span class="chip">貓叫情緒辨識</span>
+          <span class="chip">BLE 接收</span>
+          <span class="chip g">3D 爆炸圖 14 件</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── 嘉蘭一號 ───────── -->
+  <div class="prod">
+    <div class="prod-head">
+      <span class="pno">03</span>
+      <div>
+        <p class="pname">嘉蘭一號</p>
+        <div class="pen">JIALAN 1 · 智慧頸環（1.47 吋彩色 LCD）</div>
+      </div>
+    </div>
+    <div class="pbody">
+      <div class="pimg"><img src="2026-10-21/preview-collar-a-asm.png" alt="嘉蘭一號"></div>
+      <div class="pinfo">
+        <p class="pdesc">輕量型智慧頸環，1.47 吋高解析彩色螢幕，可顯示寵物表情與即時數據。磁吸充電、IP 級防潑水外殼。</p>
+        <table class="spec">
+          <tr><th>外觀尺寸</th><td>63 × 39 × 15 mm</td></tr>
+          <tr><th>螢幕</th><td>1.47 吋 172 × 320 IPS（ST7789V3）</td></tr>
+          <tr><th>主板</th><td>58.1 × 34.1 × 1.6 mm</td></tr>
+          <tr><th>電池</th><td>500 mAh（槽 32 × 21 × 4.5 mm）</td></tr>
+          <tr><th>感測</th><td>6 軸 IMU ／ PPG 心率 ／ 溫度</td></tr>
+          <tr><th>充電</th><td>磁吸 2 點</td></tr>
+          <tr><th>可列印件</th><td>上蓋／中框／背蓋（壁厚 1.8 mm，12 條邊全圓弧）</td></tr>
+        </table>
+        <div class="chips">
+          <span class="chip g">3D 爆炸圖 11 件</span>
+          <span class="chip">磁吸充電</span>
+          <span class="chip">表情顯示</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── 嘉蘭二號 ───────── -->
+  <div class="prod">
+    <div class="prod-head">
+      <span class="pno">04</span>
+      <div>
+        <p class="pname">嘉蘭二號</p>
+        <div class="pen">JIALAN 2 · 智慧頸環（2.4 吋滿版玻璃）</div>
+      </div>
+    </div>
+    <div class="pbody">
+      <div class="pimg"><img src="2026-10-21/preview-collar-b-asm.png" alt="嘉蘭二號"></div>
+      <div class="pinfo">
+        <p class="pdesc">大螢幕版本，2.4 吋滿版玻璃搭配磁吸套框，可快速拆換。背面採聽診器式振膜，提升貼膚收音品質。</p>
+        <table class="spec">
+          <tr><th>外觀尺寸</th><td>56 × 44 × 17.8 mm</td></tr>
+          <tr><th>螢幕</th><td>2.4 吋滿版玻璃（可視 48.96 × 36.72 mm）</td></tr>
+          <tr><th>結構</th><td>套框磁吸拆裝</td></tr>
+          <tr><th>感測</th><td>聽診器式振膜 ／ PPG ／ 溫度貼片</td></tr>
+          <tr><th>充電</th><td>磁吸 2 點</td></tr>
+          <tr><th>可列印件</th><td>上蓋／中框／背蓋／套框</td></tr>
+        </table>
+        <div class="chips">
+          <span class="chip g">3D 爆炸圖 12 件</span>
+          <span class="chip">滿版玻璃</span>
+          <span class="chip">磁吸拆裝</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec">共同規格</h2>
+  <div class="prod" style="padding:18px 20px">
+    <table class="spec">
+      <tr><th>設計檔交付</th><td>互動 3D（組裝／爆炸／尺寸三模式）、STL 可列印件、尺寸標註</td></tr>
+      <tr><th>打樣建議</th><td>淺灰 PLA／PETG 打樣驗證機構 → 外觀噴漆確認 → 量產改射出成型</td></tr>
+      <tr><th>小批量生產</th><td>50 件以下 3D 列印代工；50–500 件真空注型；500 件以上射出成型</td></tr>
+      <tr><th>顏色</th><td>量產以 Pantone／RAL 實體色卡對色，不使用螢幕校色</td></tr>
+    </table>
+  </div>
+
+  <div class="foot">
+    <b>嘉蘭智慧科技有限公司</b>　JIALAN SMART TECHNOLOGY CO., LTD.<br>
+    AI · 物聯網 · 智慧生活產品　｜　整合硬體、軟體與服務<br>
+    <span style="font-size:11px">型錄版本 v1.0 · 2026-10-21</span>
+  </div>
+</div>
+</body></html>
