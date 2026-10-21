@@ -99,6 +99,10 @@
          box-shadow:0 4px 10px rgba(40,35,25,.08);cursor:pointer}
   button.on{background:var(--lime);border-color:#b6dd33}
   button.say{background:var(--ink);color:var(--lime);border-color:var(--ink)}
+  .lang{display:flex;align-items:center;gap:9px;margin-top:16px;width:min(92vw,420px)}
+  .lang label{font-size:13px;font-weight:700;color:#7b7f74}
+  .lang select{flex:1;padding:10px 12px;border-radius:12px;border:1px solid #d5cfbf;background:#fff;
+               font-family:inherit;font-size:14px;font-weight:600;color:#161614}
   .hint{margin-top:14px;font-size:12.5px;color:#7b7f74;text-align:center;line-height:1.6;max-width:420px}
 </style>
 </head>
@@ -137,6 +141,11 @@
   <button onclick="setState('talk')" id="b-talk">③ 說話</button>
   <button onclick="setState('happy')" id="b-happy">④ 開心</button>
   <button class="say" onclick="speak()">🔊 用語音說話</button>
+</div>
+
+<div class="lang">
+  <label for="voiceSel">聲音</label>
+  <select id="voiceSel"></select>
 </div>
 
 <p class="hint">按「用語音說話」會真的唸出來（用裝置的中文語音），嘴巴與光條跟著聲音跳動。<br>螢幕 10 秒沒互動會自動回到時鐘。</p>
@@ -229,8 +238,10 @@ function speak(){
   u.lang = 'zh-TW';
   u.rate = 0.92;
   u.pitch = 1.0;
-  const vs = speechSynthesis.getVoices().filter(v => /zh[-_]TW|Chinese \(Taiwan\)|國語|中文/i.test(v.lang + v.name));
-  if (vs.length) u.voice = vs[0];
+  const all = speechSynthesis.getVoices();
+  const picked = all.find(v => v.name === sel.value) ||
+                 all.find(v => v.lang === 'zh-TW');
+  if (picked){ u.voice = picked; u.lang = picked.lang; }
 
   u.onstart = () => { speaking = true; };
   u.onboundary = () => { level = Math.min(1, level + 0.35); };
@@ -240,9 +251,29 @@ function speak(){
 }
 
 // 初始化：載入語音清單（部分瀏覽器要等 voiceschanged）
+const sel = document.getElementById('voiceSel');
+function fillVoices(){
+  const vs = speechSynthesis.getVoices().filter(v => /zh|Chinese/i.test(v.lang + ' ' + v.name));
+  sel.innerHTML = '';
+  if (!vs.length){
+    const o = document.createElement('option');
+    o.textContent = '此瀏覽器沒有中文語音';
+    sel.appendChild(o); return;
+  }
+  vs.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name;
+    const tag = v.lang === 'zh-TW' ? '台灣國語' : (v.lang === 'zh-HK' ? '粵語' : v.lang);
+    o.textContent = `${v.name}（${tag}）`;
+    sel.appendChild(o);
+  });
+  const pref = vs.find(v => /Grandpa|Grandma|Meijia/i.test(v.name)) || vs[0];
+  sel.value = pref.name;
+}
 if ('speechSynthesis' in window){
-  speechSynthesis.onvoiceschanged = () => {};
-  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = fillVoices;
+  fillVoices();
+  setTimeout(fillVoices, 600);
 }
 setState('idle');
 </script>
