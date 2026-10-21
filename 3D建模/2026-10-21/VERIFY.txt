@@ -79,3 +79,109 @@ ELDERCHAT 老智系統 — 驗證報告
     python3 tools/make_stl.py ./stl               # 產生 STL（需 trimesh + manifold3d + scipy）
     chrome --headless=new --virtual-time-budget=9000 --window-size=1400,900 \
       --screenshot=preview-asm.png 'file://…/elderchat-system.html?shot=1&view=asm'
+
+==============================================================
+PawPulse 系統頁（寵物智慧頸環 A / B 雙型號）
+==============================================================
+產出時間：2026-10-21（台北）
+
+【1】頁面
+    檔案：pawpulse-system.html（單檔自包含 three.js r128 + OrbitControls，file:// 可離線開）
+    大小：694748 bytes（678.5 KB）
+    產生器：tools/build_pawpulse.py；出圖：tools/shoot_pawpulse.sh
+    URL：?shot=1、?view=asm|exploded|dims、?variant=a|b
+
+【2】瀏覽器實測（Chrome headless / http）
+    typeof THREE        = object（REVISION 128；未用 CapsuleGeometry）
+    console error 數    = 0（A↔B 切換、三模式切換、點選、滑桿，全程 0）
+    外部資源參照       = 0（只有 SVG 的 w3.org namespace，無 CDN／圖檔）
+    A 版（1.47 吋彩色 LCD，63 × 39 × 15 mm）
+      可點零件 PARTS    = 11
+      .lbl 標籤數       = 11（與零件數一致：是）
+      #lead 引線數      = 11
+      標籤分欄          = 左 8 / 右 3，重疊 0 組（標籤高 31px、min-gap 54px、clamp [64, H-64]）
+      模型包圍盒 (mm)   = [98.45, 191.44, 64.60]（爆炸 100%）
+    B 版（2.4 吋滿版玻璃，56 × 44 × 17.8 mm）
+      可點零件 PARTS    = 12
+      .lbl 標籤數       = 12（與零件數一致：是）
+      #lead 引線數      = 12
+      標籤分欄          = 左 7 / 右 5，重疊 0 組
+      模型包圍盒 (mm)   = [104.88, 204.26, 71.80]（爆炸 100%）
+    切換型號 = 重建全部 mesh／標籤／引線／尺寸標註（不是只改文字），HUD 同步換尺寸
+    點選測試 = asm 模式 21×15 網格取樣：A 命中 4 種、B 命中 6 種外露件
+              點「上蓋」→ 右上資訊卡 編號／名稱／尺寸／材質／用途 全部顯示 OK
+    尺寸視圖 = 3 個 sprite（寬／深／厚），A 63.0/39.0/15.0、B 56.0/44.0/17.8
+    螢幕 UI 貼圖（CanvasTexture）平均亮度：A 28.0、B 34.9（max 255）→ 非空白、非單色
+    手機（CDP 390×844, DPR2）
+      canvas            = 390 × 844 CSS（780 × 1688 實體）
+      底部控制列         = overflow-x:auto、按鈕高 38px（≥36）、#bar bottom 10px / #bar2 64px
+      標籤 11 個、重疊 0 組、垂直範圍 253–738 px，未壓到下方滑桿（top 750）
+      型號切換鈕移到右上、資訊卡降到 top 62px → 與標籤／HUD 皆不重疊
+
+【3】出圖像素統計（headless Chrome 1400×900，--use-angle=swiftshader）
+    判定：(a) 天空取樣 ≈ (7,13,16)；地板取樣 max < 60 → 深色底、沒洗白
+          (b) 亮於 240 的像素 = 0% → 沒有過曝
+          (c) 中央量測窗亮部覆蓋 寬 ≥ 20%、高 ≥ 18% → 模型真的畫出來且不小
+    preview-collar-a-asm.png     1400×900   279.7 KB
+      背景/地板取樣 RGB : [[20.1, 29.5, 33.2], [32.3, 48.9, 53.3], [28.7, 45.8, 49.9]]  max 53.3  PASS
+      平均亮度 / 過曝   : 86.0 / 0.0%  PASS
+      模型覆蓋 寬×高    : 60.5% × 68.6%  PASS（bbox px [452, 187, 960, 619]）
+    preview-collar-a-exploded.png 1400×900   230.1 KB
+      背景/地板取樣 RGB : [[7.0, 13.0, 16.0], [7.0, 13.0, 16.0], [7.0, 13.0, 16.0]]  max 16.0  PASS
+      平均亮度 / 過曝   : 15.8 / 0.0%  PASS
+      模型覆蓋 寬×高    : 99.8% × 67.0%  PASS（bbox px [280, 217, 1118, 639]）
+    preview-collar-a-dims.png    1400×900   274.2 KB
+      背景/地板取樣 RGB : [[7.0, 13.0, 16.0], [31.3, 46.5, 51.2], [27.5, 43.4, 47.5]]  max 51.2  PASS
+      平均亮度 / 過曝   : 76.9 / 0.0%  PASS
+      模型覆蓋 寬×高    : 76.7% × 72.1%  PASS（bbox px [392, 223, 1036, 677]）
+    preview-collar-b-asm.png     1400×900   317.1 KB
+      背景/地板取樣 RGB : [[13.6, 21.3, 24.6], [31.3, 46.7, 51.3], [27.6, 43.7, 47.8]]  max 51.3  PASS
+      平均亮度 / 過曝   : 56.4 / 0.0%  PASS
+      模型覆蓋 寬×高    : 54.0% × 61.6%  PASS（bbox px [470, 231, 924, 619]）
+
+【4】vision 目視檢查（逐張問「條紋／共面雜訊／洗白／浮空／破面」）
+    A 版組裝：螢幕 UI 可讀（狗臉、PAWPULSE、78%、92 bpm、3,412、38.4°C）；白殼乾淨不過曝；
+              視窗邊緣無帶狀 z-fighting；織帶／快扣銜接正常
+    A 版爆炸：11 件 ⑪→① 由下往上、虛線軸可見、引線指到正確零件、標籤互不重疊
+    A 版尺寸：三條標註延伸線貼齊機身三邊、數值可讀
+    B 版組裝：滿版黑玻璃反光正常（非灰白）、機身／套框／織帶無破面、UI 可讀
+    修正紀錄 1：初次出圖整個畫面被地板染亮（量到地板 65,87,94）。原因＝深色地板在
+      ACES+sRGB 輸出下仍被抬亮，且俯角 45° 讓地板佔滿視野。改法：地板 0x060b0e→0x010405、
+      fog 190/620、俯角 39° → 修正後地板 27–32 / 45–49、天空 7,13,16。
+    修正紀錄 2：B 版第一次建構丟出 TypeError（W.win.w，W 是數字）→ 這是真的 JS 錯誤，
+      修好後 console error 才歸零；另外套框夾帶翼軸向寫錯（Y 當成織帶寬度）會凸出機身，
+      已改成 9 × 1.3 × 26。
+
+【5】零件與尺寸來源（逐項可追溯，未自行發明）
+    A 版 ← case-oled.html DIMS：63×39×15、上蓋 6.8、下蓋 8.2、內腔 59.4×35.4、壁厚 1.8、R7、
+          PCB 58.1×34.1×1.6、LCD 視窗 33×18 R3、電池槽 32×21×4.5（500mAh）、
+          mic 2×⌀1.0、磁吸孔 2×⌀2.4、走帶槽 3.0
+    B 版 ← collar.html / pawpulse-3d.html：表頭 56×44×17.8、可視 48.96×36.72、背蓋 7.2、中框 6.0、
+          螢幕 52×40×2.4、上蓋 3.0、電池 34×26×5.4、PCB 38×30×1.2、振膜 ⌀28 外凸 5、
+          套框 60×48×3.2 開窗 46×30、磁鐵 ⌀6×2、pogo 孔 ⌀2.4 距 14、織帶 20×2.5
+    元件 ← cat-collar-parts.html：XIAO ESP32S3 21×17.8×1.2、INMP441 4.72×3.76×1.0、
+          LSM6DS3TR-C 2.5×3.0×0.83、震動馬達 ⌀10×3.4、磁鐵 ⌀5×2、pogo ⌀1.5×5
+
+【6】已知設計取捨
+    • B 版名目堆疊 7.2+6.0+2.4+3.0 = 18.6 > 17.8 → 螢幕 0.9 mm 嵌進中框凹槽、玻璃壓在螢幕上緣；
+      與實物一樣靠「嵌合」吃掉 0.8 mm，總厚仍標 17.8。
+    • 尺寸視圖暫時收起錶帶（圈徑 68 mm 比機身大，不收就三個標註會被取景拉遠）；
+      尺寸只標機身本體，與原檔規格一致。
+    • 螢幕 UI 面比開窗大 1.6 mm 並退 0.16 mm（A 34.6×19.6 vs 33×18；B 50.4×38.2 vs 48.96×36.72）
+      → 邊緣藏進框底，無共面條紋；螢幕本體再退 0.14 mm 避免與 UI 面共面。
+    • 螢幕內凹 1.8 mm（A）/ 3.0 mm（B 玻璃開窗），3/4 視角看得到真實凹槽。
+
+【7】檔案清單（本頁相關）
+    pawpulse-system.html                  694748 bytes
+    preview-collar-a-asm.png              286394 bytes
+    preview-collar-a-exploded.png         235573 bytes
+    preview-collar-a-dims.png             280759 bytes
+    preview-collar-b-asm.png              324745 bytes
+    tools/build_pawpulse.py                67257 bytes
+    tools/shoot_pawpulse.sh                  818 bytes
+
+【8】可重現
+    python3 tools/build_pawpulse.py .        # 產生 HTML
+    bash tools/shoot_pawpulse.sh             # 出四張圖（先開 http://localhost:8765）
+    chrome --headless=new --use-angle=swiftshader --virtual-time-budget=9000 \
+      --window-size=1400,900 --screenshot=x.png 'file://…/pawpulse-system.html?shot=1&view=asm&variant=b'
