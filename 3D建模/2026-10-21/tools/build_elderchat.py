@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ELDERCHAT 老智系統 — 單檔 three.js 互動模型頁產生器
+智賢1號（嘉蘭智慧科技）— 單檔 three.js 互動模型頁產生器
 輸出：elderchat-system.html（three.js r128 + OrbitControls 內嵌，可離線雙擊）
 
 用法：
@@ -18,7 +18,7 @@ HTML_HEAD = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>老智系統 ELDERCHAT ｜ 3D 組裝・爆炸・尺寸</title>
+<title>智賢1號 ｜ 嘉蘭智慧科技 · 3D 組裝・爆炸・尺寸</title>
 <style>
   :root{
     --cream:#f3ecdd; --cream2:#e7dcc4; --wood:#8a5b38; --wood2:#6f4527;
@@ -120,7 +120,7 @@ HTML_HEAD = r"""<!DOCTYPE html>
 <div id="app"></div>
 
 <div id="hud" class="panel">
-  <b>ELDERCHAT <i>老智系統</i></b>
+  <b>智賢1號 <i>ZHIXIAN 1</i></b>
   <span>桌上型老人陪伴／對話裝置・1 格 = 1 mm<br>拖曳旋轉 · 滾輪縮放 · 點零件看規格</span>
   <div class="tag">3D 列印外殼 200 × 150 × 95 mm</div>
 </div>
@@ -267,7 +267,7 @@ function screenTex(){
   /* 頂部狀態列 */
   c.fillStyle='#e8dfc8';c.fillRect(0,0,W,54);
   c.fillStyle='#7e8a72';c.font='500 22px "PingFang TC",sans-serif';
-  c.fillText('老智 ELDERCHAT',34,36);
+  c.fillText('嘉蘭 · 智賢1號',34,36);
   c.fillStyle='#1f6b3c';c.beginPath();c.arc(W-60,27,9,0,7);c.fill();
   c.fillStyle='#6e7a66';c.font='500 21px "PingFang TC",sans-serif';c.textAlign='right';
   c.fillText('Wi-Fi 已連線　電量 82%',W-80,35);c.textAlign='left';

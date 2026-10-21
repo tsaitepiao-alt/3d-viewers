@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PAWPULSE 寵物智慧頸環 — A/B 雙型號 單檔 three.js 互動模型頁產生器
+嘉蘭一號／二號 智慧頸環 — 雙型號 單檔 three.js 互動模型頁產生器（嘉蘭智慧科技）
 輸出：pawpulse-system.html（three.js r128 + OrbitControls 內嵌，可離線雙擊）
 
 三模式：組裝 / 爆炸 / 尺寸；型號切換：A 版（1.47" LCD）/ B 版（2.4" 滿版玻璃）
@@ -30,7 +30,7 @@ HTML_HEAD = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>PAWPULSE 寵物智慧頸環 ｜ 3D 組裝・爆炸・尺寸（A / B 雙型號）</title>
+<title>嘉蘭一號・二號 智慧頸環 ｜ 嘉蘭智慧科技 · 3D 組裝・爆炸・尺寸</title>
 <style>
   :root{
     --mint:#4be3a8; --mint2:#2fc98d; --coral:#ff7a59; --sky:#7bd3ff;
@@ -145,14 +145,14 @@ HTML_HEAD = r"""<!DOCTYPE html>
 <div id="app"></div>
 
 <div id="hud" class="panel">
-  <b>PAWPULSE <i>寵物智慧頸環</i></b>
+  <b>嘉蘭一號 · 二號 <i>智慧頸環</i></b>
   <span>穿戴式心率／體溫／活動量監測・1 格 = 1 mm<br>拖曳旋轉 · 滾輪縮放 · 點零件看規格</span>
-  <div class="tag" id="hudtag"><b>A 版</b> ｜ 63 × 39 × 15 mm</div>
+  <div class="tag" id="hudtag"><b>嘉蘭一號</b> ｜ 63 × 39 × 15 mm</div>
 </div>
 
 <div id="vsw" class="panel">
-  <button data-v="a" class="on">A 版<small>1.47 吋 LCD</small></button>
-  <button data-v="b">B 版<small>2.4 吋滿版玻璃</small></button>
+  <button data-v="a" class="on">嘉蘭一號<small>1.47 吋 LCD</small></button>
+  <button data-v="b">嘉蘭二號<small>2.4 吋滿版玻璃</small></button>
 </div>
 
 <div id="finfo" class="panel"></div>
@@ -418,7 +418,7 @@ function uiTex(){
   c.textBaseline='middle';
   /* ── 頂列：PAWPULSE ＋ 電量 ── */
   c.font='bold '+(8.4*u)+'px "Helvetica Neue",Arial,sans-serif';
-  spaced(c,'PAWPULSE',5.5*u,8.5*u,1.5*u,'#4be3a8');
+  spaced(c,'JIALAN-1',5.5*u,8.5*u,1.5*u,'#4be3a8');
   /* 電量圖示 */
   var bx=W-20.5*u,by=5.6*u,bw=9.5*u,bh=5.6*u;
   c.strokeStyle='#9fe8cf';c.lineWidth=Math.max(1.4,0.7*u);
@@ -506,7 +506,7 @@ function pcbTex(w,d){
   /* 絲印 */
   c.fillStyle='rgba(245,250,240,.90)';
   c.font='bold 42px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('PAWPULSE  MAIN  v1.0',W*0.055,H*0.20);
+  c.fillText('JIALAN-1  v1.0',W*0.055,H*0.20);
   c.font='26px "Helvetica Neue",Arial,sans-serif';
   c.fillText('ESP32-S3  \u00b7  PPG  \u00b7  IMU  \u00b7  BLE 5.0',W*0.055,H*0.30);
   c.font='22px "Helvetica Neue",Arial,sans-serif';
@@ -530,7 +530,7 @@ function battTex(){
   c.fillText('Li-Po  500mAh',28,120);
   c.font='30px "Helvetica Neue",Arial,sans-serif';
   c.fillText('3.7V  \u00b7  1.85Wh',28,172);
-  c.fillText('PAWPULSE  \u00b7  PCM',28,214);
+  c.fillText('JIALAN-1  \u00b7  PCM',28,214);
   c.strokeStyle='#c22a1c';c.lineWidth=5;
   c.strokeRect(20,254,140,64);
   c.fillStyle='#c22a1c';c.font='bold 34px Arial';c.fillText('+',42,302);
@@ -548,7 +548,7 @@ var BTEX=battTex();
    B：56 × 44 × 17.8（背蓋 7.2 / 中框 6.0 / 螢幕 2.4 / 上蓋玻璃 3.0） */
 var VD={
  a:{
-  key:'a',label:'A 版',tag:'1.47 吋彩色 LCD',size:'63 × 39 × 15 mm',
+  key:'a',label:'嘉蘭一號',tag:'1.47 吋彩色 LCD',size:'63 × 39 × 15 mm',
   W:63,D:39,H:15,cr:7,wall:1.8,
   win:{w:33,h:18,r:3},
   ui:{w:33,h:18},
@@ -600,7 +600,7 @@ var VD={
   ]
  },
  b:{
-  key:'b',label:'B 版',tag:'2.4 吋滿版玻璃',size:'56 × 44 × 17.8 mm',
+  key:'b',label:'嘉蘭二號',tag:'2.4 吋滿版玻璃',size:'56 × 44 × 17.8 mm',
   W:56,D:44,H:17.8,cr:7,wall:1.8,
   win:{w:48.96,h:36.72,r:2.0},
   ui:{w:48.96,h:36.72},

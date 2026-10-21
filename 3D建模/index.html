@@ -30,9 +30,25 @@
    border-top:1px solid var(--line);padding-top:16px}
  a{color:var(--acc)}
  b{color:#fff}
+ .brand{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#1b1530,#251a3f);
+   border:1px solid #3d2e63;border-radius:16px;padding:14px 16px;margin:0 0 22px}
+ .brand img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex:0 0 auto;
+   box-shadow:0 4px 14px rgba(120,80,220,.35)}
+ .bname{font-size:16px;font-weight:800;letter-spacing:.5px;color:#fff}
+ .ben{font:600 9.5px/1.6 ui-monospace,Menlo,monospace;color:#b9a8e8;letter-spacing:1.2px;margin-top:1px}
+ .btag{font-size:12px;color:#c9c2dd;margin-top:5px;line-height:1.55}
+ .bfoot{margin-top:30px;text-align:center;font-size:11.5px;color:#6f6885;line-height:1.7}
 </style>
 </head><body>
 <div class="wrap">
+  <div class="brand">
+    <img src="assets/logo-catlove.jpg" alt="CAT LOVE 嘉蘭智慧科技">
+    <div>
+      <div class="bname">嘉蘭智慧科技有限公司</div>
+      <div class="ben">JIALAN SMART TECHNOLOGY CO., LTD.</div>
+      <div class="btag">AI · 物聯網 · 智慧生活產品<br>整合硬體、軟體與服務</div>
+    </div>
+  </div>
   <h1>3D 建模資料庫</h1>
   <p class="sub">所有專案的建模檔、STL 可列印件、架構文件與 BOM。<b>依建立日期分類</b>，新的在上。</p>
 
@@ -40,20 +56,20 @@
 
   <a class="card" href="2026-10-21/pawpulse-system.html">
     <span class="tag ok">★ 最新</span>
-    <p class="t">PAWPULSE 寵物智慧頸環 — A / B 雙型號</p>
-    <p class="dd">一個頁面同時支援 <b>A 版</b>（1.47 吋彩色 LCD，63 × 39 × 15 mm）與 <b>B 版</b>（2.4 吋滿版玻璃，56 × 44 × 17.8 mm），
+    <p class="t">嘉蘭一號・二號 — 智慧頸環（雙型號）</p>
+    <p class="dd">一個頁面同時支援 <b>嘉蘭一號</b>（1.47 吋彩色 LCD，63 × 39 × 15 mm）與 <b>嘉蘭二號</b>（2.4 吋滿版玻璃，56 × 44 × 17.8 mm），
     切換型號會整個重建模型與標籤。<br>
-    三種檢視：<b>組裝成品</b>（螢幕畫 PawPulse UI：狗臉／心率 92 bpm／步數 3,412／78%）／<b>爆炸圖</b>（11–12 個零件逐層＋左右引線）／<b>尺寸標註</b>。</p>
+    三種檢視：<b>組裝成品</b>（螢幕畫裝置 UI：狗臉／心率 92 bpm／步數 3,412／78%）／<b>爆炸圖</b>（11–12 個零件逐層＋左右引線）／<b>尺寸標註</b>。</p>
     <div class="files">
       pawpulse-system.html <span>· 互動 3D（單檔可離線）</span><br>
-      preview-collar-a-*.png <span>· A 版 組裝／爆炸／尺寸</span><br>
-      preview-collar-b-asm.png <span>· B 版 組裝</span>
+      preview-collar-a-*.png <span>· 嘉蘭一號 組裝／爆炸／尺寸</span><br>
+      preview-collar-b-asm.png <span>· 嘉蘭二號 組裝</span>
     </div>
   </a>
 
   <a class="card" href="2026-10-21/elderchat-system.html">
     <span class="tag ok">★ 全新</span>
-    <p class="t">老智系統 ELDERCHAT — 老人陪伴裝置</p>
+    <p class="t">智賢1號 — 老人陪伴裝置</p>
     <p class="dd">200 × 150 × 95 mm 封閉式機身、7 吋觸控主螢幕 ＋ 64×32 LED 點陣輔助面板 ＋ Ø60 緊急呼叫按鈕。<br>
     三種檢視：<b>組裝成品</b>（含螢幕 UI 模擬）／<b>爆炸圖</b>（15 個元件逐層拆解）／<b>尺寸標註</b>。</p>
     <div class="files">
@@ -71,7 +87,7 @@
 
   <a class="card" href="2026-10-21/README.md">
     <span class="tag">文件</span>
-    <p class="t">老智系統 架構書 v1.0</p>
+    <p class="t">智賢1號 架構書 v1.0</p>
     <p class="dd">系統架構圖、BOM（NT$5,595）、接線表、軟體架構、安全規則、時程規劃、待決問題。</p>
   </a>
 
@@ -113,5 +129,6 @@
     └─ <code>tools/</code>（產生器腳本，可改尺寸重跑）<br><br>
     尺寸一律標真實公制（mm），並註明「示意」或「可量產」等級。
   </div>
+  <div class="bfoot">嘉蘭智慧科技有限公司　·　JIALAN SMART TECHNOLOGY<br>AI · 物聯網 · 智慧生活產品</div>
 </div>
 </body></html>
