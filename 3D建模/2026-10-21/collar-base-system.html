@@ -2228,6 +2228,9 @@ function updateLabels(){
   var W=window.innerWidth,H=window.innerHeight,cx=W/2;
   var narrow=W<760;
   var pad=64,padB=narrow?128:64;
+  /* 底部界線＝控制列上緣（不能只用視窗高度，否則最下方標籤會壓到按鈕列／被切掉） */
+  var _barEl=document.getElementById('bar');
+  var LIM=(_barEl?_barEl.getBoundingClientRect().top:window.innerHeight)-12;
   var lead=document.getElementById('lead');
   lead.setAttribute('width',W);lead.setAttribute('height',H);
   LBL.forEach(function(L){
@@ -2242,20 +2245,34 @@ function updateLabels(){
   ['L','R'].forEach(function(side){
     var arr=LBL.filter(function(L){return L.side===side;})
       .sort(function(a,b){return a.ay-b.ay;});
-    var n=arr.length,avail=H-pad-padB,gap=54;
-    arr.forEach(function(L){var hh=L.el.offsetHeight||38;if(hh+4>gap)gap=hh+4;});
+    var n=arr.length,avail=Math.max(120,LIM-pad),gap=narrow?46:54;
     if(n>1&&(n-1)*gap>avail)gap=avail/(n-1);
-    for(var i=0;i<n;i++){
-      arr[i].ty=arr[i].ay;
-      if(i>0&&arr[i].ty-arr[i-1].ty<gap)arr[i].ty=arr[i-1].ty+gap;
-    }
-    if(n)arr[n-1].ty=Math.min(arr[n-1].ty,H-padB);
-    for(var k=n-2;k>=0;k--){
-      if(arr[k].ty>arr[k+1].ty-gap)arr[k].ty=arr[k+1].ty-gap;
-    }
-    if(n&&arr[0].ty<pad){
-      var d=pad-arr[0].ty;
-      for(var j=0;j<n;j++)arr[j].ty+=d;
+    var hh0=n?(arr[n-1].el.offsetHeight||56):0;
+    var need=n?((n-1)*gap+hh0):0;
+    if(n&&need>avail){
+      /* 視窗太矮、放不下：平均分佈，寧可標籤靠緊也不要跑到畫面外 */
+      var g2=Math.max(10,(avail-hh0)/Math.max(1,n-1));
+      var y0=Math.max(pad,LIM-hh0-(n-1)*g2);
+      for(var q=0;q<n;q++)arr[q].ty=y0+q*g2;
+    }else{
+      /* 1) 由上往下推開  2) 底部夾住  3) 由下往上回推  4) 整組下移避免超出上緣 */
+      for(var i=0;i<n;i++){
+        arr[i].ty=arr[i].ay;
+        if(i>0&&arr[i].ty-arr[i-1].ty<gap)arr[i].ty=arr[i-1].ty+gap;
+      }
+      if(n){var _h=arr[n-1].el.offsetHeight||56;arr[n-1].ty=Math.min(arr[n-1].ty,LIM-_h);}
+      for(var k=n-2;k>=0;k--){
+        if(arr[k].ty>arr[k+1].ty-gap)arr[k].ty=arr[k+1].ty-gap;
+      }
+      if(n&&arr[0].ty<pad){
+        var d=pad-arr[0].ty;
+        for(var j=0;j<n;j++)arr[j].ty+=d;
+      }
+      if(n){
+        var _hh=arr[n-1].el.offsetHeight||56;
+        var _ov=(arr[n-1].ty+_hh)-LIM;
+        if(_ov>0){for(var j2=0;j2<n;j2++)arr[j2].ty-=_ov;}
+      }
     }
     arr.forEach(function(L){
       L.el.className='lbl '+(side==='L'?'left':'right');
