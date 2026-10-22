@@ -322,6 +322,9 @@ var M={
   rubber:  mat({color:0x1d2224,roughness:.94,metalness:0}),
   lcdBody: mat({color:0x0d1013,roughness:.36,metalness:.14})
 };
+/* 原始色（換型號時要把上一個型號改過的殼色還原） */
+var M0={};
+for(var mk in M){if(M[mk]&&M[mk].color)M0[mk]=M[mk].color.getHex();}
 
 /* ═══════════════ 幾何工具 ═══════════════ */
 function rrShape(w,h,r){
@@ -1131,6 +1134,9 @@ function buildDims(){
 }
 
 function buildVariant(key,keepMode){
+  /* 先把上一個型號改過的殼色還原，再切到該型號對應的外殼材質 */
+  if(typeof restoreShellBase==='function')restoreShellBase();
+  if(typeof SHELLSET!=='undefined')SHELLM=SHELLSET[key]||SHELLSET.a;
   V=VD[key]||VD.a;
   /* 清舊 */
   for(var i=model.children.length-1;i>=0;i--)model.remove(model.children[i]);
@@ -1164,6 +1170,8 @@ function buildVariant(key,keepMode){
   var bs=document.querySelectorAll('#vsw button');
   for(var j=0;j<bs.length;j++)bs[j].className=(bs[j].getAttribute('data-v')===key)?'on':'';
   applyExplode();
+  /* 換型號後重新套用目前選的外殼色（新 meshes 才會拿到新顏色） */
+  if(window.__shellHex&&typeof setShellColor==='function')setShellColor(window.__shellHex);
   window.__pp.variant=key;
   window.__pp.win={w:V.win.w,h:V.win.h};
   if(keepMode!==false)setMode(MODE,true);
@@ -1545,7 +1553,28 @@ function __focusDbg(){
 
 
 /* ═══════════════ 外殼顏色（換色不動幾何，共用材質一起換） ═══════════════ */
-var SHELLM=[{k:'shell',f:1},{k:'shell2',f:0.93}];
+/* 兩個型號的外殼不是同一組材質：
+   A 版是白色 PLA 上／下蓋（shell／shell2）；B 版是可拆表頭，機身是霧黑 PC+ABS
+   （frame）＋滿版黑玻璃上蓋，所以 B 版要一起把 frame 換色才有反應。 */
+var SHELLSET={
+  a:[{k:'shell',f:1},{k:'shell2',f:0.93}],
+  b:[{k:'frame',f:1},{k:'shell',f:1},{k:'shell2',f:0.93}]
+};
+var SHELLM=SHELLSET.a;
+function restoreShellBase(){
+  var map0={},i,k;
+  for(i=0;i<SHELLM.length;i++){
+    var sk=SHELLM[i].k,m=M[sk];
+    if(m&&M0&&M0[sk]!==undefined){m.color.setHex(M0[sk]);map0[m.uuid]=M0[sk];}
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map0[src]!==undefined)arr[k].color.setHex(map0[src]);
+    }
+  }
+}
 var SHELLC=[['珍珠白','f4f1ea'],['石墨黑','2b2f31'],['霧玫瑰','bc8590'],['薄荷綠','8fae95'],['霧藍','7d95a8']];
 function shadeHex(hex,f){var c=new THREE.Color(hex);c.multiplyScalar(f);return c;}
 function setShellColor(hex){
@@ -1556,6 +1585,15 @@ function setShellColor(hex){
   var GAIN=0.52;
   var isDefault=(hex.toLowerCase()==='#'+SHELLC[0][1].toLowerCase());
   var gain=isDefault?1:GAIN;
+  if(isDefault){          /* 第一顆＝原色：直接還原該型號自己的材質色 */
+    restoreShellBase();
+    var e0s=document.querySelectorAll('#csw b');
+    for(var e0=0;e0<e0s.length;e0++)
+      e0s[e0].className=(e0s[e0].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+    window.__shellHex=hex;
+    if(renderer&&scene)renderer.render(scene,camera);
+    return;
+  }
   for(i=0;i<SHELLM.length;i++){
     var m=M[SHELLM[i].k];if(!m)continue;
     m.color.set(hex);
@@ -1582,8 +1620,13 @@ function setShellColor(hex){
   for(var i=0;i<SHELLC.length;i++){
     var b=document.createElement('b');
     b.setAttribute('data-c',SHELLC[i][1]);
-    b.setAttribute('title',SHELLC[i][0]);
-    b.style.background='#'+SHELLC[i][1];
+    if(i===0){
+      b.setAttribute('title','原色（A 版珍珠白／B 版霧黑）');
+      b.style.background='linear-gradient(135deg,#f4f1ea 0 50%,#2b2f31 50% 100%)';
+    }else{
+      b.setAttribute('title',SHELLC[i][0]);
+      b.style.background='#'+SHELLC[i][1];
+    }
     b.onclick=function(){setShellColor('#'+this.getAttribute('data-c'));};
     box.appendChild(b);
   }
