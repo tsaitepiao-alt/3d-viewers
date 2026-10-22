@@ -140,11 +140,13 @@ HTML_HEAD = r"""<!DOCTYPE html>
     #bar2{bottom:64px}
   }
   /* ── 外殼顏色 ── */
-  #csw{position:fixed;right:14px;bottom:112px;z-index:24;display:flex;align-items:center;gap:8px;
+  #csw{position:fixed;right:14px;bottom:112px;z-index:24;display:flex;flex-direction:column;align-items:flex-start;gap:7px;
     padding:8px 12px;border-radius:12px;background:rgba(17,23,20,.84);
     border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(9px);
     -webkit-backdrop-filter:blur(9px);font-size:11px;color:#c3ccc6;letter-spacing:.3px}
-  #csw s{text-decoration:none;opacity:.75}
+  #csw .rw{display:flex;align-items:center;gap:8px}
+  #csw em{display:flex;align-items:center;gap:7px;font-style:normal}
+  #csw s{text-decoration:none;opacity:.72;width:26px;flex:0 0 26px}
   #csw b{width:20px;height:20px;border-radius:50%;display:block;cursor:pointer;
     border:2px solid rgba(255,255,255,.20);transition:.15s;box-sizing:border-box}
   #csw b:hover{transform:scale(1.14)}
@@ -198,7 +200,7 @@ HTML_HEAD = r"""<!DOCTYPE html>
   <button id="breset">↺ 重置視角</button>
   <button id="bfocus">🎯 取消特寫</button>
 </div>
-<div id="csw"><s>外殼顏色</s></div>
+<div id="csw"><i class="rw"><s>外殼</s><em data-g="shell"></em></i><i class="rw"><s>頸帶</s><em data-g="strap"></em></i></div>
 
 
 <div id="diag"></div>
@@ -1610,7 +1612,7 @@ function setShellColor(hex){
   var gain=isDefault?1:GAIN;
   if(isDefault){          /* 第一顆＝原色：直接還原該型號自己的材質色 */
     restoreShellBase();
-    var e0s=document.querySelectorAll('#csw b');
+    var e0s=document.querySelectorAll('#csw em[data-g="shell"] b');
     for(var e0=0;e0<e0s.length;e0++)
       e0s[e0].className=(e0s[e0].getAttribute('data-c')===hex.replace('#',''))?'on':'';
     window.__shellHex=hex;
@@ -1632,14 +1634,14 @@ function setShellColor(hex){
       if(src&&map[src]!==undefined)arr[k].color.setHex(map[src]);
     }
   }
-  var els=document.querySelectorAll('#csw b');
+  var els=document.querySelectorAll('#csw em[data-g="shell"] b');
   for(j=0;j<els.length;j++)els[j].className=(els[j].getAttribute('data-c')===hex.replace('#',''))?'on':'';
   window.__shellHex=hex;
   if(renderer&&scene)renderer.render(scene,camera);
 }
 (function wireShell(){
   /* 色球一律由 SHELLC 產生（單一來源），避免 HTML 寫死色號與 JS 不同步 */
-  var box=document.getElementById('csw');
+  var box=document.querySelector('#csw em[data-g="shell"]');
   for(var i=0;i<SHELLC.length;i++){
     var b=document.createElement('b');
     b.setAttribute('data-c',SHELLC[i][1]);
@@ -1655,9 +1657,81 @@ function setShellColor(hex){
   }
   setShellColor(SHELLC[0][1]);
 })();
+
+/* ═══════════════ 頸帶顏色（織帶本體＋縫線帶扣） ═══════════════ */
+var STRAPM=[{k:'strap',f:1},{k:'strap2',f:0.94}];
+var STRAPC=[['原色','2f6360'],['墨黑','24282a'],['焦糖棕','8a5a34'],['霧藍','33506b'],['酒紅','6b2f38']];
+function restoreStrapBase(){
+  var map0={},i,k;
+  for(i=0;i<STRAPM.length;i++){
+    var sk=STRAPM[i].k,m=M[sk];
+    if(m&&M0&&M0[sk]!==undefined){m.color.setHex(M0[sk]);map0[m.uuid]=M0[sk];}
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map0[src]!==undefined)arr[k].color.setHex(map0[src]);
+    }
+  }
+}
+function setStrapColor(hex){
+  if(hex.charAt(0)!=='#')hex='#'+hex;
+  var map={},i,j,k;
+  var GAINS=0.74;   /* 織帶本來就深色，壓暗幅度比外殼小一點 */
+  var isDef=(hex.toLowerCase()==='#'+STRAPC[0][1].toLowerCase());
+  var gain=isDef?1:GAINS;
+  if(isDef){
+    restoreStrapBase();
+    var e1s=document.querySelectorAll('#csw em[data-g="strap"] b');
+    for(var e1=0;e1<e1s.length;e1++)
+      e1s[e1].className=(e1s[e1].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+    window.__strapHex=hex;
+    if(renderer&&scene)renderer.render(scene,camera);
+    return;
+  }
+  for(i=0;i<STRAPM.length;i++){
+    var m=M[STRAPM[i].k];if(!m)continue;
+    m.color.set(hex);
+    var f=(STRAPM[i].f===1?1:STRAPM[i].f)*gain;
+    if(f!==1)m.color.multiplyScalar(f);
+    map[m.uuid]=m.color.getHex();
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map[src]!==undefined)arr[k].color.setHex(map[src]);
+    }
+  }
+  var els=document.querySelectorAll('#csw em[data-g="strap"] b');
+  for(j=0;j<els.length;j++)els[j].className=(els[j].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+  window.__strapHex=hex;
+  if(renderer&&scene)renderer.render(scene,camera);
+}
+(function wireStrap(){
+  var box=document.querySelector('#csw em[data-g="strap"]');
+  if(!box)return;
+  for(var i=0;i<STRAPC.length;i++){
+    var b=document.createElement('b');
+    b.setAttribute('data-c',STRAPC[i][1]);
+    if(i===0){
+      b.setAttribute('title','原色（織帶綠）');
+      b.style.background='#2f6360';
+    }else{
+      b.setAttribute('title',STRAPC[i][0]);
+      b.style.background='#'+STRAPC[i][1];
+    }
+    b.onclick=function(){setStrapColor('#'+this.getAttribute('data-c'));};
+    box.appendChild(b);
+  }
+  setStrapColor(STRAPC[0][1]);
+})();
 /* 出圖／分享用：?shell=<6 碼色號> 直接指定外殼顏色 */
 var QSHELL=((location.search||'').match(/[?&]shell=([0-9a-fA-F]{6})/)||[])[1];
 if(QSHELL)setShellColor('#'+QSHELL);
+var QSTRAP=((location.search||'').match(/[?&]strap=([0-9a-fA-F]{6})/)||[])[1]; if(QSTRAP)setStrapColor('#'+QSTRAP);
+window.__strap={set:setStrapColor,get hex(){return window.__strapHex||STRAPC[0][1];},matOf:function(k){var m=M[k];return m?m.color.getHexString():null;},keys:['strap','strap2'],list:STRAPC};
 window.__shell={set:function(h){setShellColor(h);},
   get hex(){return window.__shellHex;},
   get matHex(){var m=M[SHELLM[0].k];return m?m.color.getHexString():null;},
