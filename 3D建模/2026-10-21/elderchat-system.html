@@ -2000,8 +2000,10 @@ function updateLabels(force){
       for(var q=0;q<n;q++)arr[q].ty=y0+q*g2;
     }else{
       /* 1) 由上往下推開  2) 底部夾住  3) 由下往上回推  4) 整組下移避免超出上緣 */
+      var _top=pad,_bot=Math.max(pad,LIM-hh0);
       for(var i=0;i<n;i++){
-        arr[i].ty=arr[i].ay;
+        /* 先夾進可視範圍：零件投影可能落在畫面外（模型比視窗高時） */
+        arr[i].ty=Math.max(_top,Math.min(arr[i].ay,_bot));
         if(i>0&&arr[i].ty-arr[i-1].ty<gap)arr[i].ty=arr[i-1].ty+gap;
       }
       if(n){var _h=arr[n-1].el.offsetHeight||56;arr[n-1].ty=Math.min(arr[n-1].ty,LIM-_h);}
