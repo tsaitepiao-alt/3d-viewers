@@ -279,3 +279,135 @@ PawPulse 系統頁（寵物智慧頸環 A / B 雙型號）
     python3 tools/build_base.py .        # 產生 collar-base-system.html
     bash tools/shoot_base.sh             # 出三張圖（需先開 http://localhost:8765）
     python3 tools/verify_base.py .       # 重算像素統計並附加本段落
+
+
+【H】互動升級：360° 旋轉與爆炸圖特寫（2026-10-22 實測）
+  改了三個產生器（tools/build_elderchat.py、build_pawpulse.py、build_base.py），
+  成品大小：elderchat-system.html 688,226 B／pawpulse-system.html 704,120 B／
+            collar-base-system.html 709,137 B（原 678,883／694,793／699,968）
+
+  H-1 完整 360°（看得到元件底盤）
+    controls.maxPolarAngle = Math.PI × 0.995 = 3.1259 rad（原本 0.52π／0.56π／0.545π）
+    controls.minPolarAngle = 0.005 rad（原本 0.12／0.10／0.10）
+    實測（headless 讀 controls.maxPolarAngle）：三頁皆 3.12588 ≥ 3.1 ✔
+    實測（?polar=3.05 載入後）：phi = 3.05、floorVis = false；phi = 1.25 時 floorVis = true
+    → 地板／格線在 phi > 1.75 自動隱藏，相機不會被地板切出黑畫面。
+    底部照明：只在 phi > 1.75 啟動「底視補光」——半球光 intensity 0.50→0.80、
+    地面色 0x4a5a55→0x7d8f88、霧距 ×1.6（其餘視角完全不變，實測正視圖亮度
+    44.1／30.1／20.1 前後一模一樣）。
+    ⚠ 不要用「新增第 5 顆 DirectionalLight」：實測 SwiftShader（桌機弱 GPU 同源）
+      會讓 MESH_STANDARD shader 失效、整個 canvas 變全黑（同參數截圖 mean 44.8→5.3）。
+
+  H-2 出圖驗證（1440×900，?shot=1&view=<mode>&phi=<rad>&az=0.9）
+    mean / 亮度 >30 的像素比例（全畫面）：
+      elderchat  exploded phi1.25 44.1 / 47.9%   phi3.05（底視）22.1 / 6.6%
+      elderchat  asm       phi1.25 62.9 / 61.7%   phi3.05 32.6 / 15.1%
+      pawpulse   exploded phi1.25 20.1 /  8.3%   phi3.05（底視）18.5 / 5.7%
+      pawpulse   asm       phi1.25 47.3 / 59.1%   phi3.05 22.9 / 9.9%
+      collar-base exploded phi1.25 30.1 / 35.0%   phi3.05（底視）19.7 / 7.2%
+      collar-base asm       phi1.25 59.2 / 66.1%   phi3.05 30.7 / 13.7%
+    視覺核對（逐張看圖，不是只讀像素）：
+      elderchat 底視 → 看得到喇叭背面、Pi Zero 底面、木側板底面、底盤與 4 顆防滑墊；
+      collar-base 底視 → 立架底面 + 防滑墊 + 電池／PCB 朝下背面；
+      pawpulse 底視 → 電池、PCB、下蓋背面可辨（該頁本來就是低照度風格，底視亮度
+      18.5 與其正視 20.1 相當，屬同一調性）。
+      三頁皆無地板遮蔽、無破面、非黑畫面。
+
+  H-3 爆炸圖特寫（點零件 → 推到最前層 + 相機拉近 + 其他零件淡化）
+    零組件沿「相機方向」再推 FOCUS.push（= 其他零件中心的最大投影距離 + 半徑×1.7 + 2），
+    動畫用指數補間（τ = 0.13 s，0.45 s 已到 96.9%、1.2 s 到 100%），非瞬移。
+    相機：controls.target lerp 到零件中心、距離 lerp 到 clamp(半徑×6.5, 下限 2.6r/1.02×minDistance,
+    上限該模式 fitDistance×0.45)；使用者一拖曳就 lockCam，不再搶鏡頭。
+    淡化：每個 mesh 都先 clone 材質再改（避免共用材質一起變透明），opacity → 原始值×0.22，
+    回位時整組換回原材質並 dispose clone。
+    實測（點零件 → 推進到底 → 取消）：
+      elderchat  spk  中心 [267.37, 91.20, 32.40] → [344.82, 133.44, 142.23]（位移 151.9 mm）
+               相機距離 1455.7 → 158.7；另一零件 usbc opacity 1 → 0.22；
+               取消後 [267.37, 91.20, 32.40]（誤差 0.00）、opacity 1、相機距離 1454.9
+      pawpulse   pcb  中心 [-14.72, 21.89, -9.20] → [24.23, 66.68, 67.73]（位移 111.6 mm）
+               相機距離 536.8 → 188.9；batt opacity 1 → 0.22；取消後座標完全復原、536.1
+      collar-base c3  中心 [-56.00, 13.40, 1.90] → [-5.93, 46.06, 99.87]（位移 158.6 mm）
+               相機距離 475.3 → 73.2；shell opacity 1 → 0.22；取消後座標完全復原、474.7
+    組裝模式（asm）點零件：不位移、不淡化（t 保持 0、座標與 opacity 不變）——特寫只在爆炸圖生效。
+    資訊卡照舊顯示名稱／尺寸／材質／用途，並多一行提示「已推到最前層特寫 · 點空白處或
+    「取消特寫」回原位」。
+
+  H-4 「取消特寫」按鈕與點空白取消
+    底部控制列新增第 5 顆按鈕「🎯 取消特寫」（id=bfocus）：清除 FOCUS、還原所有材質、
+    相機 lerp 回該模式原取景（實測 1455.7 ← 1454.9）。
+    實測 DOM click #bfocus：info 長度 103 → 0、focusId null、opacity 0.22 → 1、FOCUS.t → 0 ✔
+    實測 canvas pointerdown/up 空白處：同樣全部回復 ✔（hideInfo 內已一併清除 FOCUS）
+    手機版（390×844 iframe 量測）：5 顆按鈕高度皆 38 px ≥ 36、寬 66–91 px 未被擠壓；
+      #bar clientWidth 390 / scrollWidth 415 → 可水平捲 25 px，捲到底時「取消特寫」
+      位於 x 291–382，完整可見。
+
+  H-5 console error：三頁 window.__errors 皆為 []（0 筆）；標籤數不變 17／11／14。
+    新增除錯鉤子（不影響功能）：__ec.__f / __pp.__f / __bs.__f =
+      { polar, minPolar, phi, floorVis, focusId, focusT, focusFade, push, camDist,
+        setPolar(phi,az), focus(id), cancel(), posOf(id), opacOf(id), advance(sec) }
+    出圖參數：?polar=<弧度>（別名 phi）、?az=<弧度>（別名 theta）
+    重現：
+      cd 3D建模/2026-10-21 && python3 tools/build_elderchat.py && python3 tools/build_pawpulse.py && python3 tools/build_base.py
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-sandbox \
+        --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=9000 \
+        --window-size=1440,900 --screenshot=bottom.png \
+        "file://$PWD/elderchat-system.html?shot=1&view=exploded&phi=3.05&az=0.9"
+      （⚠ 出圖不要加 ?still=1：實測仍會隨機截到未更新的 canvas，整張變黑；不加就穩定）
+
+
+【I】外殼顏色選項（2026-10-22 加入，三頁都有）
+  右下角新增「外殼顏色」面板（#csw，5 顆色球），點了就換 3D 外殼顏色；只換顏色，不動幾何與尺寸。
+    智賢1號   外殼材質 cream／cream2 → 奶油白 #f3ecdd（原）、石墨黑 #2f3336、
+              霧灰綠 #8a9a8d、霧藍 #7c93a6、陶土橘 #c8764e
+    嘉蘭頸環  外殼材質 shell／shell2 → 珍珠白 #f4f1ea（原）、石墨黑 #2b2f31、
+              霧玫瑰 #bc8590、薄荷綠 #8fae95、霧藍 #7d95a8
+    貓語基地台 立架材質 stand／stand2／standIn → 霧白 #e9e0d4（原）、石墨 #2f3336、
+              水泥灰 #9a968d、霧綠 #6f8a5f、陶土 #93522f
+  實作重點
+    • 只改共用材質的 color；同色次要件（cream2／shell2／stand2／standIn）用 0.93／0.94／0.88
+      倍率做出層次，木側板、PCB、電池、螢幕、錶帶、黑色主機殼都不受影響（實測無誤染）。
+    • ⚠ 這三頁打光偏亮（乳白外殼渲染後約 238/255），中間調會被洗成白色 → 非預設色一律
+      乘 GAIN=0.52 壓暗，預設色維持原值（預設外觀與改版前逐像素相同）。色球本身仍顯示原始色號。
+    • 特寫時其他零件已 clone 成淡化材質 → 換色會同步改 clone（clone 記 _osrc＝原材質 uuid）；
+      實測特寫中換成 #2f3336 後，淡化 clone 變成 #2b2f32（＝0x2f3336×0.93），不會殘留舊色。
+    • 出圖／分享可用 ?shell=<6 碼色號>，例：
+      elderchat-system.html?shot=1&view=asm&shell=c8764e
+      除錯鉤子 window.__shell = { set(hex), hex, matHex, keys[], matOf(k), list[] }
+  實測（1440×900 headless，取樣外殼面平均 RGB，Δ＝與預設色差總和）
+    智賢1號   預設(206,206,199)｜石墨黑(143,148,133)Δ187｜霧灰綠 Δ75｜霧藍 Δ75｜陶土橘 Δ91
+    嘉蘭頸環  預設(238,239,238)｜石墨黑(132,145,150)Δ288｜霧玫瑰 Δ101｜薄荷綠 Δ98｜霧藍 Δ108
+    貓語基地台 預設(236,235,233)｜石墨(127,134,138)Δ305｜水泥灰 Δ115｜霧綠 Δ124｜陶土 Δ139
+    極端值驗證沒有洗白：外殼設 #ff0000 → (255,97,74)、#000000 → (33,42,46)。
+    目視（逐張看圖）：智賢1號外殼陶土橘、頸環霧玫瑰、基地台立架陶土棕，其餘零件全部維持原色。
+  手機 390×844：面板 191×34 位於 x189–380 / y690–724，底部按鈕列 y796–834、滑桿列 y752–782，
+    三者不重疊；色球 20 px 可點。
+  真實滑鼠點擊（三頁）：切 爆炸 → 點色球，材質色與白色選取框都正確，window.__errors 0 筆、
+    #err 橫幅未出現。
+  ⚠ 模式按鈕改成 #bar 上的事件委派 + try/catch：切換模式若丟錯會把原因寫進 #err 紅橫幅，
+    不會再出現「按了完全沒反應、也沒有任何線索」的情況。
+
+
+【J】「按了沒反應」的排查與自動回復（2026-10-22）
+  現象（使用者回報）：電腦版按「爆炸」畫面沒變、點外殼色球也選不動顏色。
+  排查結果：本機用真實滑鼠事件（CDP Input.dispatchMouseEvent）在三頁、1440×900 下重測，
+    模式切換（asm／爆炸／尺寸）與色球點選全部正常；但在自動化瀏覽器裡發現同一種症狀——
+    requestAnimationFrame 迴圈停住（frames 停在 3）→ 狀態變了、canvas 卻沒有重繪，
+    截圖完全看不出變化（這正是「按了沒反應」的真相：不是事件沒收到，是畫面沒重畫）。
+  因此加入三層保險：
+    1. 每個互動都立即重繪：setMode 結尾強制 renderer.render()；setShellColor／focusTick 同樣會重繪。
+    2. 主迴圈看門狗：setInterval 500ms 檢查 frame 是否前進，若連續 2 秒沒動且 canvas 還活著，
+       就重新 kick 一次 requestAnimationFrame(tick) 並補一次 render（出圖模式 ?still=1 不踢）。
+       實測：停住的頁面 frames 3 → 27 後恢復，點色球後截圖外殼像素由 (238,238,235) 變成 (215,193,164)。
+    3. WebGL context lost 偵測：canvas 掛掉時顯示紅字「顯示已中止（WebGL context lost）→ 請按 ⌘R 重新整理」，
+       context 回來會自動收掉紅字。實測：手動派送 webglcontextlost／restored，紅字正確出現與消失。
+  另加顯示健康狀態面板（?diag=1，左上角三行）：
+    frames <幀數> · mode <模式> · ctx ok/LOST
+    GL <顯卡或驅動字串>
+    errors <JS 錯誤數> · shell <目前外殼色號>
+  實測（elderchat?diag=1）：
+    frames 27 · mode asm · ctx ok
+    GL ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device …), SwiftShader driver)
+    errors 0 · shell #f3ecdd
+  使用者若再遇到「按了沒反應」，開 ?diag=1 看這三行即可定位：
+    ctx LOST → 顯示中斷，重整；frames 不跳 → 迴圈卡住（新版看門狗會自動救）；
+    errors > 0 → 把錯誤訊息貼出來即可定位。

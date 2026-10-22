@@ -129,6 +129,24 @@ HTML_HEAD = r"""<!DOCTYPE html>
     #bar button{min-width:68px;height:38px;font-size:12px;padding:0 11px}
     #bar2{bottom:64px}
   }
+  /* ── 外殼顏色 ── */
+  #csw{position:fixed;right:14px;bottom:112px;z-index:24;display:flex;align-items:center;gap:8px;
+    padding:8px 12px;border-radius:12px;background:rgba(17,23,20,.84);
+    border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(9px);
+    -webkit-backdrop-filter:blur(9px);font-size:11px;color:#c3ccc6;letter-spacing:.3px}
+  #csw s{text-decoration:none;opacity:.75}
+  #csw b{width:20px;height:20px;border-radius:50%;display:block;cursor:pointer;
+    border:2px solid rgba(255,255,255,.20);transition:.15s;box-sizing:border-box}
+  #csw b:hover{transform:scale(1.14)}
+  #csw b.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.30)}
+  @media (max-width:760px){
+    #csw{bottom:120px;right:10px;gap:6px;padding:6px 9px;font-size:10px}
+    #csw b{width:17px;height:17px}
+  }
+  /* ── 顯示健康狀態（?diag=1） ── */
+  #diag{position:fixed;left:8px;top:8px;z-index:98;display:none;pointer-events:none;
+    font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fd9c0;
+    background:rgba(0,0,0,.55);padding:4px 7px;border-radius:6px;white-space:pre;max-width:60vw}
 </style>
 </head>
 <body>
@@ -164,8 +182,12 @@ HTML_HEAD = r"""<!DOCTYPE html>
   <button data-mode="exploded">🧩 爆炸</button>
   <button data-mode="dims">📐 尺寸</button>
   <button id="breset">↺ 重置視角</button>
+  <button id="bfocus">🎯 取消特寫</button>
 </div>
+<div id="csw"><s>外殼顏色</s></div>
 
+
+<div id="diag"></div>
 <div id="err"></div>
 """
 
@@ -187,6 +209,9 @@ window.onerror=function(m,s,l,c,e){window.__errors.push(String(m));errEl.style.d
 var QS=location.search||'';
 var SHOT=/[?&]shot=1/.test(QS);
 var VIEW=((QS.match(/[?&]view=([a-z]+)/)||[])[1])||'asm';
+/* 出圖驗證用：?polar=<弧度>&az=<弧度> 指定視角（polar 同 phi） */
+var QPOLAR=parseFloat(((QS.match(/[?&](?:polar|phi)=([0-9.]+)/)||[])[1]));
+var QAZ=parseFloat(((QS.match(/[?&](?:az|theta)=(-?[0-9.]+)/)||[])[1]));
 
 /* ═══════════════ 場景 ═══════════════ */
 var app=document.getElementById('app');
@@ -210,7 +235,7 @@ var camera=new THREE.PerspectiveCamera(38,window.innerWidth/window.innerHeight,1
 var controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;controls.dampingFactor=0.075;
 controls.minDistance=40;controls.maxDistance=1200;
-controls.maxPolarAngle=Math.PI*0.545;controls.minPolarAngle=0.10;
+controls.maxPolarAngle=Math.PI*0.995;controls.minPolarAngle=0.005;  /* 完整 360°：可轉到底部看元件底盤 */
 controls.enablePan=false;
 window.camera=camera;window.controls=controls;
 
@@ -229,7 +254,7 @@ try{
 }catch(e){console.warn('env',e);}
 
 /* ── 光源（實測值，別調高：會把零件洗成半透明） ── */
-var hemi=new THREE.HemisphereLight(0xe2e7e6,0x1b201f,0.50);scene.add(hemi);
+var hemi=new THREE.HemisphereLight(0xe2e7e6,0x4a5a55,0.50);scene.add(hemi);  /* 地面色提亮：轉到底部時朝下的面才看得到細節（正面實測亮度不變） */
 var key=new THREE.DirectionalLight(0xfff4e6,1.45);
 key.position.set(150,240,170);key.castShadow=true;
 key.shadow.mapSize.set(2048,2048);
@@ -1293,12 +1318,15 @@ function setMode(m,instant){
   else{EXT=0;exr.value=0;}
   exv.textContent=Math.round(EXT*100)+'%';
   if(instant)EX=EXT;
+  clearFocus(true);
   applyExplode();
   userMoved=false;
   fitBox(DIRS[m]||DIRS.asm,padOf(m));
+  MODEFIT[m]=camera.position.distanceTo(controls.target);
   updateLabels();
   hideInfo();
   syncSlider();
+  try{renderer.render(scene,camera);}catch(e){}
   window.__bs.mode=m;
 }
 function applyExplode(){
@@ -1306,12 +1334,277 @@ function applyExplode(){
   for(var i=0;i<PARTS.length;i++){
     var p=PARTS[i];
     p.g.position.copy(p.home).addScaledVector(p.ex,t);
+    /* 特寫：選中的零件沿相機方向再往前推，成為最前層 */
+    if(FOCUS.rec&&p===FOCUS.rec&&FOCUS.t>0.0005)
+      p.g.position.addScaledVector(FOCUS.dir,FOCUS.push*FOCUS.t);
   }
   model.updateMatrixWorld(true);
   /* 爆炸時地板下沉，讓零件不被地面切掉 */
   floor.position.y=(MODE==='exploded')?FLOOR_Y-14:FLOOR_Y;
   grid.position.y=floor.position.y+0.02;
 }
+
+
+
+
+
+/* ═══════════════ 特寫（爆炸圖：點零件 → 推到最前層＋相機特寫） ═══════════════ */
+var FOCUS={rec:null,t:0,tgt:0,fade:0,fadeTgt:0,push:0,dir:new THREE.Vector3(),
+  camDir:new THREE.Vector3(),camDist:0,lockCam:false,homeCam:null,homeTgt:null};
+var FADED=[];
+var outlineRec=null;
+var MODEFIT={asm:0,exploded:0,dims:0};
+var _fv=new THREE.Vector3(),_fw=new THREE.Vector3(),_fc=new THREE.Vector3();
+
+function partCenter(rec,out){
+  var bb=new THREE.Box3().setFromObject(rec.g);
+  return bb.getCenter(out||new THREE.Vector3());
+}
+function partRadius(rec){
+  var s=new THREE.Box3().setFromObject(rec.g).getSize(new THREE.Vector3());
+  return Math.max(s.x,s.y,s.z)*0.5;
+}
+function partById(id){
+  for(var i=0;i<PARTS.length;i++)if(PARTS[i].id===id)return PARTS[i];
+  return null;
+}
+/* 其他零件淡化：每個 mesh 一律 clone 材質再改，回位時整組換回原材質 */
+function fadeOthers(keep){
+  restoreFaded();
+  for(var i=0;i<PARTS.length;i++){
+    var p=PARTS[i];
+    if(p===keep)continue;
+    p.g.traverse(function(o){
+      if(!o.isMesh||!o.material)return;
+      var orig=o.material,cl;
+      if(Object.prototype.toString.call(orig)==='[object Array]'){
+        cl=[];
+        for(var k=0;k<orig.length;k++){
+          var c=orig[k].clone();
+          c.userData._oop=(orig[k].opacity===undefined?1:orig[k].opacity);
+          c.userData._osrc=orig[k].uuid;c.transparent=true;c.depthWrite=false;cl.push(c);
+        }
+      }else{
+        cl=orig.clone();
+        cl.userData._oop=(orig.opacity===undefined?1:orig.opacity);
+        cl.userData._osrc=orig.uuid;cl.transparent=true;cl.depthWrite=false;
+      }
+      o.userData._omat=orig;o.material=cl;
+      FADED.push({o:o,orig:orig,cl:cl});
+    });
+  }
+}
+function restoreFaded(){
+  for(var i=0;i<FADED.length;i++){
+    var e=FADED[i];
+    if(e.o.userData._omat===e.orig)e.o.material=e.orig;
+    if(Object.prototype.toString.call(e.cl)==='[object Array]'){
+      for(var k=0;k<e.cl.length;k++)e.cl[k].dispose();
+    }else e.cl.dispose();
+  }
+  FADED.length=0;
+}
+function focusPart(rec){
+  if(!rec)return;
+  if(!FOCUS.homeCam){
+    FOCUS.homeCam=camera.position.clone();
+    FOCUS.homeTgt=controls.target.clone();
+  }
+  FOCUS.rec=rec;FOCUS.tgt=1;FOCUS.fadeTgt=1;FOCUS.lockCam=false;
+  FOCUS.dir.subVectors(camera.position,controls.target).normalize();
+  FOCUS.camDir.copy(FOCUS.dir);
+  /* 推出量：沿相機方向必須超過所有其他零件的中心 */
+  var c0=partCenter(rec,_fc);
+  var need=0;
+  for(var i=0;i<PARTS.length;i++){
+    var p=PARTS[i];
+    if(p===rec||p.g.visible===false)continue;
+    var c1=partCenter(p,_fw);
+    var d=_fv.subVectors(c1,c0).dot(FOCUS.dir);
+    if(d>need)need=d;
+  }
+  var r=partRadius(rec);
+  FOCUS.push=need+r*1.7+2;
+  var d0=MODEFIT[MODE]||camera.position.distanceTo(controls.target);
+  /* 特寫距離：以零件大小為主（約佔畫面四成），最遠不超過該模式取景距離的 0.45 */
+  var lo=Math.max(r*2.6,controls.minDistance*1.02);
+  var hi=Math.max(d0*0.45,r*2.6);
+  FOCUS.camDist=Math.max(lo,Math.min(r*6.5,hi));
+  fadeOthers(rec);
+  outlineRec=rec;
+}
+function clearFocus(instant){
+  if(!FOCUS.rec&&FOCUS.t<0.001&&FOCUS.tgt===0&&!FOCUS.homeCam)return;
+  FOCUS.rec=null;FOCUS.tgt=0;FOCUS.fadeTgt=0;FOCUS.lockCam=false;
+  outlineRec=null;
+  if(instant){
+    FOCUS.t=0;FOCUS.fade=0;restoreFaded();
+    FOCUS.homeCam=null;FOCUS.homeTgt=null;
+    applyExplode();
+  }
+}
+function focusTick(dt){
+  var a=1-Math.exp(-dt/0.13);
+  var moved=false;
+  if(Math.abs(FOCUS.t-FOCUS.tgt)>0.0015){FOCUS.t+=(FOCUS.tgt-FOCUS.t)*a;moved=true;}
+  else if(FOCUS.t!==FOCUS.tgt){FOCUS.t=FOCUS.tgt;moved=true;}
+  if(Math.abs(FOCUS.fade-FOCUS.fadeTgt)>0.0015){FOCUS.fade+=(FOCUS.fadeTgt-FOCUS.fade)*a;moved=true;}
+  else if(FOCUS.fade!==FOCUS.fadeTgt){FOCUS.fade=FOCUS.fadeTgt;moved=true;}
+  if(moved)applyExplode();
+  if(FADED.length){
+    var f=FOCUS.fade;
+    for(var i=0;i<FADED.length;i++){
+      var cl=FADED[i].cl;
+      if(Object.prototype.toString.call(cl)==='[object Array]'){
+        for(var k=0;k<cl.length;k++)cl[k].opacity=cl[k].userData._oop*(1-0.78*f);
+      }else cl.opacity=cl.userData._oop*(1-0.78*f);
+    }
+    if(f<0.005)restoreFaded();
+  }
+  if(FOCUS.rec){
+    if(!FOCUS.lockCam){
+      partCenter(FOCUS.rec,_fc);
+      controls.target.lerp(_fc,a);
+      _fv.copy(_fc).addScaledVector(FOCUS.camDir,FOCUS.camDist);
+      camera.position.lerp(_fv,a);
+    }
+  }else if(FOCUS.homeCam){
+    controls.target.lerp(FOCUS.homeTgt,a);
+    camera.position.lerp(FOCUS.homeCam,a);
+    if(camera.position.distanceTo(FOCUS.homeCam)<0.6&&FOCUS.t<0.01){
+      FOCUS.homeCam=null;FOCUS.homeTgt=null;
+    }
+  }
+  if(outline&&outlineRec){partCenter(outlineRec,_fc);outline.position.copy(_fc);}
+  updateFloorVis();
+}
+/* 轉到底部時：地板／格線收起、霧距放大、半球光提亮
+   （只在 phi>1.75 生效，正面／爆炸／尺寸等既有視角亮度完全不變） */
+var FOG0=scene.fog?{near:scene.fog.near,far:scene.fog.far}:null;
+var HEMI0={i:hemi.intensity,g:hemi.groundColor.getHex()};
+var BOTTOM={low:false};
+function updateFloorVis(){
+  _fv.subVectors(camera.position,controls.target);
+  var len=_fv.length();
+  if(len<1e-6)return;
+  var phi=Math.acos(Math.max(-1,Math.min(1,_fv.y/len)));
+  var low=(phi>1.75);
+  if(floor.visible===low){floor.visible=!low;grid.visible=!low;}
+  if(low!==BOTTOM.low){
+    BOTTOM.low=low;
+    if(FOG0){
+      scene.fog.near=low?FOG0.near*1.6:FOG0.near;
+      scene.fog.far=low?FOG0.far*1.6:FOG0.far;
+    }
+    hemi.intensity=low?0.80:HEMI0.i;
+    hemi.groundColor.setHex(low?0x7d8f88:HEMI0.g);
+  }
+}
+/* 出圖驗證用：?polar=<弧度>&az=<弧度> 直接指定極角／方位角 */
+function setPolarView(phi,az){
+  _fv.subVectors(camera.position,controls.target);
+  var dist=_fv.length();
+  var th=(az===undefined||isNaN(az))?Math.atan2(_fv.x,_fv.z):az;
+  var sp=Math.sin(phi);
+  camera.position.set(controls.target.x+dist*sp*Math.sin(th),
+    controls.target.y+dist*Math.cos(phi),
+    controls.target.z+dist*sp*Math.cos(th));
+  camera.lookAt(controls.target);
+  controls.update();
+  updateFloorVis();
+}
+function applyQueryView(){
+  if(isNaN(QPOLAR)&&isNaN(QAZ))return;
+  _fv.subVectors(camera.position,controls.target);
+  var len=_fv.length()||1;
+  var phi=isNaN(QPOLAR)?Math.acos(Math.max(-1,Math.min(1,_fv.y/len))):QPOLAR;
+  var az=isNaN(QAZ)?Math.atan2(_fv.x,_fv.z):QAZ;
+  setPolarView(phi,az);
+  userMoved=true;   /* 指定視角後，視窗 resize 不要重新取景蓋掉 */
+}
+function __focusDbg(){
+  return {
+    get polar(){return controls.maxPolarAngle;},
+    get minPolar(){return controls.minPolarAngle;},
+    get phi(){_fv.subVectors(camera.position,controls.target);
+      return +(Math.acos(Math.max(-1,Math.min(1,_fv.y/_fv.length())))).toFixed(3);},
+    get floorVis(){return floor.visible;},
+    get focusId(){return FOCUS.rec?FOCUS.rec.id:null;},
+    get focusT(){return +FOCUS.t.toFixed(3);},
+    get focusFade(){return +FOCUS.fade.toFixed(3);},
+    get push(){return +FOCUS.push.toFixed(2);},
+    get camDist(){return +camera.position.distanceTo(controls.target).toFixed(1);},
+    setPolar:function(p,a){setPolarView(p,a);},
+    /* 驗證用：以固定 16.7ms 步進推進動畫（不需等真實時間） */
+    advance:function(sec){var n=Math.max(1,Math.round(sec*1000/16.7));
+      for(var i=0;i<n;i++)focusTick(0.0167);
+      controls.update();renderer.render(scene,camera);
+      return {t:+FOCUS.t.toFixed(3),fade:+FOCUS.fade.toFixed(3)};},
+    focus:function(id){var r=partById(id);if(!r)return null;showInfo(r);return r.id;},
+    cancel:function(){hideInfo();return true;},
+    posOf:function(id){var r=partById(id);if(!r)return null;
+      var c=partCenter(r);return [+c.x.toFixed(2),+c.y.toFixed(2),+c.z.toFixed(2)];},
+    opacOf:function(id){var r=partById(id);if(!r)return null;
+      var v=1;r.g.traverse(function(o){if(o.isMesh&&o.material&&!o.material.length)v=o.material.opacity;});
+      return +v.toFixed(3);}
+  };
+}
+
+
+/* ═══════════════ 外殼顏色（換色不動幾何，共用材質一起換） ═══════════════ */
+var SHELLM=[{k:'stand',f:1},{k:'stand2',f:0.94},{k:'standIn',f:0.88}];
+var SHELLC=[['霧白','e9e0d4'],['石墨','2f3336'],['水泥灰','9a968d'],['霧綠','6f8a5f'],['陶土','93522f']];
+function shadeHex(hex,f){var c=new THREE.Color(hex);c.multiplyScalar(f);return c;}
+function setShellColor(hex){
+  if(hex.charAt(0)!=='#')hex='#'+hex;
+  var map={},i,j,k;
+  /* 這三頁的打光偏亮（實測乳白色外殼渲染後接近 238），中間調色會被洗成白色，
+     所以「非預設色」統一乘上 GAIN 壓暗，顏色才看得出來；預設色維持原值不動。 */
+  var GAIN=0.52;
+  var isDefault=(hex.toLowerCase()==='#'+SHELLC[0][1].toLowerCase());
+  var gain=isDefault?1:GAIN;
+  for(i=0;i<SHELLM.length;i++){
+    var m=M[SHELLM[i].k];if(!m)continue;
+    m.color.set(hex);
+    var f=(SHELLM[i].f===1?1:SHELLM[i].f)*gain;
+    if(f!==1)m.color.multiplyScalar(f);
+    map[m.uuid]=m.color.getHex();
+  }
+  /* 已被淡化的 clone 材質也要一起換色，否則特寫時會殘留舊色 */
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map[src]!==undefined)arr[k].color.setHex(map[src]);
+    }
+  }
+  var els=document.querySelectorAll('#csw b');
+  for(j=0;j<els.length;j++)els[j].className=(els[j].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+  window.__shellHex=hex;
+  if(renderer&&scene)renderer.render(scene,camera);
+}
+(function wireShell(){
+  /* 色球一律由 SHELLC 產生（單一來源），避免 HTML 寫死色號與 JS 不同步 */
+  var box=document.getElementById('csw');
+  for(var i=0;i<SHELLC.length;i++){
+    var b=document.createElement('b');
+    b.setAttribute('data-c',SHELLC[i][1]);
+    b.setAttribute('title',SHELLC[i][0]);
+    b.style.background='#'+SHELLC[i][1];
+    b.onclick=function(){setShellColor('#'+this.getAttribute('data-c'));};
+    box.appendChild(b);
+  }
+  setShellColor(SHELLC[0][1]);
+})();
+/* 出圖／分享用：?shell=<6 碼色號> 直接指定外殼顏色 */
+var QSHELL=((location.search||'').match(/[?&]shell=([0-9a-fA-F]{6})/)||[])[1];
+if(QSHELL)setShellColor('#'+QSHELL);
+window.__shell={set:function(h){setShellColor(h);},
+  get hex(){return window.__shellHex;},
+  get matHex(){var m=M[SHELLM[0].k];return m?m.color.getHexString():null;},
+  get keys(){return SHELLM.map(function(s){return s.k;});},
+  matOf:function(k){var m=M[k];return m?m.color.getHexString():null;},
+  get list(){return SHELLC.map(function(c){return c[1];});}};
 
 /* ═══════════════ 點選 ═══════════════ */
 var ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
@@ -1338,7 +1631,7 @@ function showInfo(rec){
     d.appendChild(u);d.appendChild(b);el.appendChild(d);
   });
   var hh=document.createElement('div');hh.className='hint';
-  hh.textContent='點空白處可取消選取';
+  hh.textContent=(MODE==='exploded')?'已推到最前層特寫 · 點空白處或「取消特寫」回原位':'點空白處可取消選取';
   el.appendChild(hh);
   el.style.display='flex';
   clearOutline();
@@ -1348,8 +1641,10 @@ function showInfo(rec){
     new THREE.BoxGeometry(size.x*1.06+1.0,size.y*1.06+1.0,size.z*1.06+1.0)),
     new THREE.LineBasicMaterial({color:0xff8a5c,transparent:true,opacity:.95,depthTest:false}));
   outline.position.copy(c);outline.renderOrder=997;scene.add(outline);
+  /* 爆炸圖：點零件 → 飛到最前層特寫；其他零件淡化 */
+  if(MODE==='exploded')focusPart(rec);else clearFocus(true);
 }
-function hideInfo(){document.getElementById('finfo').style.display='none';clearOutline();}
+function hideInfo(){document.getElementById('finfo').style.display='none';clearOutline();clearFocus(false);}
 window.hideInfo=hideInfo;
 
 function pickAt(cx,cy){
@@ -1380,15 +1675,31 @@ renderer.domElement.addEventListener('pointerup',function(e){
 });
 
 /* ═══════════════ UI ═══════════════ */
-var bmodes=document.querySelectorAll('#bar button[data-mode]');
-for(var i=0;i<bmodes.length;i++){
-  bmodes[i].onclick=function(){setMode(this.getAttribute('data-mode'));};
+/* 模式按鈕一律走事件委派：單一入口，出錯會顯示在 #err，不會靜默失效 */
+function modeBtnOf(t){
+  while(t&&t!==document){
+    if(t.getAttribute&&t.getAttribute('data-mode'))return t;
+    t=t.parentNode;
+  }
+  return null;
 }
+document.getElementById('bar').addEventListener('click',function(ev){
+  var b=modeBtnOf(ev.target);if(!b)return;
+  try{setMode(b.getAttribute('data-mode'));}
+  catch(e){
+    var el=document.getElementById('err');
+    if(el){el.style.display='block';el.textContent='切換模式失敗：'+(e&&e.message?e.message:e);}
+    if(window.console)console.error(e);
+  }
+});
 document.getElementById('breset').onclick=function(){
   userMoved=false;
+  clearFocus(true);
   fitBox(DIRS[MODE],padOf(MODE));
   updateLabels();
 };
+var bfocusEl=document.getElementById('bfocus');
+if(bfocusEl)bfocusEl.onclick=function(){hideInfo();};   /* 取消特寫：還原材質＋相機回原取景 */
 exr.oninput=function(){
   EXT=(this.value|0)/100;
   exv.textContent=Math.round(EXT*100)+'%';
@@ -1424,6 +1735,8 @@ function tick(){
     off.applyAxisAngle(new THREE.Vector3(0,1,0),spin*0.0016*dt*16.7);
     camera.position.copy(controls.target).add(off);
   }
+  focusTick(dt*16.7/1000);
+  updateFloorVis();
   controls.update();
   if(MODE==='exploded')updateLabels();
   if(outline){outline.material.opacity=0.70+0.28*Math.sin(now*0.004);}
@@ -1432,11 +1745,51 @@ function tick(){
   window.__frames=frame;
 }
 
+/* ═══════════════ 顯示健康狀態與自動回復 ═══════════════ */
+var GLDIAG={lost:false};
+var diagEl=document.getElementById('diag');
+var DIAGON=/[?&]diag=1/.test(location.search||'');
+if(DIAGON&&diagEl)diagEl.style.display='block';
+renderer.domElement.addEventListener('webglcontextlost',function(e){
+  e.preventDefault();GLDIAG.lost=true;
+  var el=document.getElementById('err');
+  if(el){el.style.display='block';
+    el.textContent='顯示已中止（WebGL context lost）→ 請按 ⌘R 重新整理這一頁';}
+},false);
+renderer.domElement.addEventListener('webglcontextrestored',function(){
+  GLDIAG.lost=false;
+  var el=document.getElementById('err');
+  if(el&&/context lost/.test(el.textContent))el.style.display='none';
+},false);
+var _lf=-1,_stall=0;
+setInterval(function(){
+  var gl=null,ok=false,txt='';
+  try{gl=renderer.getContext();ok=!!gl&&!gl.isContextLost();}catch(e){}
+  if(frame!==_lf){_lf=frame;_stall=0;}
+  else{
+    _stall++;
+    if(ok&&!document.hidden&&_stall>=4&&!STILL){   /* 主迴圈卡住就再踢一次（出圖模式不踢） */
+      _stall=0;requestAnimationFrame(tick);
+      try{renderer.render(scene,camera);}catch(e){}
+    }
+  }
+  if(DIAGON&&diagEl){
+    try{
+      var ext=gl&&gl.getExtension('WEBGL_debug_renderer_info');
+      txt=ext?String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)):'unknown';
+    }catch(e){txt='n/a';}
+    diagEl.textContent='frames '+frame+' · mode '+MODE+' · ctx '+(ok?'ok':'LOST')+
+      '\nGL '+txt+'\nerrors '+(window.__errors?window.__errors.length:0)+
+      ' · shell '+(window.__shellHex||'-');
+  }
+},500);
+
 /* ═══════════════ 啟動 ═══════════════ */
 window.__M=M;
 window.__bs={
   mode:'asm',
   M:M,
+  __f:__focusDbg(),
   redraw:function(){renderer.render(scene,camera);},
   /* 驗證用：以指定視窗比例重新取景，回傳 NDC 命中的零件與材質色 */
   hitNdc:function(nx,ny,aw,ah){
@@ -1530,6 +1883,7 @@ window.__bs={
 };
 window.__pp=window.__bs;
 setMode(VIEW==='exploded'?'exploded':(VIEW==='dims'?'dims':'asm'),true);
+applyQueryView();
 tick();
 /* 出圖驗證用：把關鍵零件的投影矩形寫進 DOM（?probe=1） */
 if(/[?&]probe=1/.test(QS)){
