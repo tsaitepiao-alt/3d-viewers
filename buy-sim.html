@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>買房前模擬器 · 日照／視野／通勤</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root{--ink:#16181a;--mut:#6d7378;--line:#e2e0d8;--bg:#f6f4ee;--acc:#c8f04a;--warn:#e2603c}
   *{box-sizing:border-box}
@@ -28,6 +30,12 @@
   .ok{background:#e8f7c9;color:#3d5c00}.no{background:#fde3db;color:#9c3a1e}
   .note{font-size:12px;color:var(--mut);line-height:1.65;margin-top:14px}
   .cmt{margin-top:14px}
+  #map{height:210px;border-radius:12px;border:1px solid var(--line);margin-top:8px}
+  .hits{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .hit{text-align:left;background:#f7f6f1;border:1px solid var(--line);border-radius:10px;
+       padding:8px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:500}
+  .hit:hover{background:#eef7d6;border-color:#cfe88a}
+  .status{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.5}
   button{padding:10px 14px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);
          color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
   button.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
@@ -44,6 +52,15 @@
         <div><label>緯度</label><input id="lat" value="25.0330"></div>
         <div><label>經度</label><input id="lng" value="121.5654"></div>
       </div>
+      <label>地址定位（輸入地址／Google Maps 連結／座標皆可）</label>
+      <div class="row">
+        <div><input id="addr" placeholder="台北市大安區信義路二段 ／ 或貼 Google Maps 連結"></div>
+        <div style="flex:0 0 76px"><button onclick="geocode()">定位</button></div>
+      </div>
+      <div class="status" id="addrStatus">門牌號在免費圖資覆蓋不全，定位到「路／段」後，可直接在地圖上點一下微調。</div>
+      <div class="hits" id="hits"></div>
+      <div id="map"></div>
+
       <label>快速地點</label>
       <select id="preset">
         <option value="">— 選一個 —</option>
@@ -63,8 +80,8 @@
         <option value="270">西</option><option value="315">西北</option>
       </select>
       <div class="row">
-        <div><label>對面建物高度 (m)</label><input id="oh" type="number" value="24" min="0" max="150"></div>
-        <div><label>對面建物距離 (m)</label><input id="od" type="number" value="18" min="1" max="300"></div>
+        <div><label>對面建物高度 (m)</label><input id="oh" type="number" value="15" min="0" max="150"></div>
+        <div><label>對面建物距離 (m)</label><input id="od" type="number" value="25" min="1" max="300"></div>
       </div>
       <label>日期（測試冬天與夏天）</label>
       <input id="date" type="date" value="2026-12-21">
@@ -218,6 +235,97 @@ function draw(pts, obsElev, facing, y, m, dd, tsim){
   ctx.fillText('時間', W-52, H-8);
 }
 
+
+/* ---------- 地址定位 / 地圖 ---------- */
+let map, marker;
+
+function initMap(){
+  const la = +$('lat').value, ln = +$('lng').value;
+  map = L.map('map', {zoomControl:true, scrollWheelZoom:false}).setView([la, ln], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© OpenStreetMap'
+  }).addTo(map);
+  marker = L.marker([la, ln], {draggable:true}).addTo(map);
+  marker.on('dragend', () => {
+    const ll = marker.getLatLng();
+    $('lat').value = ll.lat.toFixed(5); $('lng').value = ll.lng.toFixed(5);
+    $('addrStatus').textContent = `已用手動定位：${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`;
+    compute();
+  });
+  map.on('click', e => setPoint(e.latlng.lat, e.latlng.lng, '地圖點選'));
+}
+
+function setPoint(la, ln, note){
+  $('lat').value = la.toFixed(5); $('lng').value = ln.toFixed(5);
+  if (marker) marker.setLatLng([la, ln]);
+  if (map) map.setView([la, ln], map.getZoom());
+  if (note) $('addrStatus').textContent = note;
+  compute();
+}
+
+function parseCoords(t){
+  const m = t.match(/(-?\d{1,2}\.\d{3,})\s*[,，]\s*(-?\d{2,3}\.\d{3,})/);
+  if (!m) return null;
+  const la = +m[1], ln = +m[2];
+  if (Math.abs(la) > 90 || Math.abs(ln) > 180) return null;
+  return [la, ln];
+}
+
+function parseGmaps(t){
+  let m = t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return [+m[1], +m[2]];
+  m = t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (m) return [+m[1], +m[2]];
+  m = t.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return [+m[1], +m[2]];
+  return null;
+}
+
+async function geocode(){
+  const q = $('addr').value.trim();
+  const st = $('addrStatus'), hits = $('hits');
+  hits.innerHTML = '';
+  if (!q){ st.textContent = '請先輸入地址或貼上 Google Maps 連結。'; return; }
+
+  if (/google\.[a-z.]+\/maps/.test(q)){
+    const g = parseGmaps(q);
+    if (g){ setPoint(g[0], g[1], '已從 Google Maps 連結解析座標。'); return; }
+    st.textContent = '這個 Google Maps 連結裡沒有座標，請改用「地址」或直接在地圖上點。';
+    return;
+  }
+  const c = parseCoords(q);
+  if (c){ setPoint(c[0], c[1], '已使用座標定位。'); return; }
+
+  st.textContent = '查詢中…';
+  try{
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=4&countrycodes=tw&accept-language=zh-TW&q=${encodeURIComponent(q)}`;
+    const r = await fetch(url, {headers:{'Accept':'application/json'}});
+    const arr = await r.json();
+    if (!arr.length){
+      st.innerHTML = '找不到這個地址。台灣門牌在免費圖資覆蓋不全，建議：① 只輸入到「路／段」② 或直接在地圖上點位置。';
+      return;
+    }
+    st.textContent = `找到 ${arr.length} 筆，點一筆套用（門牌可能只到路段層級）：`;
+    arr.forEach((it, i) => {
+      const b = document.createElement('button');
+      b.className = 'hit';
+      b.textContent = `${i+1}. ${it.display_name}`;
+      b.onclick = () => {
+        setPoint(+it.lat, +it.lon, '定位到：' + it.display_name);
+        hits.innerHTML = '';
+      };
+      hits.appendChild(b);
+    });
+  }catch(e){
+    st.textContent = '地址服務忙碌或遭封鎖（' + e.message + '），請直接在地圖上點位置。';
+  }
+}
+
+function syncMap(){
+  if (marker) marker.setLatLng([+$('lat').value, +$('lng').value]);
+  if (map) map.setView([+$('lat').value, +$('lng').value], map.getZoom());
+}
+
 /* ---------- 通勤 ---------- */
 async function commute(){
   const dest = $('dest').value.trim();
@@ -239,11 +347,13 @@ async function commute(){
 $('preset').addEventListener('change', e => {
   if (!e.target.value) return;
   const [la, ln] = e.target.value.split(',');
-  $('lat').value = la; $('lng').value = ln; compute();
+  $('lat').value = la; $('lng').value = ln; syncMap(); compute();
 });
 ['lat','lng','facing','oh','od','date','time'].forEach(id =>
   $(id).addEventListener('input', compute));
 function setDate(v){ $('date').value = v; compute(); }
+initMap();
+$('addr').addEventListener('keydown', e => { if (e.key === 'Enter') geocode(); });
 compute();
 </script>
 </body>
