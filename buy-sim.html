@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>買房前模擬器 · 日照／視野／通勤</title>
+<style>
+  :root{--ink:#16181a;--mut:#6d7378;--line:#e2e0d8;--bg:#f6f4ee;--acc:#c8f04a;--warn:#e2603c}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif;padding:18px 14px 40px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--mut);font-size:13px;margin:0 0 18px}
+  .grid{display:grid;grid-template-columns:1fr 1.25fr;gap:16px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+  label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+  input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;
+               font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+  .row{display:flex;gap:10px}.row>div{flex:1}
+  canvas{width:100%;height:auto;display:block;border-radius:12px;background:#fbfaf6}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+  .stat{background:#f7f6f1;border-radius:10px;padding:9px 10px;min-height:62px}
+  .stat b{display:block;font-size:16px;line-height:1.25}
+  .stat span{display:block;font-size:11px;color:var(--mut);line-height:1.4;margin-top:2px}
+  .tag{display:inline-block;font-size:11.5px;padding:3px 9px;border-radius:999px;font-weight:700}
+  .ok{background:#e8f7c9;color:#3d5c00}.no{background:#fde3db;color:#9c3a1e}
+  .note{font-size:12px;color:var(--mut);line-height:1.65;margin-top:14px}
+  .cmt{margin-top:14px}
+  button{padding:10px 14px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);
+         color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+  button.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>買房前模擬器</h1>
+  <p class="sub">選一個座標與窗戶面向，看這間房「一年到底有多少陽光、什麼時候被對面擋住」，再算通勤時間。</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="row">
+        <div><label>緯度</label><input id="lat" value="25.0330"></div>
+        <div><label>經度</label><input id="lng" value="121.5654"></div>
+      </div>
+      <label>快速地點</label>
+      <select id="preset">
+        <option value="">— 選一個 —</option>
+        <option value="25.0330,121.5654">台北 信義區市府</option>
+        <option value="25.0264,121.5366">台北 大安森林公園</option>
+        <option value="25.0478,121.5170">台北 台北車站</option>
+        <option value="24.9723,121.5350">新北 新店區公所</option>
+        <option value="24.8138,120.9675">新竹 東區</option>
+        <option value="24.1477,120.6736">台中 西區</option>
+        <option value="22.6273,120.3014">高雄 苓雅區</option>
+      </select>
+      <label>窗戶面向（這間房主要採光面朝哪）</label>
+      <select id="facing">
+        <option value="0">北</option><option value="45">東北</option>
+        <option value="90" selected>東</option><option value="135">東南</option>
+        <option value="180">南</option><option value="225">西南</option>
+        <option value="270">西</option><option value="315">西北</option>
+      </select>
+      <div class="row">
+        <div><label>對面建物高度 (m)</label><input id="oh" type="number" value="24" min="0" max="150"></div>
+        <div><label>對面建物距離 (m)</label><input id="od" type="number" value="18" min="1" max="300"></div>
+      </div>
+      <label>日期（測試冬天與夏天）</label>
+      <input id="date" type="date" value="2026-12-21">
+      <label>模擬時刻　<span id="tLabel" style="color:#16181a;font-weight:700">14:00</span></label>
+      <input id="time" type="range" min="5" max="19" step="0.25" value="14">
+      <div class="row" style="margin-top:10px">
+        <div><button class="ghost" onclick="setDate('2026-12-21')">冬至</button></div>
+        <div><button class="ghost" onclick="setDate('2026-06-21')">夏至</button></div>
+        <div><button class="ghost" onclick="setDate('2026-03-21')">春分</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <canvas id="cv" width="760" height="420"></canvas>
+      <div class="stats" id="stats"></div>
+      <div class="cmt">
+        <label>通勤目的地（地址或「lat,lng」）</label>
+        <div class="row">
+          <div><input id="dest" placeholder="例如 25.0478,121.5170（台北車站）" value="25.0478,121.5170"></div>
+          <div style="flex:0 0 90px"><button onclick="commute()">算通勤</button></div>
+        </div>
+        <div id="cmtOut" class="note">開車時間會用 OSRM 直接算（免金鑰）。</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    <b>怎麼算的：</b>太陽位置用 NOAA 天文公式（時角＋赤緯）逐分鐘算高度角與方位角；對面建物視為一道牆，遮擋仰角 = atan(高度 ÷ 距離)，當太陽高度角低於這個值且方位落在窗戶正面 ±75° 內就算「被遮住」。
+    這不是猜的，是可重現的幾何計算。<br>
+    <b>它不會幫你做的：</b>不會模擬裝潢、不會算室內反射光、不考慮屋簷與陽台深度、不算鄰棟側向遮蔽（只用單一對面牆近似）。所以結果當「相對比較」用，不要當絕對值。
+  </p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const RAD = Math.PI / 180;
+
+/* ---------- 太陽位置（NOAA 簡化版）---------- */
+function solarPos(dateObj, lat, lon){
+  const d = (dateObj.getTime() - Date.UTC(2000,0,1,12,0,0)) / 86400000;
+  const L = (280.460 + 0.9856474*d) % 360;
+  const g = ((357.528 + 0.9856003*d) % 360) * RAD;
+  const lambda = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * RAD;
+  const eps = (23.439 - 0.0000004*d) * RAD;
+  const dec = Math.asin(Math.sin(eps)*Math.sin(lambda));
+  const ra = Math.atan2(Math.cos(eps)*Math.sin(lambda), Math.cos(lambda));
+  const gmst = (18.697374558 + 24.06570982441908*d) % 24;
+  const lst = (gmst*15 + lon) * RAD;
+  let ha = lst - ra;
+  ha = ((ha/RAD + 540) % 360 - 180) * RAD;
+  const latR = lat*RAD;
+  const alt = Math.asin(Math.sin(latR)*Math.sin(dec) + Math.cos(latR)*Math.cos(dec)*Math.cos(ha));
+  let az = Math.atan2(Math.sin(ha), Math.cos(ha)*Math.sin(latR) - Math.tan(dec)*Math.cos(latR))/RAD + 180;
+  az = (az + 360) % 360;
+  return { alt: alt/RAD, az };
+}
+
+/* ---------- 遮擋判斷 ---------- */
+function blocked(alt, az, facing, obsElev){
+  if (alt <= 0) return true;
+  const front = Math.abs(((az - facing + 540) % 360) - 180); // 與面向的夾角 0..180
+  if (front > 75) return true;         // 太陽不在窗戶這一側
+  return alt < obsElev;                // 被對面牆遮住
+}
+
+function compute(){
+  const lat = +$('lat').value, lng = +$('lng').value;
+  const facing = +$('facing').value;
+  const oh = +$('oh').value, od = +$('od').value;
+  const obsElev = Math.atan(oh / Math.max(od, 1)) / RAD;
+  const [y,m,dd] = $('date').value.split('-').map(Number);
+
+  const pts = [];
+  for (let min = 0; min < 24*60; min += 10){
+    const t = new Date(Date.UTC(y, m-1, dd, 0, 0, 0) - 0 + min*60000);
+    // 用當地時間 00:00 起算
+    const local = new Date(y, m-1, dd, 0, min, 0);
+    const p = solarPos(local, lat, lng);
+    pts.push({ h: local.getHours() + local.getMinutes()/60, ...p,
+               blocked: blocked(p.alt, p.az, facing, obsElev) });
+  }
+  const litMin = pts.filter(p => !p.blocked && p.alt > 0).length * 10;
+  const upMin = pts.filter(p => p.alt > 0).length * 10;
+  const first = pts.find(p => p.alt > 0), last = [...pts].reverse().find(p => p.alt > 0);
+
+  const tsim = +$('time').value;
+  const lp = new Date(y, m-1, dd);
+  lp.setHours(Math.floor(tsim), Math.round((tsim % 1) * 60), 0);
+  const sp = solarPos(lp, lat, lng);
+  const isLit = !blocked(sp.alt, sp.az, facing, obsElev) && sp.alt > 0;
+  $('tLabel').innerHTML = fmt(tsim) + '　太陽 ' + sp.alt.toFixed(0) + '° / 方位 ' + sp.az.toFixed(0) + '°　' +
+    (sp.alt <= 0 ? '<span class="tag no">已日落</span>' :
+     isLit ? '<span class="tag ok">有直射</span>' : '<span class="tag no">被遮擋</span>');
+
+  draw(pts, obsElev, facing, y, m, dd, tsim);
+  $('stats').innerHTML = `
+    <div class="stat"><b>${(litMin/60).toFixed(1)} 小時</b><span>直射陽光（扣除遮擋）</span></div>
+    <div class="stat"><b>${(upMin/60).toFixed(1)} 小時</b><span>太陽在地平線上</span></div>
+    <div class="stat"><b>${fmt(first?first.h:0)} – ${fmt(last?last.h:0)}</b><span>日出 / 日落（當地）</span></div>
+    <div class="stat"><b>${obsElev.toFixed(0)}°</b><span>對面建物遮擋仰角</span></div>
+    <div class="stat"><b>${((litMin/(upMin||1))*100).toFixed(0)}%</b><span>無遮擋比例</span></div>
+    <div class="stat"><b>${(litMin/60).toFixed(1)}h</b><span>${$('facing').selectedOptions[0].text}向窗</span></div>`;
+}
+const fmt = h => `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h%1)*60)).padStart(2,'0')}`;
+
+function draw(pts, obsElev, facing, y, m, dd, tsim){
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, L = 52, R = 16, T = 18, B = 40;
+  ctx.clearRect(0,0,W,H);
+  const x = h => L + (h/24) * (W-L-R);
+  const yy = a => H-B - (Math.max(0, Math.min(90, a)) / 90) * (H-T-B);
+
+  // 格線
+  ctx.strokeStyle = '#e6e3d9'; ctx.lineWidth = 1;
+  for (let a = 0; a <= 90; a += 15){ ctx.beginPath(); ctx.moveTo(L, yy(a)); ctx.lineTo(W-R, yy(a)); ctx.stroke();
+    ctx.fillStyle = '#9aa0a3'; ctx.font = '11px system-ui'; ctx.fillText(a+'°', 8, yy(a)+4); }
+  for (let h = 0; h <= 24; h += 3){ ctx.beginPath(); ctx.moveTo(x(h), T); ctx.lineTo(x(h), H-B); ctx.stroke();
+    ctx.fillStyle = '#9aa0a3'; ctx.fillText(String(h).padStart(2,'0'), x(h)-7, H-B+16); }
+
+  // 遮擋線
+  ctx.strokeStyle = '#e2603c'; ctx.setLineDash([6,5]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(L, yy(obsElev)); ctx.lineTo(W-R, yy(obsElev)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#e2603c'; ctx.font = '11.5px system-ui';
+  ctx.fillText('對面建物遮擋 '+obsElev.toFixed(0)+'°', L+6, yy(obsElev)-6);
+
+  // 陽光區（有直射的段落）
+  ctx.fillStyle = 'rgba(200,240,74,.55)';
+  pts.forEach((p,i) => { if (!p.blocked && p.alt>0) ctx.fillRect(x(p.h)-2, yy(p.alt), 4, H-B-yy(p.alt)); });
+
+  // 太陽軌跡
+  ctx.strokeStyle = '#2e2f2c'; ctx.lineWidth = 2; ctx.beginPath();
+  let started = false;
+  pts.forEach(p => { if (p.alt > 0){ const px = x(p.h), py = yy(p.alt);
+      started ? ctx.lineTo(px,py) : (ctx.moveTo(px,py), started = true); } });
+  ctx.stroke();
+
+  // 模擬時刻的太陽位置
+  if (tsim !== undefined){
+    const lp = new Date(y, m-1, dd);
+    lp.setHours(Math.floor(tsim), Math.round((tsim % 1) * 60), 0);
+    const p = solarPos(lp, +$('lat').value, +$('lng').value);
+    if (p.alt > 0){
+      ctx.beginPath(); ctx.arc(x(tsim), yy(p.alt), 7, 0, Math.PI*2);
+      ctx.fillStyle = '#f2b705'; ctx.fill();
+      ctx.strokeStyle = '#16181a'; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+  ctx.fillStyle = '#6d7378'; ctx.font = '12px system-ui';
+  ctx.fillText(`高度角 (度) ／ ${y}-${String(m).padStart(2,'0')}-${String(dd).padStart(2,'0')}`, L, 12);
+  ctx.fillText('時間', W-52, H-8);
+}
+
+/* ---------- 通勤 ---------- */
+async function commute(){
+  const dest = $('dest').value.trim();
+  const out = $('cmtOut');
+  const m = dest.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+  if (!m){ out.textContent = '請輸入「緯度,經度」格式，例如 25.0478,121.5170'; return; }
+  const o = `${$('lng').value},${$('lat').value}`, d = `${m[2]},${m[1]}`;
+  out.textContent = '計算中…';
+  try{
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${o};${d}?overview=false`);
+    const j = await r.json();
+    if (j.code !== 'Ok') throw new Error(j.code);
+    const rt = j.routes[0];
+    out.innerHTML = `開車 <b>${Math.round(rt.duration/60)} 分鐘</b>（${(rt.distance/1000).toFixed(1)} km，不含塞車）`;
+  }catch(e){ out.textContent = 'OSRM 服務忙碌，請稍後再試（' + e.message + '）'; }
+}
+
+/* ---------- 事件 ---------- */
+$('preset').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const [la, ln] = e.target.value.split(',');
+  $('lat').value = la; $('lng').value = ln; compute();
+});
+['lat','lng','facing','oh','od','date','time'].forEach(id =>
+  $(id).addEventListener('input', compute));
+function setDate(v){ $('date').value = v; compute(); }
+compute();
+</script>
+</body>
+</html>
