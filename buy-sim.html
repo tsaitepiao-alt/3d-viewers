@@ -36,6 +36,17 @@
        padding:8px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:500}
   .hit:hover{background:#eef7d6;border-color:#cfe88a}
   .status{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.5}
+  .verdict{margin-top:12px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.6;
+           background:#f2f8e2;border:1px solid #d8e9b0}
+  .verdict.warn{background:#fdf0e7;border-color:#f0cbb8}
+  .verdict b{font-weight:800}
+  .cmp{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
+  .cmp th,.cmp td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+  .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--mut);font-weight:600}
+  .cmp thead th{color:var(--ink);font-size:11.5px}
+  .share{display:flex;gap:8px;margin-top:12px}
+  .share input{font-size:12px;color:var(--mut)}
+  .share button{flex:0 0 auto}
   button{padding:10px 14px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);
          color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
   button.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
@@ -97,6 +108,12 @@
     <div class="card">
       <canvas id="cv" width="760" height="420"></canvas>
       <div class="stats" id="stats"></div>
+      <div class="verdict" id="verdict">—</div>
+      <table class="cmp" id="cmp"></table>
+      <div class="share">
+        <input id="shareUrl" readonly placeholder="按右邊產生可分享的物件連結">
+        <button onclick="makeShare()">產生連結</button>
+      </div>
       <div class="cmt">
         <label>通勤目的地（地址或「lat,lng」）</label>
         <div class="row">
@@ -177,6 +194,7 @@ function compute(){
      isLit ? '<span class="tag ok">有直射</span>' : '<span class="tag no">被遮擋</span>');
 
   draw(pts, obsElev, facing, y, m, dd, tsim);
+  renderCompare();
   $('stats').innerHTML = `
     <div class="stat"><b>${(litMin/60).toFixed(1)} 小時</b><span>直射陽光（扣除遮擋）</span></div>
     <div class="stat"><b>${(upMin/60).toFixed(1)} 小時</b><span>太陽在地平線上</span></div>
@@ -235,6 +253,81 @@ function draw(pts, obsElev, facing, y, m, dd, tsim){
   ctx.fillText('時間', W-52, H-8);
 }
 
+
+
+/* ---------- 多日計算（西曬／冬夏對比） ---------- */
+function dayStats(y, m, d){
+  const lat = +$('lat').value, lng = +$('lng').value;
+  const facing = +$('facing').value;
+  const obsElev = Math.atan(+$('oh').value / Math.max(+$('od').value, 1)) / RAD;
+  let lit = 0, up = 0, pm = 0;
+  for (let min = 0; min < 24*60; min += 10){
+    const t = new Date(y, m-1, d, 0, min, 0);
+    const p = solarPos(t, lat, lng);
+    if (p.alt <= 0) continue;
+    up += 10;
+    const ok = !blocked(p.alt, p.az, facing, obsElev);
+    if (ok){
+      lit += 10;
+      if (t.getHours() >= 15 && t.getHours() < 18) pm += 10;
+    }
+  }
+  return { lit: lit/60, up: up/60, pm: pm/60 };
+}
+
+function renderCompare(){
+  const y = +($('date').value.split('-')[0]);
+  const sum = dayStats(y, 6, 21), win = dayStats(y, 12, 21);
+  const facingTxt = $('facing').selectedOptions[0].text;
+
+  $('cmp').innerHTML = `
+    <thead><tr><th>比較（同一間房）</th><th>冬至 12/21</th><th>夏至 6/21</th></tr></thead>
+    <tbody>
+      <tr><td>直射陽光</td><td>${win.lit.toFixed(1)} h</td><td>${sum.lit.toFixed(1)} h</td></tr>
+      <tr><td>午後 15–18 時直射</td><td>${win.pm.toFixed(1)} h</td><td>${sum.pm.toFixed(1)} h</td></tr>
+      <tr><td>太陽在地平線上</td><td>${win.up.toFixed(1)} h</td><td>${sum.up.toFixed(1)} h</td></tr>
+    </tbody>`;
+
+  // 白話評語（規則式，不用 AI）
+  const msgs = [];
+  let warn = false;
+  if (win.lit >= 3) msgs.push(`冬天有 <b>${win.lit.toFixed(1)} 小時</b>直射陽光，曬衣、採光沒問題。`);
+  else if (win.lit >= 1) msgs.push(`冬天只有 <b>${win.lit.toFixed(1)} 小時</b>直射，日照偏少，適合不介意的人。`);
+  else { msgs.push(`冬天幾乎<b>沒有直射陽光</b>，室內會偏陰冷、衣物不易乾。`); warn = true; }
+
+  if (sum.pm >= 2){ msgs.push(`夏季午後有 <b>${sum.pm.toFixed(1)} 小時</b>直射（西曬型），客廳會熱，建議加遮光簾或隔熱膜。`); warn = true; }
+  else if (sum.pm >= 0.7) msgs.push(`夏季午後約 <b>${sum.pm.toFixed(1)} 小時</b>直射，稍微有西曬感。`);
+  else msgs.push(`夏季午後幾乎<b>沒有直射</b>，不容易西曬。`);
+
+  if (sum.lit > 8) msgs.push(`夏天日照很長（${sum.lit.toFixed(1)} 小時），好處是亮，缺點是冷氣負擔。`);
+
+  const host = `<b>${facingTxt}向窗・對面 ${$('oh').value}m／${$('od').value}m</b>：`;
+  $('verdict').className = 'verdict' + (warn ? ' warn' : '');
+  $('verdict').innerHTML = host + msgs.join(' ');
+}
+
+/* ---------- 物件專屬連結 ---------- */
+function makeShare(){
+  const h = new URLSearchParams({
+    lat: $('lat').value, lng: $('lng').value, facing: $('facing').value,
+    oh: $('oh').value, od: $('od').value, date: $('date').value
+  }).toString();
+  const url = location.origin + location.pathname + '#' + h;
+  $('shareUrl').value = url;
+  navigator.clipboard && navigator.clipboard.writeText(url).catch(()=>{});
+  $('addrStatus').textContent = '已產生連結並複製（可直接傳給客戶）。';
+}
+
+function loadFromHash(){
+  if (!location.hash || location.hash.length < 3) return;
+  const q = new URLSearchParams(location.hash.slice(1));
+  ['lat','lng','facing','oh','od','date'].forEach(k => {
+    if (q.get(k)) $(k).value = q.get(k);
+  });
+  if (marker) marker.setLatLng([+$('lat').value, +$('lng').value]);
+  if (map) map.setView([+$('lat').value, +$('lng').value], 16);
+  $('addrStatus').textContent = '已載入分享連結的物件參數。';
+}
 
 /* ---------- 地址定位 / 地圖 ---------- */
 let map, marker;
@@ -353,6 +446,7 @@ $('preset').addEventListener('change', e => {
   $(id).addEventListener('input', compute));
 function setDate(v){ $('date').value = v; compute(); }
 initMap();
+loadFromHash();
 $('addr').addEventListener('keydown', e => { if (e.key === 'Enter') geocode(); });
 compute();
 </script>
