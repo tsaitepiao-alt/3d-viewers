@@ -330,6 +330,8 @@ function loadFromHash(){
 }
 
 /* ---------- 地址定位 / 地圖 ---------- */
+
+
 let map, marker;
 
 function initMap(){
@@ -374,6 +376,39 @@ function parseGmaps(t){
   return null;
 }
 
+/* ---------- 地址變體（中文地址沒有空格，OSM 斷詞會失敗） ---------- */
+function addrVariants(q0){
+  let q = q0.replace(/^\d{3,6}\s*/, '')          // 去掉郵遞區號
+            .replace(/\s+/g, ' ').trim();
+  const out = [];
+  const push = v => { v = (v||'').trim(); if (v && !out.includes(v)) out.push(v); };
+
+  push(q);
+
+  // 去掉門牌（號、樓、之、F）→ 只留到路／段
+  const noNum = q.replace(/(\d+(之\d+)?號).*$/, '').replace(/(\d+樓).*$/, '').trim();
+  push(noNum);
+
+  // 在行政區與路名後面插入空格，讓 OSM 好斷詞
+  const spaced = noNum.replace(/([市縣區鄉鎮])/g, '$1 ')
+                       .replace(/([路街大道段巷弄])/g, '$1 ')
+                       .replace(/\s+/g, ' ').trim();
+  push(spaced);
+
+  // 去掉縣市，只留「區 + 路」
+  const noCity = spaced.replace(/^.*?[市縣]\s*/, '');
+  push(noCity);
+
+  // 再加強：把「段」獨立
+  push(spaced.replace(/(段)/g, ' $1 ').replace(/\s+/g, ' ').trim());
+
+  // 只留路名（最後手段）
+  const m = noNum.match(/([\u4e00-\u9fa5]{2,}(?:路|街|大道)(?:[一二三四五六七八九十]+段)?)/);
+  if (m) push(m[1]);
+
+  return out;
+}
+
 async function geocode(){
   const q = $('addr').value.trim();
   const st = $('addrStatus'), hits = $('hits');
@@ -383,35 +418,57 @@ async function geocode(){
   if (/google\.[a-z.]+\/maps/.test(q)){
     const g = parseGmaps(q);
     if (g){ setPoint(g[0], g[1], '已從 Google Maps 連結解析座標。'); return; }
-    st.textContent = '這個 Google Maps 連結裡沒有座標，請改用「地址」或直接在地圖上點。';
+    st.textContent = '這個 Google Maps 連結裡沒有座標，請改用地址或直接在地圖上點。';
     return;
   }
   const c = parseCoords(q);
   if (c){ setPoint(c[0], c[1], '已使用座標定位。'); return; }
 
   st.textContent = '查詢中…';
-  try{
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=4&countrycodes=tw&accept-language=zh-TW&q=${encodeURIComponent(q)}`;
-    const r = await fetch(url, {headers:{'Accept':'application/json'}});
-    const arr = await r.json();
-    if (!arr.length){
-      st.innerHTML = '找不到這個地址。台灣門牌在免費圖資覆蓋不全，建議：① 只輸入到「路／段」② 或直接在地圖上點位置。';
-      return;
-    }
-    st.textContent = `找到 ${arr.length} 筆，點一筆套用（門牌可能只到路段層級）：`;
-    arr.forEach((it, i) => {
-      const b = document.createElement('button');
-      b.className = 'hit';
-      b.textContent = `${i+1}. ${it.display_name}`;
-      b.onclick = () => {
-        setPoint(+it.lat, +it.lon, '定位到：' + it.display_name);
-        hits.innerHTML = '';
-      };
-      hits.appendChild(b);
-    });
-  }catch(e){
-    st.textContent = '地址服務忙碌或遭封鎖（' + e.message + '），請直接在地圖上點位置。';
+  const variants = addrVariants(q);
+
+  // 1) Nominatim：逐個變體試
+  for (const v of variants){
+    try{
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=4&countrycodes=tw&accept-language=zh-TW&q=${encodeURIComponent(v)}`;
+      const r = await fetch(url);
+      const arr = await r.json();
+      if (arr.length){ return showHits(arr, v, false); }
+    }catch(e){ /* 換下一個 */ }
+    await new Promise(res => setTimeout(res, 350));
   }
+
+  // 2) Photon 備援（模糊比對較強）
+  try{
+    const url = `https://photon.komoot.io/api/?limit=5&lang=zh&q=${encodeURIComponent(variants[1] || q)}`;
+    const r = await fetch(url);
+    const j = await r.json();
+    const arr = (j.features || []).map(f => ({
+      display_name: [f.properties.name, f.properties.street, f.properties.district,
+                     f.properties.city, f.properties.state, f.properties.country]
+                    .filter(Boolean).join(', '),
+      lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0]
+    })).filter(x => x.display_name);
+    if (arr.length){ return showHits(arr, variants[1] || q, true); }
+  }catch(e){ /* 落到下面 */ }
+
+  st.innerHTML = '找不到。可以試：<br>① 只輸入「區 + 路名」，例如「大安區 信義路二段」<br>② 貼 Google Maps 連結（含 @lat,lng）<br>③ 直接在地圖上點位置（最快、最準）';
+}
+
+function showHits(arr, usedQuery, fuzzy){
+  const st = $('addrStatus'), hits = $('hits');
+  hits.innerHTML = '';
+  st.textContent = (fuzzy ? '模糊比對' : '找到') + ` ${arr.length} 筆（查詢：${usedQuery}）— 點一筆套用：`;
+  arr.slice(0, 4).forEach((it, i) => {
+    const b = document.createElement('button');
+    b.className = 'hit';
+    b.textContent = `${i+1}. ${it.display_name}`;
+    b.onclick = () => {
+      setPoint(+it.lat, +it.lon, '定位到：' + it.display_name + '　→ 這是路段中心，請在地圖上點一下微調到實際門牌位置。');
+      hits.innerHTML = '';
+    };
+    hits.appendChild(b);
+  });
 }
 
 function syncMap(){
