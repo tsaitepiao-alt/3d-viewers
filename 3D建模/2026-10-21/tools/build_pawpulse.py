@@ -395,115 +395,277 @@ function ribbon(pts,w,t,seg){
 }
 
 /* ═══════════════ 畫布貼圖：螢幕 UI ═══════════════ */
-function drawDog(c,cx,cy,r){
-  /* 耳朵 */
-  [-1,1].forEach(function(s){
-    c.save();c.translate(cx+s*r*0.84,cy-r*0.60);c.rotate(s*0.34);
-    c.fillStyle='#c07f3a';c.beginPath();c.ellipse(0,0,r*0.30,r*0.50,0,0,7);c.fill();
-    c.fillStyle='#945c26';c.beginPath();c.ellipse(0,r*0.04,r*0.16,r*0.30,0,0,7);c.fill();
+/* ── 貓臉（會眨眼、耳朵會抖、鬍鬚會飄） ──
+   st = { blink:0..1(1=閉眼), ear:弧度偏移, bob:呼吸位移, sway:鬍鬚擺動 } */
+function drawCat(c,cx,cy,r,st){
+  st=st||{blink:0,ear:0,bob:0,sway:0};
+  var by=cy+st.bob;
+  c.save();
+  c.translate(cx,by);
+
+  /* 耳朵（三角形，外灰內粉） */
+  [-1,1].forEach(function(sd){
+    c.save();
+    c.translate(sd*r*0.44,-r*0.76);
+    c.rotate(sd*(0.16+st.ear));
+    c.beginPath();
+    c.moveTo(0,-r*0.50);c.quadraticCurveTo(sd*r*0.40,-r*0.02,0,r*0.10);
+    c.quadraticCurveTo(-sd*r*0.12,-r*0.14,0,-r*0.50);
+    c.closePath();
+    c.fillStyle='#cdb79f';c.fill();
+    c.beginPath();
+    c.moveTo(0,-r*0.34);c.quadraticCurveTo(sd*r*0.22,-r*0.03,0,r*0.03);
+    c.quadraticCurveTo(-sd*r*0.05,-r*0.12,0,-r*0.34);
+    c.closePath();
+    c.fillStyle='#e79aa4';c.fill();
     c.restore();
   });
+
   /* 頭 */
-  var hg=c.createRadialGradient(cx-r*0.30,cy-r*0.36,r*0.16,cx,cy,r*1.18);
-  hg.addColorStop(0,'#fbe3b6');hg.addColorStop(1,'#dda45c');
-  c.fillStyle=hg;c.beginPath();c.arc(cx,cy,r,0,7);c.fill();
-  /* 口鼻 */
-  c.fillStyle='#fdf0d6';c.beginPath();c.ellipse(cx,cy+r*0.40,r*0.62,r*0.44,0,0,7);c.fill();
-  /* 眼 */
-  [-1,1].forEach(function(s){
-    c.fillStyle='#20160f';
-    c.beginPath();c.ellipse(cx+s*r*0.37,cy-r*0.12,r*0.115,r*0.150,0,0,7);c.fill();
-    c.fillStyle='#ffffff';
-    c.beginPath();c.arc(cx+s*r*0.40,cy-r*0.19,r*0.045,0,7);c.fill();
+  var hg=c.createRadialGradient(-r*0.28,-r*0.34,r*0.14,0,0,r*1.16);
+  hg.addColorStop(0,'#f7ecdd');hg.addColorStop(.62,'#e8d7c3');hg.addColorStop(1,'#cbb49b');
+  c.fillStyle=hg;c.beginPath();c.arc(0,0,r,0,7);c.fill();
+
+  /* 額頭虎斑 */
+  c.strokeStyle='rgba(160,132,104,.55)';c.lineWidth=Math.max(2,r*0.055);c.lineCap='round';
+  [-0.30,0,0.30].forEach(function(k){
+    c.beginPath();c.moveTo(k*r,-r*0.92);c.lineTo(k*r*1.18,-r*0.60);c.stroke();
   });
-  /* 鼻 */
-  c.fillStyle='#20160f';
-  c.beginPath();c.ellipse(cx,cy+r*0.20,r*0.145,r*0.115,0,0,7);c.fill();
-  /* 嘴 */
-  c.strokeStyle='#20160f';c.lineWidth=Math.max(2,r*0.055);c.lineCap='round';
-  c.beginPath();c.arc(cx-r*0.13,cy+r*0.33,r*0.155,0.10,Math.PI*0.96);c.stroke();
-  c.beginPath();c.arc(cx+r*0.13,cy+r*0.33,r*0.155,Math.PI*0.04,Math.PI*0.90);c.stroke();
-  /* 舌 */
-  c.fillStyle='#ff8092';
-  c.beginPath();c.ellipse(cx,cy+r*0.63,r*0.125,r*0.165,0,0,7);c.fill();
+
+  /* 眼睛 */
+  [-1,1].forEach(function(sd){
+    var ex=sd*r*0.36, ey=-r*0.06;
+    if(st.blink>0.55){
+      /* 閉眼：彎線 */
+      c.strokeStyle='#2a2118';c.lineWidth=Math.max(2.5,r*0.075);
+      c.beginPath();c.arc(ex,ey+r*0.02,r*0.20,Math.PI*0.12,Math.PI*0.88);c.stroke();
+    }else{
+      var eo=1-st.blink;   /* 半眨眼時壓扁 */
+      c.save();
+      c.translate(ex,ey);c.scale(1,eo);
+      /* 眼白 */
+      c.fillStyle='#fdfaf4';
+      c.beginPath();c.ellipse(0,0,r*0.235,r*0.275,0,0,7);c.fill();
+      /* 綠虹膜 */
+      var ig=c.createRadialGradient(0,-r*0.05,r*0.03,0,0,r*0.20);
+      ig.addColorStop(0,'#b6e86a');ig.addColorStop(1,'#5f9f38');
+      c.fillStyle=ig;
+      c.beginPath();c.ellipse(0,0,r*0.185,r*0.225,0,0,7);c.fill();
+      /* 豎瞳 */
+      c.fillStyle='#150f0a';
+      c.beginPath();c.ellipse(0,0,r*0.052,r*0.185,0,0,7);c.fill();
+      /* 高光 */
+      c.fillStyle='rgba(255,255,255,.92)';
+      c.beginPath();c.arc(-r*0.055,-r*0.085,r*0.052,0,7);c.fill();
+      c.restore();
+      /* 眼線 */
+      c.strokeStyle='rgba(60,44,30,.55)';c.lineWidth=Math.max(1.4,r*0.028);
+      c.beginPath();c.ellipse(ex,ey,r*0.245,r*0.285,0,Math.PI*1.06,Math.PI*1.94);c.stroke();
+    }
+  });
+
+  /* 鼻子（粉三角） */
+  c.fillStyle='#e88a96';
+  c.beginPath();
+  c.moveTo(0,r*0.24);c.lineTo(-r*0.095,r*0.135);c.lineTo(r*0.095,r*0.135);
+  c.closePath();c.fill();
+  /* φ 嘴 */
+  c.strokeStyle='#2a2118';c.lineWidth=Math.max(2,r*0.050);c.lineCap='round';
+  c.beginPath();c.moveTo(0,r*0.24);c.lineTo(0,r*0.325);c.stroke();
+  [-1,1].forEach(function(sd){
+    c.beginPath();
+    c.arc(sd*r*0.115,r*0.325,r*0.115, sd>0?Math.PI*0.06:Math.PI*0.94, sd>0?Math.PI*0.84:Math.PI*1.72, sd<0);
+    c.stroke();
+  });
+
+  /* 腮紅 */
+  [-1,1].forEach(function(sd){
+    var bg=c.createRadialGradient(sd*r*0.62,r*0.30,0,sd*r*0.62,r*0.30,r*0.22);
+    bg.addColorStop(0,'rgba(240,150,160,.40)');bg.addColorStop(1,'rgba(240,150,160,0)');
+    c.fillStyle=bg;c.beginPath();c.arc(sd*r*0.62,r*0.30,r*0.22,0,7);c.fill();
+  });
+
+  /* 鬍鬚（左右各 3 條，會隨時間擺動） */
+  c.strokeStyle='rgba(255,255,255,.72)';c.lineWidth=Math.max(1.2,r*0.022);c.lineCap='round';
+  [-1,1].forEach(function(sd){
+    for(var k=-1;k<=1;k++){
+      var y0=r*(0.20+k*0.095);
+      var bend=(0.10+k*0.05)+st.sway*0.10;
+      c.beginPath();
+      c.moveTo(sd*r*0.56,y0);
+      c.quadraticCurveTo(sd*r*0.98,y0+r*bend*0.55,sd*r*1.38,y0+r*bend);
+      c.stroke();
+    }
+  });
+  c.restore();
 }
+
 function spaced(c,txt,x,y,sp,fill){
   c.fillStyle=fill;c.textAlign='left';c.textBaseline='middle';
   for(var i=0;i<txt.length;i++){c.fillText(txt[i],x,y);x+=c.measureText(txt[i]).width+sp;}
+  return x-sp;
 }
-function uiTex(){
+
+/* ═══════════════ 會動的螢幕（每個螢幕一張 canvas，每 55ms 重畫） ═══════════════ */
+var SCREENS=[];
+function makeScreen(){
   var UW=V.ui.w,UH=V.ui.h;
   var W=1024,H=Math.round(W*UH/UW);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  var c=cv.getContext('2d');
-  var u=H/100;
+  var tex=new THREE.CanvasTexture(cv);
+  tex.anisotropy=8;tex.encoding=THREE.sRGBEncoding;
+  var s={cv:cv,c:cv.getContext('2d'),tex:tex,W:W,H:H,u:H/100,mat:null};
+  SCREENS.push(s);
+  drawScreen(s,0);
+  return s;
+}
+
+function drawScreen(s,t){
+  var c=s.c,W=s.W,H=s.H,u=s.u,ms=t||0,sec=ms/1000;
+  /* ── 背景 ── */
   var g=c.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#08202a');g.addColorStop(.55,'#04131c');g.addColorStop(1,'#020a10');
+  g.addColorStop(0,'#07222c');g.addColorStop(.55,'#04121b');g.addColorStop(1,'#02090e');
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  /* 螢幕邊緣內陰影 */
-  var vg=c.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.85);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.55)');
+  var vg=c.createRadialGradient(W/2,H/2,H*0.18,W/2,H/2,H*0.88);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.58)');
   c.fillStyle=vg;c.fillRect(0,0,W,H);
 
   c.textBaseline='middle';
-  /* ── 頂列：PAWPULSE ＋ 電量 ── */
+
+  /* ── 頂列 ── */
   c.font='bold '+(8.4*u)+'px "Helvetica Neue",Arial,sans-serif';
-  spaced(c,'JIALAN-1',5.5*u,8.5*u,1.5*u,'#4be3a8');
-  /* 電量圖示 */
+  var brandEnd=spaced(c,'JIALAN',5.5*u,8.5*u,1.5*u,'#4be3a8');
+  spaced(c,'CAT',brandEnd+4.2*u,8.5*u,1.8*u,'#8ef0ff');
+
+  /* 電量 */
   var bx=W-20.5*u,by=5.6*u,bw=9.5*u,bh=5.6*u;
+  var lvl=0.68+0.12*Math.sin(sec/17)+0.0;
+  lvl=Math.min(0.86,Math.max(0.52,lvl));
   c.strokeStyle='#9fe8cf';c.lineWidth=Math.max(1.4,0.7*u);
   c.beginPath();c.rect(bx,by,bw,bh);c.stroke();
   c.fillRect(bx+bw,by+bh*0.28,1.5*u,bh*0.44);
-  c.fillStyle='#4be3a8';c.fillRect(bx+0.9*u,by+0.9*u,(bw-1.8*u)*0.78,bh-1.8*u);
+  c.fillStyle='#4be3a8';c.fillRect(bx+0.9*u,by+0.9*u,(bw-1.8*u)*lvl,bh-1.8*u);
   c.font='bold '+(6.4*u)+'px "Helvetica Neue",Arial,sans-serif';
-  c.fillStyle='#d8fff1';c.textAlign='right';c.fillText('78%',bx-2.0*u,by+bh*0.55);
+  c.fillStyle='#d8fff1';c.textAlign='right';
+  c.fillText(Math.round(lvl*100)+'%',bx-2.0*u,by+bh*0.55);
 
-  /* ── 狗臉 ── */
-  drawDog(c,W/2,H*0.455,H*0.175);
+  /* ── 貓臉（眨眼 / 抖耳 / 呼吸 / 鬍鬚） ── */
+  var blinkP=ms%4300;
+  var blink=blinkP<150?1:(blinkP<230?0.5:0);
+  var twitch=(ms%7300)<230?Math.sin((ms%7300)/230*Math.PI)*0.22:0;
+  var st={
+    blink:blink,
+    ear:twitch,
+    bob:Math.sin(sec/1.55)*H*0.006,
+    sway:Math.sin(sec/1.05)
+  };
+  drawCat(c,W/2,H*0.475,H*0.168,st);
 
-  /* ── 體溫小標籤（左上，狗臉旁） ── */
-  c.font='bold '+(5.6*u)+'px "Helvetica Neue",Arial,sans-serif';
+  /* ── 體溫（左上） ── */
   c.textAlign='left';
+  c.font='bold '+(5.6*u)+'px "Helvetica Neue",Arial,sans-serif';
   c.fillStyle='#ffcf8a';
-  c.fillText('38.4\u00b0C',5.5*u,20.5*u);
+  var temp=(38.5+0.35*Math.sin(sec/11)).toFixed(1);
+  c.fillText(temp+'\u00b0C',5.5*u,20.5*u);
   c.fillStyle='#6e8b86';
   c.font='500 '+(4.4*u)+'px "Helvetica Neue",Arial,sans-serif';
   c.fillText('BODY TEMP',5.5*u,25.5*u);
 
-  /* ── 底部兩欄數據 ── */
+  /* 右上：情緒 / 呼嚕 */
+  c.textAlign='right';
+  c.font='bold '+(5.2*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillStyle='#8ef0ff';
+  var purr=(26+Math.round(4*Math.sin(sec/2.2)));
+  c.fillText('PURR '+purr+'Hz',W-5.5*u,20.0*u);
+  c.fillStyle='#6e8b86';
+  c.font='500 '+(4.2*u)+'px "Helvetica Neue",Arial,sans-serif';
+  var moodTxt=['放鬆','想睡','好奇','呼嚕中'][Math.floor(sec/6)%4];
+  c.fillText(moodTxt,W-5.5*u,25.0*u);
+
+  /* ── 底部數據 ── */
   var dy=H*0.775;
   c.strokeStyle='rgba(120,190,170,.22)';c.lineWidth=Math.max(1,0.45*u);
   c.beginPath();c.moveTo(W/2,dy-6.5*u);c.lineTo(W/2,dy+9.5*u);c.stroke();
-  /* 心率 */
+
+  /* 心率：數字會跳，旁邊有心電圖掃描 */
+  var bpm=Math.round(96+7*Math.sin(sec/1.7)+3*Math.sin(sec/0.53));
   c.fillStyle='#ff6b83';
-  (function(hx,hy,s){c.beginPath();
-    c.moveTo(hx,hy+s*0.9);
-    c.bezierCurveTo(hx-s*1.5,hy-s*0.25,hx-s*0.55,hy-s*1.1,hx,hy-s*0.35);
-    c.bezierCurveTo(hx+s*0.55,hy-s*1.1,hx+s*1.5,hy-s*0.25,hx,hy+s*0.9);
-    c.closePath();c.fill();})(6.5*u,dy-5.0*u,3.4*u);
+  (function(hx,hy,sz){c.beginPath();
+    c.moveTo(hx,hy+sz*0.9);
+    c.bezierCurveTo(hx-sz*1.5,hy-sz*0.25,hx-sz*0.55,hy-sz*1.1,hx,hy-sz*0.35);
+    c.bezierCurveTo(hx+sz*0.55,hy-sz*1.1,hx+sz*1.5,hy-sz*0.25,hx,hy+sz*0.9);
+    c.closePath();c.fill();})(6.5*u,dy-5.0*u,3.4*u* (1+0.10*Math.max(0,Math.sin(sec*3.0))));
+
   c.textAlign='left';
   c.fillStyle='#ffffff';c.font='bold '+(13.5*u)+'px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('92',12.5*u,dy);
+  c.fillText(String(bpm),12.5*u,dy);
   c.fillStyle='#8aa8a2';c.font='500 '+(4.8*u)+'px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('bpm',12.5*u+c.measureText('').width,dy+6.0*u);
-  /* 步數 */
+  c.fillText('bpm',12.5*u,dy+6.0*u);
+
+  /* ECG 掃描線（在 bpm 右側到中線之間） */
+  var x0=26*u,x1=W/2-4*u,yb=dy-1.0*u,amp=4.2*u;
+  c.strokeStyle='rgba(255,107,131,.85)';c.lineWidth=Math.max(1.2,0.5*u);
+  c.beginPath();
+  for(var px=x0;px<x1;px+=2){
+    var ph=((px-x0)/(x1-x0)*3.0+sec*0.85)%1.0;
+    var v=0;
+    if(ph<0.08)v=-Math.sin(ph/0.08*Math.PI)*0.45;
+    else if(ph<0.16)v=Math.sin((ph-0.08)/0.08*Math.PI)*1.0;
+    else if(ph<0.22)v=-Math.sin((ph-0.16)/0.06*Math.PI)*0.35;
+    var px2=px, py2=yb-v*amp;
+    if(px===x0)c.moveTo(px2,py2);else c.lineTo(px2,py2);
+  }
+  c.stroke();
+
+  /* 步數（緩慢累加，看起來像真的在計數） */
+  var steps=3412+Math.floor(sec*0.8);
   c.fillStyle='#7bd3ff';
   c.font='bold '+(13.5*u)+'px "Helvetica Neue",Arial,sans-serif';
   c.textAlign='right';
-  c.fillText('3,412',W-5.5*u,dy);
+  c.fillText(steps.toLocaleString('en-US'),W-5.5*u,dy);
   c.fillStyle='#8aa8a2';c.font='500 '+(4.8*u)+'px "Helvetica Neue",Arial,sans-serif';
   c.fillText('STEPS',W-5.5*u,dy+6.0*u);
-  c.textAlign='left';
 
-  var t=new THREE.CanvasTexture(cv);
-  t.anisotropy=8;t.encoding=THREE.sRGBEncoding;
-  return t;
+  /* ── 面板質感：掃描線 + 玻璃反光（讓它像真的螢幕） ── */
+  c.fillStyle='rgba(0,0,0,.055)';
+  for(var yy=0;yy<H;yy+=3)c.fillRect(0,yy,W,1);
+  var gl=c.createLinearGradient(0,0,W,H*0.9);
+  gl.addColorStop(0,'rgba(255,255,255,.055)');
+  gl.addColorStop(.35,'rgba(255,255,255,0)');
+  gl.addColorStop(1,'rgba(255,255,255,.02)');
+  c.fillStyle=gl;c.fillRect(0,0,W,H);
 }
+
+/* 每 ~55ms 重畫所有螢幕（18fps，肉眼看起來是連續的） */
+var _scrLast=-1e9;
+function updateScreens(now){
+  if(!SCREENS.length)return;
+  if(now-_scrLast<55)return;
+  _scrLast=now;
+  for(var i=0;i<SCREENS.length;i++){
+    var s=SCREENS[i];
+    drawScreen(s,now);
+    s.tex.needsUpdate=true;
+    if(s.mat)s.mat.emissiveIntensity=0.93+0.035*Math.sin(now/420);
+  }
+}
+
+window.__snap=function(t){          /* 供截圖驗證：指定時間點重畫螢幕 */
+  window.__pause=true;
+  _scrLast=-1e9;
+  updateScreens(t||performance.now());
+  for(var i=0;i<SCREENS.length;i++)SCREENS[i].tex.needsUpdate=true;
+  try{renderer.render(scene,camera);}catch(e){}
+  return SCREENS.length;
+};
+window.__SCREENS=SCREENS;
+
 function uiMat(){
-  var tex=uiTex();
-  var m=new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,
+  var s=makeScreen();
+  var m=new THREE.MeshStandardMaterial({map:s.tex,emissive:0xffffff,emissiveMap:s.tex,
     emissiveIntensity:0.95,color:0x9a9a9a,roughness:.44,metalness:0,side:THREE.DoubleSide});
   m.envMapIntensity=0.05;
+  s.mat=m;
   return m;
 }
 
@@ -1141,6 +1303,7 @@ function buildDims(){
 }
 
 function buildVariant(key,keepMode){
+  SCREENS.length=0;
   /* 先把上一個型號改過的殼色還原，再切到該型號對應的外殼材質 */
   if(typeof restoreShellBase==='function')restoreShellBase();
   if(typeof SHELLSET!=='undefined')SHELLM=SHELLSET[key]||SHELLSET.a;
@@ -1881,6 +2044,7 @@ function tick(){
   updateFloorVis();
   controls.update();
   if(MODE==='exploded')updateLabels();
+  if(!window.__pause)updateScreens(now);
   if(outline){outline.material.opacity=0.70+0.28*Math.sin(now*0.004);}
   renderer.render(scene,camera);
   frame++;

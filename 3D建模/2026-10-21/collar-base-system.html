@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>貓語翻譯基地台 MEOWBASE ｜ 嘉蘭智慧科技 · 3D 組裝・爆炸・尺寸</title>
+<title>嘉蘭一號・二號 智慧頸環 ｜ 嘉蘭智慧科技 · 3D 組裝・爆炸・尺寸</title>
 <style>
   :root{
-    --coral:#ff8a5c; --coral2:#e8734a; --amber:#ffc266; --sky:#7bd3ff;
-    --ink:#0b0705; --bg:#080b0d; --txt:#f2ece6; --dim:#a08f84;
-    --panel:rgba(20,17,15,.86); --line:rgba(255,138,92,.30);
+    --mint:#4be3a8; --mint2:#2fc98d; --coral:#ff7a59; --sky:#7bd3ff;
+    --ink:#06100f; --bg:#070d10; --txt:#e6f2ee; --dim:#8fa5a0;
+    --panel:rgba(12,22,22,.86); --line:rgba(75,227,168,.30);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
@@ -19,22 +19,32 @@
     backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
 
   /* ── 左上標題 ── */
-  #hud{position:fixed;left:14px;top:14px;padding:11px 15px;z-index:20;max-width:min(46vw,340px)}
+  #hud{position:fixed;left:14px;top:14px;padding:11px 15px;z-index:20;max-width:min(46vw,336px)}
   #hud b{font-size:15px;letter-spacing:.4px;display:block;color:#fff}
-  #hud b i{font-style:normal;color:var(--coral)}
+  #hud b i{font-style:normal;color:var(--mint)}
   #hud span{font-size:11.5px;color:var(--dim);line-height:1.55;display:block;margin-top:4px}
-  #hud .tag{display:inline-block;margin-top:7px;font-size:10.5px;color:var(--coral);
+  #hud .tag{display:inline-block;margin-top:7px;font-size:10.5px;color:var(--mint);
     border:1px solid var(--line);border-radius:999px;padding:2px 9px}
-  #hud .tag b{display:inline;font-size:10.5px;color:var(--coral)}
+  #hud .tag b{display:inline;font-size:10.5px;color:var(--mint)}
+
+  /* ── 型號切換 ── */
+  #vsw{position:fixed;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:5px;
+    padding:5px;z-index:36}
+  #vsw button{height:32px;padding:0 15px;border-radius:9px;border:1px solid rgba(255,255,255,.13);
+    background:transparent;color:#cfe6de;font:600 12.5px/1 inherit;font-family:inherit;
+    cursor:pointer;transition:.15s;letter-spacing:.3px}
+  #vsw button small{display:block;font-size:9px;font-weight:500;color:var(--dim);margin-top:1px;letter-spacing:0}
+  #vsw button.on{background:var(--mint);color:#06231b;border-color:var(--mint)}
+  #vsw button.on small{color:#0a3a2c}
 
   /* ── 右上資訊卡 ── */
-  #finfo{position:fixed;right:14px;top:14px;width:min(336px,44vw);padding:13px 15px 14px;
-    display:none;flex-direction:column;gap:7px;z-index:40;border-color:rgba(255,138,92,.35)}
+  #finfo{position:fixed;right:14px;top:14px;width:min(330px,44vw);padding:13px 15px 14px;
+    display:none;flex-direction:column;gap:7px;z-index:40;border-color:rgba(75,227,168,.35)}
   #finfo h4{margin:0;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
-  #finfo h4 .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--coral);
-    color:#2a1108;font-size:12px;font-weight:800;align-items:center;justify-content:center;flex:0 0 auto}
+  #finfo h4 .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--mint);
+    color:#06231b;font-size:12px;font-weight:800;align-items:center;justify-content:center;flex:0 0 auto}
   #finfo h4 .x{margin-left:auto;cursor:pointer;color:var(--dim);font-size:15px;padding:0 2px}
-  #finfo .row{font-size:12px;line-height:1.62;color:#e6ddd6;display:flex;gap:7px}
+  #finfo .row{font-size:12px;line-height:1.62;color:#d5e6e0;display:flex;gap:7px}
   #finfo .row u{text-decoration:none;color:var(--dim);flex:0 0 42px}
   #finfo .row b{font-weight:600;color:#fff}
   #finfo .hint{font-size:10.5px;color:var(--dim);border-top:1px solid rgba(255,255,255,.08);padding-top:7px}
@@ -42,45 +52,45 @@
   /* ── 零件標籤（爆炸圖） ── */
   #lblLayer{position:fixed;inset:0;pointer-events:none;z-index:15;display:none}
   #lead{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-  #lead polyline{fill:none;stroke:rgba(255,138,92,.58);stroke-width:1;stroke-dasharray:3 3}
-  #lead circle{fill:var(--coral)}
+  #lead polyline{fill:none;stroke:rgba(75,227,168,.58);stroke-width:1;stroke-dasharray:3 3}
+  #lead circle{fill:var(--mint)}
   .lbl{position:absolute;transform:translateY(-50%);display:flex;gap:7px;align-items:flex-start;
-    font-size:11.5px;line-height:1.32;color:#f0e7e0;pointer-events:none;
+    font-size:11.5px;line-height:1.32;color:#e4f0ec;pointer-events:none;
     text-shadow:0 1px 3px rgba(0,0,0,.9)}
   .lbl.left{left:0;padding-right:12px;justify-content:flex-end;text-align:right}
   .lbl.left .b{order:2}
   .lbl.right{right:0;padding-left:12px;justify-content:flex-start;text-align:left}
   .lbl .t{max-width:236px}
-  .lbl .b{flex:0 0 auto;width:19px;height:19px;border-radius:50%;background:var(--coral);color:#2a1108;
+  .lbl .b{flex:0 0 auto;width:19px;height:19px;border-radius:50%;background:var(--mint);color:#06231b;
     font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
   .lbl .t b{display:block;font-weight:600;font-size:11.8px;color:#fff}
-  .lbl .t i{font-style:normal;font-size:10.5px;color:#b6a79d}
+  .lbl .t i{font-style:normal;font-size:10.5px;color:#a8bdb6}
 
   /* ── 底部控制列 ── */
   #bar{position:fixed;left:0;right:0;bottom:10px;padding:0 10px;display:flex;justify-content:center;
     gap:7px;z-index:30;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
   #bar::-webkit-scrollbar{display:none}
   #bar button{flex:0 0 auto;height:38px;min-width:76px;padding:0 14px;border-radius:11px;cursor:pointer;
-    border:1px solid rgba(255,255,255,.13);background:rgba(24,19,16,.9);color:#e2d7cf;
+    border:1px solid rgba(255,255,255,.13);background:rgba(13,25,24,.9);color:#d7e8e2;
     font-size:12.5px;font-family:inherit;font-weight:600;letter-spacing:.3px;
     backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);transition:.16s}
   #bar button:hover{border-color:var(--line);color:#fff}
-  #bar button.on{background:var(--coral);color:#2a1108;border-color:var(--coral);
-    box-shadow:0 6px 18px rgba(255,138,92,.22)}
+  #bar button.on{background:var(--mint);color:#06231b;border-color:var(--mint);
+    box-shadow:0 6px 18px rgba(75,227,168,.22)}
   #bar2{position:fixed;left:0;right:0;bottom:60px;display:flex;justify-content:center;z-index:30;
     padding:0 12px;pointer-events:none}
   #bar2 .wrap{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:6px 14px;
-    border-radius:11px;background:rgba(20,16,13,.84);border:1px solid rgba(255,255,255,.09);
+    border-radius:11px;background:rgba(11,22,21,.82);border:1px solid rgba(255,255,255,.09);
     backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);font-size:11.5px;color:var(--dim)}
   #bar2 input[type=range]{-webkit-appearance:none;appearance:none;width:min(38vw,210px);height:3px;
     background:rgba(255,255,255,.18);border-radius:2px;outline:none}
   #bar2 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;
-    border-radius:50%;background:var(--coral);border:2px solid #2a1108;cursor:pointer}
-  #bar2 #exv{color:var(--coral);font-weight:700;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+    border-radius:50%;background:var(--mint);border:2px solid #06231b;cursor:pointer}
+  #bar2 #exv{color:var(--mint);font-weight:700;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 
   /* ── 圖例 ── */
   #legend{position:fixed;left:14px;bottom:112px;padding:10px 13px;font-size:11px;color:var(--dim);
-    line-height:1.8;z-index:18;max-width:244px}
+    line-height:1.8;z-index:18;max-width:238px}
   #legend b{color:#fff;font-size:11.5px;display:block;margin-bottom:3px}
   #legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;
     vertical-align:-1px}
@@ -94,17 +104,22 @@
     #hud .tag{margin-top:4px;font-size:9.5px}
     #legend{display:none}
     #finfo{width:min(280px,62vw);right:10px;top:62px;padding:10px 12px}
+    #vsw{left:auto;right:10px;transform:none;top:10px;padding:4px}
+    #vsw button{height:34px;padding:0 11px;font-size:11.5px}
+    #vsw button small{display:none}
     .lbl{font-size:10.5px}
     #bar{gap:6px;padding:0 8px;justify-content:flex-start}
     #bar button{min-width:68px;height:38px;font-size:12px;padding:0 11px}
     #bar2{bottom:64px}
   }
   /* ── 外殼顏色 ── */
-  #csw{position:fixed;right:14px;bottom:112px;z-index:24;display:flex;align-items:center;gap:8px;
+  #csw{position:fixed;right:14px;bottom:112px;z-index:24;display:flex;flex-direction:column;align-items:flex-start;gap:7px;
     padding:8px 12px;border-radius:12px;background:rgba(17,23,20,.84);
     border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(9px);
     -webkit-backdrop-filter:blur(9px);font-size:11px;color:#c3ccc6;letter-spacing:.3px}
-  #csw s{text-decoration:none;opacity:.75}
+  #csw .rw{display:flex;align-items:center;gap:8px}
+  #csw em{display:flex;align-items:center;gap:7px;font-style:normal}
+  #csw s{text-decoration:none;opacity:.72;width:26px;flex:0 0 26px}
   #csw b{width:20px;height:20px;border-radius:50%;display:block;cursor:pointer;
     border:2px solid rgba(255,255,255,.20);transition:.15s;box-sizing:border-box}
   #csw b:hover{transform:scale(1.14)}
@@ -123,9 +138,14 @@
 <div id="app"></div>
 
 <div id="hud" class="panel">
-  <b>貓語翻譯基地台 <i>MEOWBASE · 嘉蘭智慧科技</i></b>
-  <span>立架 ＋ RP2350 AMOLED 主機・1 格 = 1 mm<br>拖曳旋轉 · 滾輪縮放 · 點零件看規格</span>
-  <div class="tag" id="hudtag"><b>立架 60 × 80 × 60</b> ｜ 主機 44 × 29.1 × 9.6 mm</div>
+  <b>嘉蘭一號 · 二號 <i>智慧頸環</i></b>
+  <span>穿戴式心率／體溫／活動量監測・1 格 = 1 mm<br>拖曳旋轉 · 滾輪縮放 · 點零件看規格</span>
+  <div class="tag" id="hudtag"><b>嘉蘭一號</b> ｜ 63 × 39 × 15 mm</div>
+</div>
+
+<div id="vsw" class="panel">
+  <button data-v="a" class="on">嘉蘭一號<small>2.5 吋全滿玻璃</small></button>
+  <button data-v="b">嘉蘭二號<small>2.4 吋滿版玻璃</small></button>
 </div>
 
 <div id="finfo" class="panel"></div>
@@ -136,11 +156,10 @@
 
 <div id="legend" class="panel">
   <b>顏色語彙</b>
-  <div><span class="sw" style="background:#e9e0d4"></span>立架 PLA 霧白／暖灰</div>
-  <div><span class="sw" style="background:#2a2e33"></span>主機殼 PC+ABS 霧黑</div>
-  <div><span class="sw" style="background:#1e6b3c"></span>PCB 綠板＋金焊盤</div>
-  <div><span class="sw" style="background:#cfd6dc"></span>鋁塑電池／鎳層金屬</div>
-  <div><span class="sw" style="background:#ff8a5c"></span>AMOLED UI／狀態導光條</div>
+  <div><span class="sw" style="background:#f4f1ea"></span>機殼白 PLA／滿版黑玻璃</div>
+  <div><span class="sw" style="background:#1f6b3c"></span>PCB 綠板＋金焊盤</div>
+  <div><span class="sw" style="background:#cfd6dc"></span>鋁塑電池／鎳層磁鐵</div>
+  <div><span class="sw" style="background:#4be3a8"></span>螢幕 UI／發光指示</div>
 </div>
 
 <div id="bar2"><div class="wrap">
@@ -154,7 +173,7 @@
   <button id="breset">↺ 重置視角</button>
   <button id="bfocus">🎯 取消特寫</button>
 </div>
-<div id="csw"><s>外殼顏色</s></div>
+<div id="csw"><i class="rw"><s>外殼</s><em data-g="shell"></em></i><i class="rw"><s>頸帶</s><em data-g="strap"></em></i></div>
 
 
 <div id="diag"></div>
@@ -1229,6 +1248,7 @@ window.onerror=function(m,s,l,c,e){window.__errors.push(String(m));errEl.style.d
 var QS=location.search||'';
 var SHOT=/[?&]shot=1/.test(QS);
 var VIEW=((QS.match(/[?&]view=([a-z]+)/)||[])[1])||'asm';
+var VKEY=((QS.match(/[?&]variant=([ab])/)||[])[1])||'a';
 /* 出圖驗證用：?polar=<弧度>&az=<弧度> 指定視角（polar 同 phi） */
 var QPOLAR=parseFloat(((QS.match(/[?&](?:polar|phi)=([0-9.]+)/)||[])[1]));
 var QAZ=parseFloat(((QS.match(/[?&](?:az|theta)=(-?[0-9.]+)/)||[])[1]));
@@ -1247,19 +1267,19 @@ app.appendChild(renderer.domElement);
 window.renderer=renderer;
 
 var scene=new THREE.Scene();
-scene.background=new THREE.Color(0x080b0d);
+scene.background=new THREE.Color(0x070d10);
 window.scene=scene;
-scene.fog=new THREE.Fog(0x080b0d,240,760);
+scene.fog=new THREE.Fog(0x070d10,190,620);
 
-var camera=new THREE.PerspectiveCamera(38,window.innerWidth/window.innerHeight,1,5000);
+var camera=new THREE.PerspectiveCamera(38,window.innerWidth/window.innerHeight,1,4000);
 var controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;controls.dampingFactor=0.075;
-controls.minDistance=40;controls.maxDistance=1200;
+controls.minDistance=40;controls.maxDistance=900;
 controls.maxPolarAngle=Math.PI*0.995;controls.minPolarAngle=0.005;  /* 完整 360°：可轉到底部看元件底盤 */
 controls.enablePan=false;
 window.camera=camera;window.controls=controls;
 
-/* ── 環境反射（中性灰，不能帶色，否則零件被染色） ── */
+/* ── 環境反射（中性灰，不能帶綠） ── */
 try{
   var ec=document.createElement('canvas');ec.width=32;ec.height=128;
   var ex=ec.getContext('2d');
@@ -1273,58 +1293,63 @@ try{
   scene.environment=pmrem.fromEquirectangular(etex).texture;
 }catch(e){console.warn('env',e);}
 
-/* ── 光源（實測值，別調高：會把零件洗成半透明） ── */
-var hemi=new THREE.HemisphereLight(0xe2e7e6,0x4a5a55,0.50);scene.add(hemi);  /* 地面色提亮：轉到底部時朝下的面才看得到細節（正面實測亮度不變） */
-var key=new THREE.DirectionalLight(0xfff4e6,1.45);
-key.position.set(150,240,170);key.castShadow=true;
+/* ── 光源（實測值，別調高：會把零件洗成薄荷綠半透明） ── */
+var hemi=new THREE.HemisphereLight(0xdde8e2,0x4a5a55,0.50);scene.add(hemi);  /* 地面色提亮：轉到底部時朝下的面才看得到細節（正面實測亮度不變） */
+var key=new THREE.DirectionalLight(0xfff6e8,1.45);
+key.position.set(120,190,140);key.castShadow=true;
 key.shadow.mapSize.set(2048,2048);
-key.shadow.camera.left=-180;key.shadow.camera.right=180;
-key.shadow.camera.top=220;key.shadow.camera.bottom=-90;
-key.shadow.camera.near=1;key.shadow.camera.far=900;
-key.shadow.bias=-0.0006;key.shadow.normalBias=0.6;
+key.shadow.camera.left=-140;key.shadow.camera.right=140;
+key.shadow.camera.top=160;key.shadow.camera.bottom=-90;
+key.shadow.camera.near=1;key.shadow.camera.far=700;
+key.shadow.bias=-0.0006;key.shadow.normalBias=0.55;
 scene.add(key);
-var fill=new THREE.DirectionalLight(0xd6e4ff,0.30);fill.position.set(-190,90,120);scene.add(fill);
-var rim=new THREE.DirectionalLight(0x7bd3ff,0.42);rim.position.set(-110,80,-180);scene.add(rim);
-var back=new THREE.DirectionalLight(0xffffff,0.55);back.position.set(50,50,-200);scene.add(back);
+var fill=new THREE.DirectionalLight(0xcfe0ff,0.30);fill.position.set(-150,70,95);scene.add(fill);
+var rim=new THREE.DirectionalLight(0x7bd3ff,0.42);rim.position.set(-85,60,-140);scene.add(rim);
+var back=new THREE.DirectionalLight(0xffffff,0.55);back.position.set(40,40,-160);scene.add(back);
 
-/* ── 地板：極深色（0x010405）＋ fog，避免整片被染亮 ── */
-var FLOOR_Y=-1.5;
-var floor=new THREE.Mesh(new THREE.CircleGeometry(460,64),
-  new THREE.MeshStandardMaterial({color:0x010405,roughness:.99,metalness:0,envMapIntensity:0.03}));
-floor.rotation.x=-Math.PI/2;floor.position.y=FLOOR_Y;floor.receiveShadow=true;scene.add(floor);
-var grid=new THREE.GridHelper(760,76,0x2a2320,0x141a1c);
-grid.position.y=FLOOR_Y+0.02;grid.material.transparent=true;grid.material.opacity=.28;scene.add(grid);
+/* ── 地板（移遠讓陰影柔和，太近會像第二組零件） ── */
+var floor=new THREE.Mesh(new THREE.CircleGeometry(420,64),
+  new THREE.MeshStandardMaterial({color:0x010405,roughness:.98,metalness:0,envMapIntensity:0.05}));
+floor.rotation.x=-Math.PI/2;floor.position.y=-72;floor.receiveShadow=true;scene.add(floor);
+var grid=new THREE.GridHelper(700,70,0x1b2b29,0x0e1a19);
+grid.position.y=-71.9;grid.material.transparent=true;grid.material.opacity=.30;scene.add(grid);
 
 /* ═══════════════ 材質 ═══════════════ */
 function mat(o){var m=new THREE.MeshStandardMaterial(o);m.side=THREE.DoubleSide;
-  m.envMapIntensity=(o.metalness&&o.metalness>0.6)?1.22:0.20;return m;}
+  m.envMapIntensity=(o.metalness&&o.metalness>0.6)?1.20:0.20;return m;}
 var M={
-  stand:   mat({color:0xe9e0d4,roughness:.62,metalness:.02}),   /* 立架 PLA 霧白 */
-  stand2:  mat({color:0xdcd1c2,roughness:.68,metalness:.02}),
-  standIn: mat({color:0xc9bdac,roughness:.74,metalness:.02}),
-  hostShell:mat({color:0x2a2e33,roughness:.52,metalness:.06}),  /* 主機殼 PC+ABS */
-  hostShell2:mat({color:0x1d2126,roughness:.58,metalness:.06}),
-  glass:   mat({color:0x07090d,roughness:.10,metalness:.42}),
-  pcb:     mat({color:0x1e6b3c,roughness:.56,metalness:.05}),
-  pcbEdge: mat({color:0x17512d,roughness:.60,metalness:.05}),
-  gold:    mat({color:0xd8b45a,roughness:.28,metalness:.95}),
-  gold2:   mat({color:0xe8c877,roughness:.22,metalness:1.20}),
+  shell:   mat({color:0xf4f1ea,roughness:.52,metalness:.02}),   /* 白 PLA 上/下蓋 */
+  shell2:  mat({color:0xe6e1d6,roughness:.58,metalness:.02}),
+  ink:     mat({color:0x14171a,roughness:.46,metalness:.10}),
+  inkSoft: mat({color:0x24282c,roughness:.66,metalness:.05}),
+  frame:   mat({color:0x2a2e33,roughness:.62,metalness:.06}),   /* 中框黑 ABS */
+  glass:   mat({color:0x080b10,roughness:.14,metalness:.34}),
+  glassBig:mat({color:0x0a0d12,roughness:.10,metalness:.42}),
+  alu:     mat({color:0xb9bec2,roughness:.34,metalness:.90}),
+  aluDark: mat({color:0x8b9297,roughness:.42,metalness:.85}),
   steel:   mat({color:0xcfd4d8,roughness:.24,metalness:1.10}),
   nickel:  mat({color:0xd7dce0,roughness:.20,metalness:1.30}),
-  aluDark: mat({color:0x8b9297,roughness:.42,metalness:.85}),
-  pouch:   mat({color:0xcfd6dc,roughness:.30,metalness:.70}),
+  gold:    mat({color:0xd8b45a,roughness:.28,metalness:.95}),
+  gold2:   mat({color:0xe8c877,roughness:.22,metalness:1.20}),
+  pcb:     mat({color:0x1e6b3c,roughness:.56,metalness:.05}),
+  pcbEdge: mat({color:0x17512d,roughness:.60,metalness:.05}),
+  pouch:   mat({color:0xcfd6dc,roughness:.30,metalness:.70}),   /* 鋁塑膜 */
   pouch2:  mat({color:0xb9c2c9,roughness:.38,metalness:.66}),
-  ink:     mat({color:0x14171a,roughness:.48,metalness:.08}),
-  inkSoft: mat({color:0x24282c,roughness:.66,metalness:.05}),
-  rubber:  mat({color:0x181c1e,roughness:.95,metalness:0}),
+  fpc:     mat({color:0xd08b3a,roughness:.48,metalness:.10}),
+  motor:   mat({color:0xc3c9ce,roughness:.28,metalness:1.05}),
   red:     mat({color:0xc22a1c,roughness:.52,metalness:.04}),
   black:   mat({color:0x15181b,roughness:.62,metalness:.05}),
-  white:   mat({color:0xe8e6e1,roughness:.60,metalness:.04}),
-  fpc:     mat({color:0xd08b3a,roughness:.48,metalness:.10}),
-  lcdBody: mat({color:0x0d1013,roughness:.36,metalness:.14}),
-  emitC:   mat({color:0xffa87a,roughness:.30,metalness:.10,emissive:0xff6a2a,emissiveIntensity:2.2}),
-  emitW:   mat({color:0xffd9a8,roughness:.40,metalness:.05,emissive:0x8a4a10,emissiveIntensity:.55})
+  strap:   mat({color:0x2f6360,roughness:.92,metalness:.0}),
+  strap2:  mat({color:0x27524f,roughness:.94,metalness:.0}),
+  buckle:  mat({color:0x2b3238,roughness:.52,metalness:.20}),
+  emitG:   mat({color:0x45ffa8,roughness:.30,metalness:.10,emissive:0x18e07f,emissiveIntensity:2.0}),
+  emitM:   mat({color:0x4be3a8,roughness:.40,metalness:.05,emissive:0x12694a,emissiveIntensity:.55}),
+  rubber:  mat({color:0x1d2224,roughness:.94,metalness:0}),
+  lcdBody: mat({color:0x0d1013,roughness:.36,metalness:.14})
 };
+/* 原始色（換型號時要把上一個型號改過的殼色還原） */
+var M0={};
+for(var mk in M){if(M[mk]&&M[mk].color)M0[mk]=M[mk].color.getHex();}
 
 /* ═══════════════ 幾何工具 ═══════════════ */
 function rrShape(w,h,r){
@@ -1343,755 +1368,888 @@ function rrPath(w,h,r){
   s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
   return s;
 }
+/* 平面輪廓沿 +Y 擠出（y 由 0 起算） */
+function extY(shape,h,seg){
+  var g=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:false,curveSegments:seg||16});
+  g.rotateX(-Math.PI/2);
+  return g;
+}
+/* 水平板（XZ 面，厚度沿 Y 置中） */
+function hplate(w,d,t,r,seg){
+  var g=new THREE.ExtrudeGeometry(rrShape(w,d,r),{depth:t,bevelEnabled:false,curveSegments:seg||16});
+  g.translate(0,0,-t/2);g.rotateX(-Math.PI/2);
+  return g;
+}
+/* 水平開窗框板材 */
+function hframe(w,d,t,r,ww,wd,wr){
+  var s=rrShape(w,d,r);s.holes.push(rrPath(ww,wd,wr));
+  var g=new THREE.ExtrudeGeometry(s,{depth:t,bevelEnabled:false,curveSegments:20});
+  g.translate(0,0,-t/2);g.rotateX(-Math.PI/2);
+  return g;
+}
 function mesh(g,m){var o=new THREE.Mesh(g,m);o.castShadow=true;o.receiveShadow=true;return o;}
 function box(w,h,d,m){return mesh(new THREE.BoxGeometry(w,h,d),m);}
 function cylY(r1,r2,h,m,seg){return mesh(new THREE.CylinderGeometry(r1,r2,h,seg||28),m);}
-function cylZ(r1,r2,h,m,seg){
-  var o=cylY(r1,r2,h,m,seg);o.rotation.x=Math.PI/2;return o;
-}
 function disc(r,h,m,seg){return mesh(new THREE.CylinderGeometry(r,r,h,seg||32),m);}
-/* 板（XY 平面，厚度沿 Z 置中） */
-function plate(w,h,t,r,seg){
-  var g=new THREE.ExtrudeGeometry(rrShape(w,h,r||0),{depth:t,bevelEnabled:false,curveSegments:seg||18});
-  g.translate(0,0,-t/2);return g;
-}
-/* 開窗板（XY 平面，厚度沿 Z 置中，窗在中間） */
-function winPlate(w,h,t,r,ww,wh,wr){
-  var s=rrShape(w,h,r||0);s.holes.push(rrPath(ww,wh,wr||0));
-  var g=new THREE.ExtrudeGeometry(s,{depth:t,bevelEnabled:false,curveSegments:22});
-  g.translate(0,0,-t/2);return g;
-}
-/* 側面輪廓 (z,y) 沿 X 擠出寬 w、置中於 xc */
-function wedgeZY(pts,w,xc){
-  var s=new THREE.Shape();
-  for(var i=0;i<pts.length;i++){
-    var z=pts[i][0],y=pts[i][1];
-    if(i)s.lineTo(z,y);else s.moveTo(z,y);
+
+/* 帶狀物：沿曲線擠出扁平斷面（寬度 w 沿世界 +Z，厚度 t 沿徑向） */
+function ribbon(pts,w,t,seg){
+  var curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',0.35);
+  var N=seg||80,pos=[],idx=[],UP=new THREE.Vector3(0,0,1);
+  for(var i=0;i<=N;i++){
+    var u=i/N,p=curve.getPoint(u),tg=curve.getTangent(u).normalize();
+    var side=new THREE.Vector3().crossVectors(tg,UP).normalize();
+    var upv=new THREE.Vector3().crossVectors(side,tg).normalize();
+    var cor=[[-t/2,-w/2],[t/2,-w/2],[t/2,w/2],[-t/2,w/2]];
+    for(var k=0;k<4;k++){
+      pos.push(p.x+side.x*cor[k][0]+upv.x*cor[k][1],
+               p.y+side.y*cor[k][0]+upv.y*cor[k][1],
+               p.z+side.z*cor[k][0]+upv.z*cor[k][1]);
+    }
   }
-  s.closePath();
-  var g=new THREE.ExtrudeGeometry(s,{depth:w,bevelEnabled:false,curveSegments:10});
-  g.translate(0,0,-w/2);
-  g.rotateY(-Math.PI/2);   /* shape.x → world z；擠出 → world -x */
-  g.translate(xc,0,0);
+  for(var j=0;j<N;j++){
+    var b=j*4,n=(j+1)*4;
+    for(var q=0;q<4;q++){var q2=(q+1)%4;idx.push(b+q,b+q2,n+q2,b+q,n+q2,n+q);}
+  }
+  var g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setIndex(idx);g.computeVertexNormals();
   return g;
 }
 
-/* ═══════════════ 尺寸常數（全部來自既有頁面／GLB 實測） ═══════════════ */
-var SW=60, SD=60, SH=80;            /* 立架 60 × 80 × 60 */
-var FOOT_H=1.5, BASE_H=12;          /* 腳墊 1.5、底座 12 */
-var Y_BASE=FOOT_H+BASE_H;           /* 13.5 塔身底面 */
-var WALL=1.6;                        /* 立架壁厚 1.6 */
-var PANEL_T=2.4;
-var TILT=20*Math.PI/180;             /* 前面板後傾 20° */
-var ZFB=10;                          /* 前斜板在塔底的 z */
-var ZFT=ZFB-(SH-Y_BASE)*Math.tan(TILT);
-var SLOPE=Math.sqrt(Math.pow(ZFB-ZFT,2)+Math.pow(SH-Y_BASE,2));
-var PNL_C=new THREE.Vector3(0,(Y_BASE+SH)/2,(ZFB+ZFT)/2);   /* 斜板面中點 */
+/* ═══════════════ 畫布貼圖：螢幕 UI ═══════════════ */
+/* ── 貓臉（會眨眼、耳朵會抖、鬍鬚會飄） ──
+   st = { blink:0..1(1=閉眼), ear:弧度偏移, bob:呼吸位移, sway:鬍鬚擺動 } */
+function drawCat(c,cx,cy,r,st){
+  st=st||{blink:0,ear:0,bob:0,sway:0};
+  var by=cy+st.bob;
+  c.save();
+  c.translate(cx,by);
 
-/* 主機 44 × 29.1 × 9.6 */
-var HW=44, HD=29.1, HT=9.6;
-var N=new THREE.Vector3(0,Math.sin(TILT),Math.cos(TILT));   /* 面板法線（前上方） */
-var UP=new THREE.Vector3(0,Math.cos(TILT),-Math.sin(TILT)); /* 面板上坡方向 */
-var HOST_C=PNL_C.clone().addScaledVector(N,HT/2);
-var HOST_ROT=-TILT;
-var ROT_N=Math.PI/2-TILT;      /* 讓圓柱軸向對齊面板法線 N */
-/* 主機內部 z 分層（-4.8 背 → +4.8 前） */
-var Z_BACK=-4.0, Z_PCB=-2.6, Z_SPK=-0.7, Z_AMO=1.3, Z_GL=2.6, Z_SHELL=3.9;
-var WIN_W=39, WIN_H=24;              /* 前框開窗（玻璃 40 × 25 被唇邊壓住） */
-var ACT_W=35.5, ACT_H=21.8;          /* 1.64" 280×456 可視區 */
-
-/* ═══════════════ 畫布貼圖：AMOLED UI（貓語翻譯機） ═══════════════ */
-function spaced(c,txt,x,y,sp,fill){
-  c.fillStyle=fill;c.textAlign='left';c.textBaseline='middle';
-  for(var i=0;i<txt.length;i++){c.fillText(txt[i],x,y);x+=c.measureText(txt[i]).width+sp;}
-}
-function drawCat(c,cx,cy,r){
-  /* 耳朵 */
-  [-1,1].forEach(function(s){
-    c.save();c.translate(cx+s*r*0.66,cy-r*0.70);c.rotate(s*0.26);
-    c.fillStyle='#eaa063';c.beginPath();
-    c.moveTo(-r*0.36,0);c.lineTo(0,-r*0.62);c.lineTo(r*0.36,0);c.closePath();c.fill();
-    c.fillStyle='#c9754c';c.beginPath();
-    c.moveTo(-r*0.19,-r*0.08);c.lineTo(0,-r*0.42);c.lineTo(r*0.19,-r*0.08);c.closePath();c.fill();
+  /* 耳朵（三角形，外灰內粉） */
+  [-1,1].forEach(function(sd){
+    c.save();
+    c.translate(sd*r*0.44,-r*0.76);
+    c.rotate(sd*(0.16+st.ear));
+    c.beginPath();
+    c.moveTo(0,-r*0.50);c.quadraticCurveTo(sd*r*0.40,-r*0.02,0,r*0.10);
+    c.quadraticCurveTo(-sd*r*0.12,-r*0.14,0,-r*0.50);
+    c.closePath();
+    c.fillStyle='#cdb79f';c.fill();
+    c.beginPath();
+    c.moveTo(0,-r*0.34);c.quadraticCurveTo(sd*r*0.22,-r*0.03,0,r*0.03);
+    c.quadraticCurveTo(-sd*r*0.05,-r*0.12,0,-r*0.34);
+    c.closePath();
+    c.fillStyle='#e79aa4';c.fill();
     c.restore();
   });
+
   /* 頭 */
-  var hg=c.createRadialGradient(cx-r*0.36,cy-r*0.42,r*0.10,cx,cy,r*1.22);
-  hg.addColorStop(0,'#ffdcaa');hg.addColorStop(.55,'#f0ae6e');hg.addColorStop(1,'#cf7c42');
-  c.fillStyle=hg;c.beginPath();c.arc(cx,cy,r,0,7);c.fill();
-  /* 額頭條紋 */
-  c.strokeStyle='rgba(176,105,58,.85)';c.lineWidth=Math.max(2,r*0.062);c.lineCap='round';
-  [-1,0,1].forEach(function(k){
+  var hg=c.createRadialGradient(-r*0.28,-r*0.34,r*0.14,0,0,r*1.16);
+  hg.addColorStop(0,'#f7ecdd');hg.addColorStop(.62,'#e8d7c3');hg.addColorStop(1,'#cbb49b');
+  c.fillStyle=hg;c.beginPath();c.arc(0,0,r,0,7);c.fill();
+
+  /* 額頭虎斑 */
+  c.strokeStyle='rgba(160,132,104,.55)';c.lineWidth=Math.max(2,r*0.055);c.lineCap='round';
+  [-0.30,0,0.30].forEach(function(k){
+    c.beginPath();c.moveTo(k*r,-r*0.92);c.lineTo(k*r*1.18,-r*0.60);c.stroke();
+  });
+
+  /* 眼睛 */
+  [-1,1].forEach(function(sd){
+    var ex=sd*r*0.36, ey=-r*0.06;
+    if(st.blink>0.55){
+      /* 閉眼：彎線 */
+      c.strokeStyle='#2a2118';c.lineWidth=Math.max(2.5,r*0.075);
+      c.beginPath();c.arc(ex,ey+r*0.02,r*0.20,Math.PI*0.12,Math.PI*0.88);c.stroke();
+    }else{
+      var eo=1-st.blink;   /* 半眨眼時壓扁 */
+      c.save();
+      c.translate(ex,ey);c.scale(1,eo);
+      /* 眼白 */
+      c.fillStyle='#fdfaf4';
+      c.beginPath();c.ellipse(0,0,r*0.235,r*0.275,0,0,7);c.fill();
+      /* 綠虹膜 */
+      var ig=c.createRadialGradient(0,-r*0.05,r*0.03,0,0,r*0.20);
+      ig.addColorStop(0,'#b6e86a');ig.addColorStop(1,'#5f9f38');
+      c.fillStyle=ig;
+      c.beginPath();c.ellipse(0,0,r*0.185,r*0.225,0,0,7);c.fill();
+      /* 豎瞳 */
+      c.fillStyle='#150f0a';
+      c.beginPath();c.ellipse(0,0,r*0.052,r*0.185,0,0,7);c.fill();
+      /* 高光 */
+      c.fillStyle='rgba(255,255,255,.92)';
+      c.beginPath();c.arc(-r*0.055,-r*0.085,r*0.052,0,7);c.fill();
+      c.restore();
+      /* 眼線 */
+      c.strokeStyle='rgba(60,44,30,.55)';c.lineWidth=Math.max(1.4,r*0.028);
+      c.beginPath();c.ellipse(ex,ey,r*0.245,r*0.285,0,Math.PI*1.06,Math.PI*1.94);c.stroke();
+    }
+  });
+
+  /* 鼻子（粉三角） */
+  c.fillStyle='#e88a96';
+  c.beginPath();
+  c.moveTo(0,r*0.24);c.lineTo(-r*0.095,r*0.135);c.lineTo(r*0.095,r*0.135);
+  c.closePath();c.fill();
+  /* φ 嘴 */
+  c.strokeStyle='#2a2118';c.lineWidth=Math.max(2,r*0.050);c.lineCap='round';
+  c.beginPath();c.moveTo(0,r*0.24);c.lineTo(0,r*0.325);c.stroke();
+  [-1,1].forEach(function(sd){
     c.beginPath();
-    c.moveTo(cx+k*r*0.30,cy-r*0.86);
-    c.lineTo(cx+k*r*0.44,cy-r*0.56);
+    c.arc(sd*r*0.115,r*0.325,r*0.115, sd>0?Math.PI*0.06:Math.PI*0.94, sd>0?Math.PI*0.84:Math.PI*1.72, sd<0);
     c.stroke();
   });
-  /* 眼睛（大眼＋高光，遠看也認得出是貓） */
-  [-1,1].forEach(function(s){
-    c.fillStyle='#1a1108';
-    c.beginPath();c.ellipse(cx+s*r*0.36,cy-r*0.06,r*0.135,r*0.185,0,0,7);c.fill();
-    c.fillStyle='#ffffff';
-    c.beginPath();c.arc(cx+s*r*0.40,cy-r*0.14,r*0.058,0,7);c.fill();
-    c.fillStyle='rgba(255,255,255,.65)';
-    c.beginPath();c.arc(cx+s*r*0.31,cy+r*0.02,r*0.030,0,7);c.fill();
+
+  /* 腮紅 */
+  [-1,1].forEach(function(sd){
+    var bg=c.createRadialGradient(sd*r*0.62,r*0.30,0,sd*r*0.62,r*0.30,r*0.22);
+    bg.addColorStop(0,'rgba(240,150,160,.40)');bg.addColorStop(1,'rgba(240,150,160,0)');
+    c.fillStyle=bg;c.beginPath();c.arc(sd*r*0.62,r*0.30,r*0.22,0,7);c.fill();
   });
-  /* 鼻子 */
-  c.fillStyle='#d9744f';
-  c.beginPath();c.moveTo(cx,cy+r*0.24);c.lineTo(cx-r*0.115,cy+r*0.10);
-  c.lineTo(cx+r*0.115,cy+r*0.10);c.closePath();c.fill();
-  /* 嘴巴 */
-  c.strokeStyle='#3a2415';c.lineWidth=Math.max(2,r*0.055);
-  c.beginPath();c.arc(cx-r*0.10,cy+r*0.30,r*0.15,0.05,Math.PI*0.92);c.stroke();
-  c.beginPath();c.arc(cx+r*0.10,cy+r*0.30,r*0.15,Math.PI*0.08,Math.PI*0.95);c.stroke();
-  /* 鬍鬚 */
-  c.strokeStyle='rgba(255,240,220,.55)';c.lineWidth=Math.max(1.5,r*0.032);
-  [-1,1].forEach(function(s){
-    for(var k=0;k<3;k++){
-      var yy=cy+r*(0.14+k*0.14);
-      c.beginPath();c.moveTo(cx+s*r*0.34,yy);
-      c.lineTo(cx+s*r*(0.95+k*0.04),yy+r*(k-1)*0.10);
+
+  /* 鬍鬚（左右各 3 條，會隨時間擺動） */
+  c.strokeStyle='rgba(255,255,255,.72)';c.lineWidth=Math.max(1.2,r*0.022);c.lineCap='round';
+  [-1,1].forEach(function(sd){
+    for(var k=-1;k<=1;k++){
+      var y0=r*(0.20+k*0.095);
+      var bend=(0.10+k*0.05)+st.sway*0.10;
+      c.beginPath();
+      c.moveTo(sd*r*0.56,y0);
+      c.quadraticCurveTo(sd*r*0.98,y0+r*bend*0.55,sd*r*1.38,y0+r*bend);
       c.stroke();
     }
   });
+  c.restore();
 }
-var WAVE=[6,10,15,9,13,18,11,7,14,20,16,9,12,17,10,6,13,19,15,8,11,16,21,13,7,12,18,10,14,9,6,11];
-function uiTex(){
-  var UW=ACT_W,UH=ACT_H;
-  var W=1240,H=Math.round(W*UH/UW);   /* 1240 × 761 */
+
+function spaced(c,txt,x,y,sp,fill){
+  c.fillStyle=fill;c.textAlign='left';c.textBaseline='middle';
+  for(var i=0;i<txt.length;i++){c.fillText(txt[i],x,y);x+=c.measureText(txt[i]).width+sp;}
+  return x-sp;
+}
+
+/* ═══════════════ 會動的螢幕（每個螢幕一張 canvas，每 55ms 重畫） ═══════════════ */
+var SCREENS=[];
+function makeScreen(){
+  var UW=V.ui.w,UH=V.ui.h;
+  var W=1024,H=Math.round(W*UH/UW);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  var c=cv.getContext('2d');
-  var u=H/100;                         /* 1u ≈ 7.6px */
-  /* 背景 */
+  var tex=new THREE.CanvasTexture(cv);
+  tex.anisotropy=8;tex.encoding=THREE.sRGBEncoding;
+  var s={cv:cv,c:cv.getContext('2d'),tex:tex,W:W,H:H,u:H/100,mat:null};
+  SCREENS.push(s);
+  drawScreen(s,0);
+  return s;
+}
+
+function drawScreen(s,t){
+  var c=s.c,W=s.W,H=s.H,u=s.u,ms=t||0,sec=ms/1000;
+  /* ── 背景 ── */
   var g=c.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#0b1a2c');g.addColorStop(.5,'#061020');g.addColorStop(1,'#03070e');
+  g.addColorStop(0,'#07222c');g.addColorStop(.55,'#04121b');g.addColorStop(1,'#02090e');
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  var vg=c.createRadialGradient(W/2,H*0.44,H*0.15,W/2,H*0.44,H*0.95);
-  vg.addColorStop(0,'rgba(30,70,110,.22)');vg.addColorStop(1,'rgba(0,0,0,.55)');
+  var vg=c.createRadialGradient(W/2,H/2,H*0.18,W/2,H/2,H*0.88);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.58)');
   c.fillStyle=vg;c.fillRect(0,0,W,H);
 
   c.textBaseline='middle';
+
   /* ── 頂列 ── */
-  c.font='bold '+(5.6*u)+'px "Helvetica Neue",Arial,sans-serif';
-  spaced(c,'MEOW TRANSLATOR',5.2*u,7.4*u,0.85*u,'#ff9a6c');
-  c.textAlign='right';
-  c.font='bold '+(5.4*u)+'px "Helvetica Neue",Arial,sans-serif';
-  c.fillStyle='#cfe0ea';c.fillText('20:41',W-20.2*u,7.4*u);
+  c.font='bold '+(8.4*u)+'px "Helvetica Neue",Arial,sans-serif';
+  var brandEnd=spaced(c,'JIALAN',5.5*u,8.5*u,1.5*u,'#4be3a8');
+  spaced(c,'CAT',brandEnd+4.2*u,8.5*u,1.8*u,'#8ef0ff');
+
   /* 電量 */
-  var bx=W-8.9*u,by=4.8*u,bw=8.4*u,bh=4.9*u;
-  c.strokeStyle='#ffc98a';c.lineWidth=Math.max(1.5,0.55*u);
+  var bx=W-20.5*u,by=5.6*u,bw=9.5*u,bh=5.6*u;
+  var lvl=0.68+0.12*Math.sin(sec/17)+0.0;
+  lvl=Math.min(0.86,Math.max(0.52,lvl));
+  c.strokeStyle='#9fe8cf';c.lineWidth=Math.max(1.4,0.7*u);
   c.beginPath();c.rect(bx,by,bw,bh);c.stroke();
-  c.fillStyle='#ffc98a';c.fillRect(bx+bw,by+bh*0.30,1.3*u,bh*0.40);
-  c.fillStyle='#ffc266';c.fillRect(bx+0.8*u,by+0.8*u,(bw-1.6*u)*0.8,bh-1.6*u);
-  c.font='bold '+(4.4*u)+'px Arial';c.fillStyle='#d8fff1';
-  c.fillText('78%',bx-1.2*u,by+bh*0.55);
-  /* 分隔線 */
-  c.strokeStyle='rgba(120,180,210,.22)';c.lineWidth=Math.max(1,0.3*u);
-  c.beginPath();c.moveTo(5*u,13.2*u);c.lineTo(W-5*u,13.2*u);c.stroke();
+  c.fillRect(bx+bw,by+bh*0.28,1.5*u,bh*0.44);
+  c.fillStyle='#4be3a8';c.fillRect(bx+0.9*u,by+0.9*u,(bw-1.8*u)*lvl,bh-1.8*u);
+  c.font='bold '+(6.4*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillStyle='#d8fff1';c.textAlign='right';
+  c.fillText(Math.round(lvl*100)+'%',bx-2.0*u,by+bh*0.55);
 
-  /* ── 貓臉 ── */
-  drawCat(c,24*u,41*u,13.2*u);
+  /* ── 貓臉（眨眼 / 抖耳 / 呼吸 / 鬍鬚） ── */
+  var blinkP=ms%4300;
+  var blink=blinkP<150?1:(blinkP<230?0.5:0);
+  var twitch=(ms%7300)<230?Math.sin((ms%7300)/230*Math.PI)*0.22:0;
+  var st={
+    blink:blink,
+    ear:twitch,
+    bob:Math.sin(sec/1.55)*H*0.006,
+    sway:Math.sin(sec/1.05)
+  };
+  drawCat(c,W/2,H*0.475,H*0.168,st);
 
-  /* ── 右側翻譯區 ── */
+  /* ── 體溫（左上） ── */
   c.textAlign='left';
-  var X0=45*u;
-  c.font='500 '+(4.8*u)+'px "PingFang TC","Noto Sans TC",sans-serif';
-  c.fillStyle='#7fa3b8';c.fillText('剛剛聽到',X0,21.5*u);
+  c.font='bold '+(5.6*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillStyle='#ffcf8a';
+  var temp=(38.5+0.35*Math.sin(sec/11)).toFixed(1);
+  c.fillText(temp+'\u00b0C',5.5*u,20.5*u);
+  c.fillStyle='#6e8b86';
+  c.font='500 '+(4.4*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('BODY TEMP',5.5*u,25.5*u);
 
-  c.font='bold '+(13.4*u)+'px "PingFang TC","Noto Sans TC",sans-serif';
-  c.fillStyle='#ffffff';c.fillText('我餓了',X0,33.5*u);
-  c.fillStyle='#ffd9a8';c.fillText('快點餵我',X0,50.0*u);
+  /* 右上：情緒 / 呼嚕 */
+  c.textAlign='right';
+  c.font='bold '+(5.2*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillStyle='#8ef0ff';
+  var purr=(26+Math.round(4*Math.sin(sec/2.2)));
+  c.fillText('PURR '+purr+'Hz',W-5.5*u,20.0*u);
+  c.fillStyle='#6e8b86';
+  c.font='500 '+(4.2*u)+'px "Helvetica Neue",Arial,sans-serif';
+  var moodTxt=['放鬆','想睡','好奇','呼嚕中'][Math.floor(sec/6)%4];
+  c.fillText(moodTxt,W-5.5*u,25.0*u);
 
-  /* 信心度標籤 */
-  var cy0=58.0*u;
-  c.font='bold '+(5.2*u)+'px "PingFang TC",sans-serif';
-  var t1='餓  87%';
-  var tw=c.measureText(t1).width+5.0*u;
-  c.fillStyle='rgba(255,138,92,.20)';
+  /* ── 底部數據 ── */
+  var dy=H*0.775;
+  c.strokeStyle='rgba(120,190,170,.22)';c.lineWidth=Math.max(1,0.45*u);
+  c.beginPath();c.moveTo(W/2,dy-6.5*u);c.lineTo(W/2,dy+9.5*u);c.stroke();
+
+  /* 心率：數字會跳，旁邊有心電圖掃描 */
+  var bpm=Math.round(96+7*Math.sin(sec/1.7)+3*Math.sin(sec/0.53));
+  c.fillStyle='#ff6b83';
+  (function(hx,hy,sz){c.beginPath();
+    c.moveTo(hx,hy+sz*0.9);
+    c.bezierCurveTo(hx-sz*1.5,hy-sz*0.25,hx-sz*0.55,hy-sz*1.1,hx,hy-sz*0.35);
+    c.bezierCurveTo(hx+sz*0.55,hy-sz*1.1,hx+sz*1.5,hy-sz*0.25,hx,hy+sz*0.9);
+    c.closePath();c.fill();})(6.5*u,dy-5.0*u,3.4*u* (1+0.10*Math.max(0,Math.sin(sec*3.0))));
+
+  c.textAlign='left';
+  c.fillStyle='#ffffff';c.font='bold '+(13.5*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillText(String(bpm),12.5*u,dy);
+  c.fillStyle='#8aa8a2';c.font='500 '+(4.8*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('bpm',12.5*u,dy+6.0*u);
+
+  /* ECG 掃描線（在 bpm 右側到中線之間） */
+  var x0=26*u,x1=W/2-4*u,yb=dy-1.0*u,amp=4.2*u;
+  c.strokeStyle='rgba(255,107,131,.85)';c.lineWidth=Math.max(1.2,0.5*u);
   c.beginPath();
-  var rx=X0,ry=cy0-3.0*u,rw=tw,rh=6.2*u,rr=3.1*u;
-  c.moveTo(rx+rr,ry);c.lineTo(rx+rw-rr,ry);c.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
-  c.lineTo(rx+rw,ry+rh-rr);c.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
-  c.lineTo(rx+rr,ry+rh);c.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
-  c.lineTo(rx,ry+rr);c.quadraticCurveTo(rx,ry,rx+rr,ry);c.fill();
-  c.fillStyle='#ff9a6c';c.fillText(t1,X0+2.5*u,cy0);
-  c.font='500 '+(4.6*u)+'px "PingFang TC",sans-serif';
-  c.fillStyle='#8fb0c2';
-  c.fillText('橘虎斑・3 歲・離 0.8 m',X0+tw+2.6*u,cy0);
-
-  /* ── 音量／情緒波形 ── */
-  var n=WAVE.length, x0=8*u, x1=W-8*u, span=(x1-x0)/n, bwid=span*0.56;
-  var base=88.5*u;
-  for(var i=0;i<n;i++){
-    var hgt=WAVE[i]*u*0.62;
-    var lg=c.createLinearGradient(0,base,0,base-hgt);
-    lg.addColorStop(0,'rgba(255,138,92,.35)');
-    lg.addColorStop(.55,'#ff8a5c');
-    lg.addColorStop(1,'#ffd08a');
-    c.fillStyle=(i<n*0.72)?lg:'rgba(255,138,92,.32)';
-    var bx2=x0+i*span+ (span-bwid)/2;
-    c.fillRect(bx2,base-hgt,bwid,hgt);
+  for(var px=x0;px<x1;px+=2){
+    var ph=((px-x0)/(x1-x0)*3.0+sec*0.85)%1.0;
+    var v=0;
+    if(ph<0.08)v=-Math.sin(ph/0.08*Math.PI)*0.45;
+    else if(ph<0.16)v=Math.sin((ph-0.08)/0.08*Math.PI)*1.0;
+    else if(ph<0.22)v=-Math.sin((ph-0.16)/0.06*Math.PI)*0.35;
+    var px2=px, py2=yb-v*amp;
+    if(px===x0)c.moveTo(px2,py2);else c.lineTo(px2,py2);
   }
-  c.strokeStyle='rgba(255,180,140,.30)';c.lineWidth=Math.max(1,0.3*u);
-  c.beginPath();c.moveTo(x0,base+0.4*u);c.lineTo(x1,base+0.4*u);c.stroke();
-  c.font='500 '+(4.2*u)+'px "PingFang TC",sans-serif';
-  c.fillStyle='#7fa3b8';
-  c.textAlign='left';c.fillText('音量 / 情緒波形',x0,95.0*u);
-  c.textAlign='right';c.fillStyle='#ff9a6c';
-  c.fillText('連續 6 秒・峰值 −12 dB',x1,95.0*u);
-  c.textAlign='left';
+  c.stroke();
 
-  var t=new THREE.CanvasTexture(cv);
-  /* UI 貼圖是「照片級」內容，從 1240 px 縮到約 170 px 顯示 → 一定要開 mipmap，
-     否則小尺寸會出現摩爾紋／對角線條（LED 點陣才用 NearestFilter＋關 mipmap） */
-  t.anisotropy=8;t.encoding=THREE.sRGBEncoding;
-  t.minFilter=THREE.LinearMipmapLinearFilter;
-  t.generateMipmaps=true;
-  return t;
+  /* 步數（緩慢累加，看起來像真的在計數） */
+  var steps=3412+Math.floor(sec*0.8);
+  c.fillStyle='#7bd3ff';
+  c.font='bold '+(13.5*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.textAlign='right';
+  c.fillText(steps.toLocaleString('en-US'),W-5.5*u,dy);
+  c.fillStyle='#8aa8a2';c.font='500 '+(4.8*u)+'px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('STEPS',W-5.5*u,dy+6.0*u);
+
+  /* ── 面板質感：掃描線 + 玻璃反光（讓它像真的螢幕） ── */
+  c.fillStyle='rgba(0,0,0,.055)';
+  for(var yy=0;yy<H;yy+=3)c.fillRect(0,yy,W,1);
+  var gl=c.createLinearGradient(0,0,W,H*0.9);
+  gl.addColorStop(0,'rgba(255,255,255,.055)');
+  gl.addColorStop(.35,'rgba(255,255,255,0)');
+  gl.addColorStop(1,'rgba(255,255,255,.02)');
+  c.fillStyle=gl;c.fillRect(0,0,W,H);
 }
+
+/* 每 ~55ms 重畫所有螢幕（18fps，肉眼看起來是連續的） */
+var _scrLast=-1e9;
+function updateScreens(now){
+  if(!SCREENS.length)return;
+  if(now-_scrLast<55)return;
+  _scrLast=now;
+  for(var i=0;i<SCREENS.length;i++){
+    var s=SCREENS[i];
+    drawScreen(s,now);
+    s.tex.needsUpdate=true;
+    if(s.mat)s.mat.emissiveIntensity=0.93+0.035*Math.sin(now/420);
+  }
+}
+
+window.__snap=function(t){          /* 供截圖驗證：指定時間點重畫螢幕 */
+  window.__pause=true;
+  _scrLast=-1e9;
+  updateScreens(t||performance.now());
+  for(var i=0;i<SCREENS.length;i++)SCREENS[i].tex.needsUpdate=true;
+  try{renderer.render(scene,camera);}catch(e){}
+  return SCREENS.length;
+};
+window.__SCREENS=SCREENS;
+
 function uiMat(){
-  var tex=uiTex();
-  var m=new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,
-    emissiveIntensity:0.92,color:0x9a9a9a,roughness:.44,metalness:0,side:THREE.DoubleSide});
+  var s=makeScreen();
+  var m=new THREE.MeshStandardMaterial({map:s.tex,emissive:0xffffff,emissiveMap:s.tex,
+    emissiveIntensity:0.95,color:0x9a9a9a,roughness:.44,metalness:0,side:THREE.DoubleSide});
   m.envMapIntensity=0.05;
+  s.mat=m;
   return m;
 }
 
-/* ═══════════════ 畫布貼圖：PCB 絲印 / 電池標籤 / 面板字樣 ═══════════════ */
+/* ═══════════════ 畫布貼圖：PCB 絲印 / 電池標籤 ═══════════════ */
 function pcbTex(w,d){
   var W=1024,H=Math.round(1024*d/w);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
   c.fillStyle='#1e6b3c';c.fillRect(0,0,W,H);
-  for(var i=0;i<22;i++){
+  /* 阻焊深淺塊 */
+  for(var i=0;i<26;i++){
     c.fillStyle='rgba(255,255,255,.035)';
-    c.fillRect((i*137)%W,(i*211)%H,20+((i*53)%90),8+((i*29)%40));
+    c.fillRect(Math.random()*W,Math.random()*H,20+Math.random()*90,8+Math.random()*40);
   }
+  /* 走線 */
   c.strokeStyle='rgba(210,235,200,.20)';
-  for(var k=0;k<60;k++){
-    c.lineWidth=1+((k*7)%2);
-    c.beginPath();
-    var x=(k*173)%W,y=(k*97)%H;
+  for(var k=0;k<70;k++){
+    c.lineWidth=1+Math.random()*1.6;c.beginPath();
+    var x=Math.random()*W,y=Math.random()*H;
     c.moveTo(x,y);
-    for(var s=0;s<4;s++){x+=(((k+s)*61)%100-50)*W*0.004;y+=(((k+s)*37)%100-50)*H*0.006;c.lineTo(x,y);}
+    for(var s=0;s<4;s++){x+=(Math.random()-0.5)*W*0.30;y+=(Math.random()-0.5)*H*0.30;c.lineTo(x,y);}
     c.stroke();
   }
+  /* 金色焊盤 */
   c.fillStyle='#d8b45a';
-  for(var p=0;p<42;p++){
-    var px=(p*191)%W,py=(p*127)%H,r=3+((p*13)%7);
+  for(var p=0;p<46;p++){
+    var px=Math.random()*W,py=Math.random()*H,r=4+Math.random()*8;
     c.beginPath();c.arc(px,py,r,0,7);c.fill();
   }
-  c.fillStyle='rgba(245,250,240,.92)';
-  c.font='bold 40px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('MEOWBASE  RP2350  v1.0',W*0.055,H*0.19);
-  c.font='25px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('RP2350A  \u00b7  QSPI  \u00b7  QMI8658  \u00b7  PCF85063',W*0.055,H*0.29);
-  c.font='21px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('2026-10  REV.A  CAT-TRANSLATOR BASE',W*0.055,H*0.87);
-  c.strokeStyle='rgba(245,250,240,.5)';c.lineWidth=4;
+  /* 絲印 */
+  c.fillStyle='rgba(245,250,240,.90)';
+  c.font='bold 42px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('JIALAN-1  v1.0',W*0.055,H*0.20);
+  c.font='26px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('ESP32-S3  \u00b7  PPG  \u00b7  IMU  \u00b7  BLE 5.0',W*0.055,H*0.30);
+  c.font='22px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('2026-10  REV.A',W*0.055,H*0.86);
+  /* 板邊白框 */
+  c.strokeStyle='rgba(245,250,240,.55)';c.lineWidth=4;
   c.strokeRect(W*0.02,H*0.03,W*0.96,H*0.94);
   var t=new THREE.CanvasTexture(cv);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;
   return t;
 }
 function battTex(){
-  var cv=document.createElement('canvas');cv.width=512;cv.height=768;
+  var cv=document.createElement('canvas');cv.width=512;cv.height=512;
   var c=cv.getContext('2d');
-  c.fillStyle='#dfe5e9';c.fillRect(0,0,512,768);
+  c.fillStyle='#dfe5e9';c.fillRect(0,0,512,512);
   var g=c.createLinearGradient(0,0,512,0);
-  g.addColorStop(0,'rgba(0,0,0,.12)');g.addColorStop(.35,'rgba(255,255,255,.24)');
-  g.addColorStop(.7,'rgba(0,0,0,.07)');g.addColorStop(1,'rgba(0,0,0,.14)');
-  c.fillStyle=g;c.fillRect(0,0,512,768);
+  g.addColorStop(0,'rgba(0,0,0,.10)');g.addColorStop(.35,'rgba(255,255,255,.22)');
+  g.addColorStop(.7,'rgba(0,0,0,.06)');g.addColorStop(1,'rgba(0,0,0,.13)');
+  c.fillStyle=g;c.fillRect(0,0,512,512);
   c.fillStyle='#26303a';
-  c.font='bold 48px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('Li-Po  2000mAh',30,150);
-  c.font='31px "Helvetica Neue",Arial,sans-serif';
-  c.fillText('3.7V  \u00b7  7.4Wh',30,208);
-  c.fillText('MEOWBASE BASE  \u00b7  PCM',30,254);
+  c.font='bold 46px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('Li-Po  500mAh',28,120);
+  c.font='30px "Helvetica Neue",Arial,sans-serif';
+  c.fillText('3.7V  \u00b7  1.85Wh',28,172);
+  c.fillText('JIALAN-1  \u00b7  PCM',28,214);
   c.strokeStyle='#c22a1c';c.lineWidth=5;
-  c.strokeRect(22,300,140,64);
-  c.fillStyle='#c22a1c';c.font='bold 34px Arial';c.fillText('+',46,348);
-  c.strokeStyle='#26303a';c.strokeRect(300,300,140,64);
-  c.fillStyle='#26303a';c.fillText('\u2013',324,348);
+  c.strokeRect(20,254,140,64);
+  c.fillStyle='#c22a1c';c.font='bold 34px Arial';c.fillText('+',42,302);
+  c.strokeStyle='#26303a';c.strokeRect(300,254,140,64);
+  c.fillStyle='#26303a';c.fillText('\u2013',322,302);
   c.font='22px "Helvetica Neue",Arial,sans-serif';c.fillStyle='#5a6672';
-  c.fillText('DO NOT PUNCTURE / 2026-10',30,470);
-  c.fillText('38 \u00d7 60 \u00d7 8.5 mm',30,516);
+  c.fillText('DO NOT PUNCTURE / 2026-10',28,420);
   var t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
   return t;
 }
-function panelText(){       /* 面板上的品牌字樣（透明底） */
-  var W=1024,H=200;
-  var cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  var c=cv.getContext('2d');
-  c.clearRect(0,0,W,H);
-  c.textBaseline='middle';c.textAlign='center';
-  c.font='bold 84px "Helvetica Neue",Arial,sans-serif';
-  spaced2(c,'MEOWBASE',W/2,H*0.40,10,'rgba(52,44,38,.92)');
-  c.font='500 40px "PingFang TC","Noto Sans TC",sans-serif';
-  c.fillStyle='rgba(96,84,74,.85)';
-  c.fillText('貓語翻譯機 基地台',W/2,H*0.78);
-  var t=new THREE.CanvasTexture(cv);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;
-  return t;
-}
-function spaced2(c,txt,cx,cy,sp,fill){
-  c.fillStyle=fill;
-  var tot=0,i;
-  for(i=0;i<txt.length;i++)tot+=c.measureText(txt[i]).width+sp;
-  tot-=sp;
-  var x=cx-tot/2;
-  for(i=0;i<txt.length;i++){
-    c.textAlign='left';
-    c.fillText(txt[i],x,cy);
-    x+=c.measureText(txt[i]).width+sp;
-  }
-}
-var BTEX=battTex(),PTEX=panelText();
+var BTEX=battTex();
 
-/* ═══════════════ 立架零件 ═══════════════ */
-/* ① 防滑墊 ×4（Ø12 × 1.5） */
-function bFeet(){
-  var g=new THREE.Group();
-  [[-22,-22],[22,-22],[-22,22],[22,22]].forEach(function(p){
-    var pad=disc(6,FOOT_H,M.rubber,36);pad.position.set(p[0],FOOT_H/2,p[1]);g.add(pad);
-    var ring=mesh(new THREE.TorusGeometry(4.1,0.34,8,30),M.inkSoft);
-    ring.rotation.x=-Math.PI/2;ring.position.set(p[0],FOOT_H*0.72,p[1]);g.add(ring);
-    var rim=disc(6.6,0.4,M.rubber,30);rim.position.set(p[0],FOOT_H*0.9,p[1]);g.add(rim);
-  });
-  return g;
-}
-/* ② 立架底座 60 × 12 × 60（R8，含電源孔） */
-function bBase(){
-  var g=new THREE.Group();
-  var gg=new THREE.ExtrudeGeometry(rrShape(57.6,57.6,7),
-    {depth:BASE_H,bevelEnabled:true,bevelSize:1.2,bevelThickness:1.2,
-     bevelSegments:2,curveSegments:26});
-  gg.rotateX(-Math.PI/2);
-  var body=mesh(gg,M.stand);
-  body.position.y=FOOT_H;
-  g.add(body);
-  /* 與塔身接合處的暗色墊線（避免共面又讀得出分模） */
-  var gas=new THREE.Mesh(plate(59.4,59.4,0.5,7.6,26),
-    new THREE.MeshStandardMaterial({color:0x3a332c,roughness:.9,metalness:0,
-      side:THREE.DoubleSide,envMapIntensity:0.12}));
-  gas.rotation.x=-Math.PI/2;gas.position.y=Y_BASE-0.22;g.add(gas);
-  /* 背面電源孔（USB-C 進線）＋ 應力消除套 */
-  var port=box(9.6,3.8,1.2,M.ink);port.position.set(0,7.0,-29.6);g.add(port);
-  var ring=mesh(new THREE.TorusGeometry(3.0,0.5,8,26),M.rubber);
-  ring.position.set(0,7.0,-29.7);g.add(ring);
-  var lip=box(11.0,5.0,0.6,M.standIn);lip.position.set(0,7.0,-29.85);g.add(lip);
-  /* 底部凹槽（4 個腳墊窩） */
-  [[-22,-22],[22,-22],[-22,22],[22,22]].forEach(function(p){
-    var pock=disc(6.3,0.9,M.standIn,28);pock.position.set(p[0],FOOT_H+0.35,p[1]);g.add(pock);
-  });
-  return g;
-}
-/* ③ 狀態指示燈（導光條 26 × 2.6 ＋ WS2812B） */
-function bLed(){
-  var g=new THREE.Group();
-  var bar=box(26,2.6,1.4,M.emitC);bar.position.set(0,8.2,29.4);g.add(bar);
-  var bez=box(26.8,3.4,0.8,M.inkSoft);bez.position.set(0,8.2,28.9);g.add(bez);
-  var chip=box(5,5,1.6,M.ink);chip.position.set(0,8.2,27.0);g.add(chip);
-  var dpad=box(4.2,4.2,0.2,M.gold2);dpad.position.set(0,8.2,26.1);g.add(dpad);
-  var hold=box(9,9,2.2,M.inkSoft);hold.position.set(0,8.2,25.0);g.add(hold);
-  [[-1.5],[1.5]].forEach(function(o){
-    var w=box(0.6,0.6,6.4,o[0]<0?M.red:M.black);
-    w.position.set(o[0],8.2,21.6);g.add(w);
-  });
-  return g;
-}
-/* ④ ESP32-C3 SuperMini 22 × 18 × 3.2（無線橋） */
-function bC3(){
-  var g=new THREE.Group();
-  var tx=pcbTex(22.5,18);
-  var side=mat({color:0x17512d,roughness:.62,metalness:.05});
-  var top=mat({color:0xffffff,roughness:.52,metalness:.08,map:tx});
-  top.envMapIntensity=0.18;
-  var board=new THREE.Mesh(new THREE.BoxGeometry(22.5,1.0,18),[side,side,top,side,side,side]);
-  board.castShadow=true;board.receiveShadow=true;g.add(board);
-  /* 屏蔽罩 */
-  var sh=box(12,1.3,10,M.aluDark);sh.position.set(-1,1.15,1);g.add(sh);
-  var sh2=box(11.2,0.3,9.2,M.steel);sh2.position.set(-1,1.85,1);g.add(sh2);
-  /* 天線（陶瓷天線 ＋ 蛇形走線） */
-  var ant=box(6,0.5,3.2,M.white);ant.position.set(-6.5,0.75,-7);g.add(ant);
-  for(var i=0;i<5;i++){
-    var m=box(1.4,0.12,3.0,M.gold2);m.position.set(2.6+i*1.9,0.6,-6.6);g.add(m);
+/* ═══════════════ 型號資料 ═══════════════ */
+/* A：63 × 39 × 15（上蓋 6.8 / 下蓋 8.2 / 壁厚 1.8 / R7）
+   B：56 × 44 × 17.8（背蓋 7.2 / 中框 6.0 / 螢幕 2.4 / 上蓋玻璃 3.0） */
+var VD={
+ a:{
+  key:'a',label:'嘉蘭一號',tag:'2.5 吋全滿玻璃',size:'63 × 39 × 15 mm',
+  W:63,D:39,H:15,cr:7,wall:1.8,
+  win:{w:55,h:32,r:4},   /* 改版：滿版玻璃，可視區 55 × 32（原本 33 × 18） */
+  ui:{w:55,h:32},
+  parts:[
+   {id:'strap',o:1,f:'strap',n:'錶帶（20 mm 織帶）',
+    d:'20 × 2.5 mm 織帶（頸圍示意 Ø68）',mt:'尼龍織帶＋側壓快扣',
+    u:'穿過機殼兩端 3.0 mm 高的走帶槽；側壓快扣受拉力會脫開，避免貓咪勾到勒傷。',
+    ex:[0,-56,20]},
+   {id:'back',o:2,f:'back',n:'下蓋／背蓋',
+    d:'63.0 × 39.0 × 8.2 mm（內腔 59.4 × 35.4）',mt:'白色 PLA・壁厚 1.8・R7 全圓角',
+    u:'容納 500 mAh 電池與震動馬達；底面開 2 × Ø2.4 磁吸充電孔與麥克風進音孔。',
+    ex:[18,-34,-12]},
+   {id:'batt',o:3,f:'batt',n:'鋰聚合物電池 500 mAh',
+    d:'32.0 × 21.0 × 4.5 mm（電池槽）',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
+    u:'續航約 2.5 天（心率 1 Hz＋藍牙廣播）；紅黑線接主板的 BAT 焊盤。',
+    ex:[-20,-12,12]},
+   {id:'motor',o:4,f:'motor',n:'震動馬達（幣型 ERM）',
+    d:'Ø10 × 3.4 mm',mt:'鎳殼＋偏心錘・3 V 驅動',
+    u:'行為訓練提醒與「該回家了」震動提示；由 MOSFET 低側開關，佔空比控制強弱。',
+    ex:[32,6,18]},
+   {id:'pcb',o:5,f:'pcb',n:'主電路板（4 層）',
+    d:'58.1 × 34.1 × 1.6 mm',mt:'FR-4 綠板＋ENIG 金焊盤・XIAO ESP32S3 主控',
+    u:'上面掛 ESP32-S3（21.0 × 17.8 × 1.2）、INMP441 麥克風（4.72 × 3.76）與 LSM6DS3TR-C。',
+    ex:[-16,22,-10]},
+   {id:'fpc',o:6,f:'fpc',n:'FPC 軟排線（12 pin）',
+    d:'12 pin × 0.2 mm 厚 × 18 mm',mt:'聚亞醯胺（PI）＋補強金手指',
+    u:'連接主板與 LCD 模組，負責 SPI 顯示與背光；彎折半徑 ≥ 1 mm 避免斷線。',
+    ex:[24,40,12]},
+   {id:'mag',o:7,f:'mag',n:'磁吸定位磁鐵 ×2',
+    d:'Ø5 × 2 mm（距 28 mm）',mt:'N35 釹鐵硼・鎳銅鎳三層電鍍',
+    u:'與充電座的磁鐵互吸，讓 pogo pin 自動對位；拉力約 0.4 kg。',
+    ex:[40,-22,-20]},
+   {id:'pogo',o:8,f:'pogo',n:'磁吸充電 pogo pin ×2',
+    d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
+    u:'5 V / 0.5 A 充電接點；防水靠 pin 座 O 環與背蓋超音波熔接。',
+    ex:[-40,-24,-18]},
+   {id:'mid',o:9,f:'mid',n:'中框（螢幕支架）',
+    d:'59.0 × 35.0 × 2.6 mm（開窗 56 × 33）',mt:'黑色 ABS・遮光',
+    u:'壓住 LCD 四周避免漏光，同時當 PCB 的定位基準；四角落有 M1.4 自攻柱。',
+    ex:[-14,56,-6]},
+   {id:'screen',o:10,f:'screen',n:'2.5 吋 IPS 全滿玻璃螢幕',
+    d:'模組 57.0 × 34.0 × 2.2 mm（可視 55.0 × 32.0）',mt:'256 × 448 IPS・SPI 介面',
+    u:'顯示狗臉表情、心率／步數／體溫；平時 30 秒熄屏，靠近才亮。',
+    ex:[16,74,8]},
+   {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
+    d:'63.0 × 39.0 × 2.4 mm（可視 55.0 × 32.0 R4）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
+    u:'滿版黑玻璃蓋住整個正面，四周只留 4 mm 邊框；2.5D 邊緣與機身齊平。',
+    ex:[0,96,0]}
+  ]
+ },
+ b:{
+  key:'b',label:'嘉蘭二號',tag:'2.4 吋滿版玻璃',size:'56 × 44 × 17.8 mm',
+  W:56,D:44,H:17.8,cr:7,wall:1.8,
+  win:{w:48.96,h:36.72,r:2.0},
+  ui:{w:48.96,h:36.72},
+  parts:[
+   {id:'strap',o:1,f:'strap',n:'錶帶（20 mm 織帶）',
+    d:'20 × 2.5 mm 織帶（頸圍示意 Ø68）',mt:'尼龍織帶＋側壓快扣',
+    u:'穿過套框兩側夾帶翼（9 × 26 mm）；帶子止於套框，不經過感測器下方。',
+    ex:[0,-58,22]},
+   {id:'cradle',o:2,f:'cradle',n:'磁吸套框（固定於頸帶）',
+    d:'60.0 × 48.0 × 3.2 mm（開窗 46 × 30）',mt:'PC+ABS 霧黑・4 顆 Ø6.2 磁鐵槽',
+    u:'表頭拔下即充電、吸上即配戴；開窗 46 × 30 讓 PPG 與聽診器振膜直接貼皮膚。',
+    ex:[14,-36,-10]},
+   {id:'back',o:3,f:'back',n:'背蓋（PPG／聽診器）',
+    d:'56.0 × 44.0 × 7.2 mm（振膜 Ø28 外凸 5）',mt:'PC+ABS 霧黑・PPG 窗 Ø15',
+    u:'貼皮膚面：Ø28 聽診器式振膜收心音／呼吸音，12 孔聲學陣列，兩側雙波長 PPG。',
+    ex:[-16,-14,10]},
+   {id:'batt',o:4,f:'batt',n:'鋰聚合物電池 500 mAh',
+    d:'34.0 × 26.0 × 5.4 mm',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
+    u:'放在背蓋腔體內、主板正下方，重心貼皮膚，跑動時晃動最小。',
+    ex:[22,4,-14]},
+   {id:'motor',o:5,f:'motor',n:'震動馬達（幣型 ERM）',
+    d:'Ø10 × 3.4 mm',mt:'鎳殼＋偏心錘・3 V 驅動',
+    u:'藏在中框右側的 Ø10 圓槽，震動經中框傳到整片背蓋，貼皮膚感受更明顯。',
+    ex:[-30,18,16]},
+   {id:'pcb',o:6,f:'pcb',n:'主電路板（4 層）',
+    d:'38.0 × 30.0 × 1.2 mm',mt:'FR-4 綠板＋ENIG 金焊盤・4 層',
+    u:'ESP32-S3＋PPG 類比前端＋IMU；天線開窗朝上蓋玻璃方向，避開皮膚與電池。',
+    ex:[24,34,-8]},
+   {id:'fpc',o:7,f:'fpc',n:'FPC 軟排線（12 pin）',
+    d:'12 pin × 0.5 mm 厚 × 14 mm',mt:'聚亞醯胺（PI）＋補強金手指',
+    u:'主板到 2.4 吋螢幕的 MIPI／SPI 排線；從主板左側翻上中框，避開電池。',
+    ex:[-26,50,14]},
+   {id:'mag',o:8,f:'mag',n:'磁吸定位磁鐵 ×4',
+    d:'Ø6 × 2 mm（距 44 × 36 mm）',mt:'N35 釹鐵硼・鎳銅鎳三層電鍍',
+    u:'四角互吸，套框與表頭只有一個裝法；拔起時有明確「咔」的回饋。',
+    ex:[38,-26,-18]},
+   {id:'pogo',o:9,f:'pogo',n:'磁吸充電 pogo pin ×2',
+    d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
+    u:'與套框上的簧片接觸充電；IPX6 靠 pin 座 O 環與背蓋熔接。',
+    ex:[-38,-28,-16]},
+   {id:'mid',o:10,f:'mid',n:'中框（收音／揚聲開孔）',
+    d:'56.0 × 44.0 × 6.0 mm',mt:'PC+ABS 霧黑・揚聲 Ø28 腔體',
+    u:'撐住螢幕與主板，底面留 Ø28 揚聲腔與 Ø1 收音孔；同時當電池的擋牆。',
+    ex:[-14,66,-4]},
+   {id:'screen',o:11,f:'screen',n:'2.4 吋螢幕模組',
+    d:'52.0 × 40.0 × 2.4 mm（可視 48.96 × 36.72）',mt:'240 × 320 IPS・MIPI',
+    u:'滿版玻璃下幾乎無邊框；顯示狗臉表情與三項生理數據。',
+    ex:[16,80,6]},
+   {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
+    d:'56.0 × 44.0 × 3.0 mm（可視 48.96 × 36.72）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
+    u:'2.5D 邊緣、與機身齊平；玻璃開窗 48.96 × 36.72 讓螢幕亮度幾乎不打折。',
+    ex:[0,100,0]}
+  ]
+ }
+};
+
+/* ═══════════════ 零件建構（絕對座標，原點＝機身中心） ═══════════════ */
+var V=null;
+
+/* 上蓋：A＝白殼（側壁＋頂板開窗）；B＝滿版黑玻璃（開窗） */
+function bLid(){
+  var g=new THREE.Group(),W=V.W,D=V.D;
+  if(V.key==='a'){
+    /* 改版：白色 PLA 上蓋 → 黑色內框＋滿版黑玻璃（視窗放大到 55 × 32）
+       內框沿用原本 5.2 mm 高的裙邊，只是改霧黑：一來遮住螢幕模組側面，
+       二來讓玻璃四周看起來是窄窄的黑邊，不會露出內部 PCB。 */
+    var out=rrShape(W,D,7);out.holes.push(rrPath(W-3.6,D-3.6,5.2));
+    var wa=extY(out,5.2,22);wa.translate(0,0.7,0);g.add(mesh(wa,M.frame));
+    var gl=mesh(hframe(W,D,1.6,V.cr,V.win.w,V.win.h,V.win.r),M.glassBig);
+    gl.position.y=6.7;g.add(gl);
+    /* 玻璃下的黑色遮光框，避免側面看到玻璃邊緣透光 */
+    var sk=mesh(hframe(W-1.4,D-1.4,0.4,V.cr-0.5,V.win.w,V.win.h,V.win.r),M.ink);
+    sk.position.y=5.72;g.add(sk);
+    /* 止口（與下蓋對接的 1.8 mm 唇邊） */
+    var lip=mesh(hframe(W-0.4,D-0.4,1.2,V.cr-0.2,W-3.6,D-3.6,V.cr-1.6),M.ink);
+    lip.position.y=1.3;g.add(lip);
+    /* 狀態指示燈移到側邊（玻璃蓋住頂面後頂部不能再開導光孔） */
+    var led=cylY(0.7,0.7,1.4,M.emitM,16);led.rotation.z=Math.PI/2;
+    led.position.set(W/2-0.1,3.2,0);g.add(led);
+  }else{
+    var gl=mesh(hframe(W,D,3.0,V.cr,V.win.w,V.win.h,V.win.r),M.glassBig);
+    gl.position.y=7.4;g.add(gl);
+    /* 玻璃下緣的黑色遮光框，避免從側面看到玻璃邊緣透光 */
+    var sk=mesh(hframe(W-0.6,D-0.6,0.6,6.6,V.win.w,V.win.h,V.win.r),M.ink);
+    sk.position.y=5.6;g.add(sk);
   }
-  /* USB-C（朝 -Z 出線） */
-  var usb=box(8.94,3.26,5.0,M.steel);usb.position.set(0,0.6,-9.6);g.add(usb);
-  var um=box(6.8,1.2,1.2,M.ink);um.position.set(0,0.6,-11.6);g.add(um);
-  /* 排針（2×4 兩側） */
-  [-1,1].forEach(function(s){
-    for(var k=0;k<4;k++){
-      var p=box(1.0,0.9,1.0,M.gold2);
-      p.position.set(s*10.4,0.0,-4.5+k*3.0);g.add(p);
+  return g;
+}
+
+/* 螢幕模組（含 CanvasTexture UI 面） */
+function bScreen(){
+  var g=new THREE.Group();
+  if(V.key==='a'){
+    var body=box(57,2.2,34,M.lcdBody);body.position.y=4.7;g.add(body);
+    var ui=new THREE.Mesh(new THREE.PlaneGeometry(55.6,32.6),uiMat());
+    ui.rotation.x=-Math.PI/2;ui.position.y=5.85;g.add(ui);
+    var tail=box(9,0.16,7,M.fpc);tail.position.set(0,3.52,-18.2);g.add(tail);
+    var conn=box(11,0.5,3.2,M.gold);conn.position.set(0,3.6,-21.6);g.add(conn);
+  }else{
+    var body2=box(52,2.4,40,M.lcdBody);body2.position.y=4.4;g.add(body2);
+    var ui2=new THREE.Mesh(new THREE.PlaneGeometry(50.4,38.2),uiMat());
+    ui2.rotation.x=-Math.PI/2;ui2.position.y=5.74;g.add(ui2);
+    var tail2=box(14,0.5,6,M.fpc);tail2.position.set(-14,3.2,-22);g.add(tail2);
+    /* 驅動 IC 與背光框 */
+    var drv=box(16,0.5,2.4,M.ink);drv.position.set(0,3.15,19.2);g.add(drv);
+  }
+  return g;
+}
+
+/* 中框 */
+function bMid(){
+  var g=new THREE.Group();
+  if(V.key==='a'){
+    var fr=mesh(hframe(59.0,35.0,2.6,5.0,57.4,34.4,4.2),M.frame);
+    fr.position.y=4.1;g.add(fr);
+    [[-27,-14.5],[27,-14.5],[-27,14.5],[27,14.5]].forEach(function(a){
+      var b=cylY(1.5,1.5,3.2,M.frame,12);b.position.set(a[0],3.9,a[1]);g.add(b);
+    });
+  }else{
+    var out=rrShape(V.W,V.D,V.cr);out.holes.push(rrPath(46,34,4));
+    var ri=extY(out,6.0,22);ri.translate(0,-1.7,0);g.add(mesh(ri,M.frame));
+    /* 螢幕座（內縮 1.1 mm 的肩部） */
+    var sh=mesh(hframe(52.4,40.4,1.1,5.0,46,34,4),M.frame);
+    sh.position.y=3.75;g.add(sh);
+    /* 揚聲腔 Ø28 */
+    var spk=disc(13.6,0.8,M.inkSoft,36);spk.position.set(-3,1.3,-13.5);g.add(spk);
+    for(var i=0;i<12;i++){
+      var a=i*Math.PI/6;
+      var h=cylY(1.0,1.0,1.4,M.ink,12);
+      h.position.set(-3+Math.cos(a)*9.2,1.2,-13.5+Math.sin(a)*9.2);g.add(h);
     }
-  });
-  /* RGB LED */
-  var led=box(2.0,0.7,2.0,M.emitC);led.position.set(7.5,0.75,5.0);g.add(led);
-  /* 電源 IC */
-  var ic=box(3.2,0.6,2.4,M.ink);ic.position.set(6.0,0.7,-3.0);g.add(ic);
-  return g;
-}
-/* ⑤ 鋰電池 2000 mAh（直立：38 寬 × 60 高 × 8.5 厚） */
-function bBatt(){
-  var g=new THREE.Group();
-  var W=38,Hh=60,T=8.5;              /* X × Y × Z */
-  var lab=mat({color:0xffffff,roughness:.62,metalness:.10,map:BTEX});
-  lab.envMapIntensity=0.22;
-  var ms=mat({color:0xd8dee3,roughness:.30,metalness:.62});
-  /* 大片面（±Z）貼標籤，四邊是鋁塑封邊 */
-  var body=new THREE.Mesh(new THREE.BoxGeometry(W,Hh,T),[ms,ms,ms,ms,lab,lab]);
-  body.castShadow=true;body.receiveShadow=true;g.add(body);
-  /* 邊緣封條（比本體厚 0.3，讀得出鋁塑膜壓邊） */
-  var seal=box(W-0.6,0.9,T+0.3,M.pouch2);seal.position.set(0,Hh/2-0.45,0);g.add(seal);
-  var seal2=box(W-0.6,0.9,T+0.3,M.pouch2);seal2.position.set(0,-Hh/2+0.45,0);g.add(seal2);
-  /* 保護板（上端） */
-  var pcm=box(W*0.55,3.2,0.9,M.pcbEdge);pcm.position.set(0,Hh/2+1.2,T/2-1.4);g.add(pcm);
-  var ic=box(2.6,2.2,0.55,M.ink);ic.position.set(0,Hh/2+1.2,T/2-1.4);g.add(ic);
-  /* 紅黑線（往上繞向主機） */
-  [[-3.0,M.red],[2.6,M.black]].forEach(function(o){
-    var pts=[new THREE.Vector3(o[0],Hh/2+2.2,T/2-1.4),
-             new THREE.Vector3(o[0],Hh/2+4.4,T/2+1.0),
-             new THREE.Vector3(o[0]*0.5,Hh/2+5.0,T/2+4.6)];
-    var cu=new THREE.CatmullRomCurve3(pts);
-    var t2=new THREE.Mesh(new THREE.TubeGeometry(cu,22,0.34,8,false),o[1]);
-    t2.castShadow=true;g.add(t2);
-  });
-  return g;
-}
-/* ⑥ 立架立柱／背板（20° 前斜板 ＋ 主機安裝框） */
-function bTower(){
-  var g=new THREE.Group();
-  var prof=[[-SD/2,Y_BASE],[ZFB,Y_BASE],[ZFT,SH],[-SD/2,SH]];
-  [1,-1].forEach(function(s){
-    g.add(mesh(wedgeZY(prof,WALL,s*(SD/2-WALL/2)),M.stand));
-  });
-  /* 後壁 */
-  var rw=box(SW-2*WALL,SH-Y_BASE,WALL,M.stand);
-  rw.position.set(0,(Y_BASE+SH)/2,-SD/2+WALL/2);g.add(rw);
-  /* 頂蓋 */
-  var topD=(ZFT+SD/2);
-  var tp=box(SW-0.6,WALL,topD-0.2,M.stand);
-  tp.position.set(0,SH-WALL/2,(-SD/2+ZFT)/2);g.add(tp);
-  /* 前斜板（含 6P 排針走線槽） */
-  var pan=mesh((function(){
-    var s=rrShape(SW-0.3,SLOPE-0.3,3);s.holes.push(rrPath(31,7.5,2.6));
-    var gg=new THREE.ExtrudeGeometry(s,{depth:PANEL_T,bevelEnabled:false,curveSegments:22});
-    gg.translate(0,0,-PANEL_T);return gg;
-  })(),M.stand);
-  pan.rotation.x=HOST_ROT;pan.position.copy(PNL_C);g.add(pan);
-  /* 主機安裝框（凸 1.2 mm 的唇邊，主機坐進去） */
-  var lip=mesh((function(){
-    var s=rrShape(HW+2,HD+2,4.0);s.holes.push(rrPath(HW+0.6,HD+0.6,3.6));
-    var gg=new THREE.ExtrudeGeometry(s,{depth:1.2,bevelEnabled:false,curveSegments:22});
-    gg.translate(0,0,-1.2);return gg;
-  })(),M.stand2);
-  lip.rotation.x=HOST_ROT;
-  lip.position.copy(PNL_C).addScaledVector(N,1.2);
-  g.add(lip);
-  /* 面板字樣 */
-  var txt=new THREE.Mesh(new THREE.PlaneGeometry(HW,11),
-    new THREE.MeshBasicMaterial({map:PTEX,transparent:true,alphaTest:0.02,
-      side:THREE.DoubleSide,depthWrite:false}));
-  txt.rotation.x=HOST_ROT;
-  txt.position.copy(PNL_C).addScaledVector(N,0.10).addScaledVector(UP,HD/2+9.5);
-  txt.renderOrder=2;g.add(txt);
-  /* 四顆螺絲柱（面板內側） */
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
-    var b=cylY(2.4,2.4,7,M.standIn,16);
-    b.position.copy(PNL_C).addScaledVector(N,-PANEL_T-3.4)
-      .addScaledVector(new THREE.Vector3(1,0,0),s[0]*(HW/2-3.2))
-      .addScaledVector(UP,s[1]*(HD/2-3.2));
-    b.rotation.x=ROT_N;g.add(b);
-    var hole=cylY(1.1,1.1,7.4,M.ink,14);
-    hole.position.copy(b.position);hole.rotation.x=ROT_N;g.add(hole);
-  });
-  /* 面板內側補強肋 */
-  [-1,1].forEach(function(s){
-    var rb=box(2.4,SLOPE*0.72,WALL,M.standIn);
-    rb.rotation.x=HOST_ROT;
-    rb.position.copy(PNL_C).addScaledVector(N,-PANEL_T-WALL/2)
-      .addScaledVector(new THREE.Vector3(1,0,0),s*(SW/2-WALL-1.2))
-      .addScaledVector(UP,-2);
-    g.add(rb);
-  });
-  return g;
-}
-/* ⑦ 排針 1×6（2.54 mm）— 主機插接用，鎖在面板內側 */
-function bHeader(){
-  var g=new THREE.Group();
-  /* 整組進面板座標系：+y → 斜面上坡、+z → 面板法線 */
-  g.rotation.x=HOST_ROT;
-  g.position.copy(PNL_C).addScaledVector(N,-PANEL_T-1.4)
-    .addScaledVector(UP,-(HD/2-3.0));
-  var body=box(15.24,2.5,2.54,M.ink);body.position.z=0;g.add(body);
-  for(var i=0;i<6;i++){
-    var x=-6.35+i*2.54;
-    var pin=cylZ(0.32,0.32,6.0,M.gold2,10);
-    pin.position.set(x,0,2.6);g.add(pin);
-    var base=box(1.9,1.9,0.5,M.inkSoft);
-    base.position.set(x,0,-1.5);g.add(base);
+    /* 收音孔 */
+    var mic=cylY(0.8,0.8,1.4,M.ink,12);mic.position.set(18,1.2,14);g.add(mic);
   }
-  var groove=box(14.0,1.2,0.6,M.gold2);groove.position.set(0,0,-1.3);g.add(groove);
   return g;
 }
 
-/* ═══════════════ 主機零件（區域座標，原點＝模組中心，+Z 朝前） ═══════════════ */
-/* ⑧ 主機背蓋 44 × 29.1 × 1.6 */
-function bBackCover(){
-  var g=new THREE.Group();
-  var p=mesh(plate(HW,HD,1.6,3.4),M.hostShell);p.position.z=Z_BACK;g.add(p);
-  /* 內側止口 */
-  var lip=mesh(winPlate(HW-1.2,HD-1.2,1.0,3.0,HW-3.2,HD-3.2,2.6),M.hostShell2);
-  lip.position.z=Z_BACK+1.0;g.add(lip);
-  /* 喇叭柵孔 7 孔 */
-  for(var i=0;i<7;i++){
-    var h=cylZ(0.7,0.7,0.5,M.ink,12);
-    h.position.set(-12.5, -6.0+ (i%4)*3.2, Z_BACK-0.15-(i*0.001));
-    h.position.x=-12.5+Math.floor(i/4)*3.0;
-    g.add(h);
-  }
-  /* 線材出口 */
-  var slot=box(11,4.6,0.9,M.ink);slot.position.set(9,-8.2,Z_BACK-0.1);g.add(slot);
-  /* 測試點 */
-  for(var k=0;k<4;k++){
-    var tp=disc(0.9,0.25,M.gold2,14);
-    tp.rotation.x=Math.PI/2;tp.position.set(6+k*3.0,10.5,Z_BACK-0.1);g.add(tp);
-  }
-  /* 四顆螺絲孔環 */
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
-    var r=mesh(new THREE.TorusGeometry(1.9,0.35,6,18),M.inkSoft);
-    r.rotation.x=Math.PI/2;
-    r.position.set(s[0]*(HW/2-3.2),s[1]*(HD/2-3.2),Z_BACK-0.12);g.add(r);
-  });
-  /* 側邊散熱縫 */
-  for(var v=0;v<5;v++){
-    var s2=box(0.9,4.0,1.2,M.inkSoft);
-    s2.position.set(HW/2-0.3,6.5-v*2.6,Z_BACK+0.95);g.add(s2);
-  }
-  return g;
-}
-/* ⑨ RP2350 主機板 38 × 24 × 1.2（厚度沿 Z，絲印貼 +Z 面） */
+/* 主 PCB（綠板＋金焊盤＋主要 IC） */
 function bPcb(){
   var g=new THREE.Group();
-  var W=38,D=24,T=1.2;
+  var W=(V.key==='a')?58.1:38.0, D=(V.key==='a')?34.1:30.0, T=(V.key==='a')?1.6:1.2;
+  var Y=(V.key==='a')?0.8:-0.9;
   var tx=pcbTex(W,D);
   var side=mat({color:0x17512d,roughness:.62,metalness:.05});
   var top=mat({color:0xffffff,roughness:.52,metalness:.08,map:tx});
   top.envMapIntensity=0.18;
-  var board=new THREE.Mesh(new THREE.BoxGeometry(W,D,T),[side,side,side,side,top,side]);
-  board.castShadow=true;board.receiveShadow=true;board.position.z=Z_PCB;g.add(board);
-  var fz=Z_PCB+T/2, bz=Z_PCB-T/2;
-  /* RP2350A（QFN-80 10 × 10） */
-  var mcu=box(10,10,0.9,M.ink);mcu.position.set(-6,2.5,fz+0.45);g.add(mcu);
-  var ring=mesh(winPlate(10.8,10.8,0.2,0.5,9.2,9.2,0.5),M.gold2);
-  ring.position.set(-6,2.5,fz+0.03);g.add(ring);
-  var dot=cylZ(0.55,0.55,0.14,M.emitW,12);dot.position.set(-10.2,6.0,fz+0.95);g.add(dot);
-  /* QSPI Flash 5 × 6 */
-  var fl=box(5,6,0.8,M.ink);fl.position.set(3.5,7,fz+0.42);g.add(fl);
-  var fld=cylZ(0.4,0.4,0.1,M.emitW,10);fld.position.set(2.0,8.6,fz+0.86);g.add(fld);
-  /* QMI8658 IMU 2.5 × 3.0 */
-  var imu=box(2.5,3.0,0.62,M.ink);imu.position.set(8.6,1.2,fz+0.34);g.add(imu);
-  /* PCF85063 RTC 3 × 3 ＋ 32.768k 晶體 */
-  var rtc=box(3,3,0.6,M.inkSoft);rtc.position.set(-14,-4.6,fz+0.32);g.add(rtc);
-  var xtal=box(2.0,1.6,0.5,M.steel);xtal.position.set(-14,-8.0,fz+0.28);g.add(xtal);
-  /* AMOLED FPC 座 20 pin 12 × 4 */
-  var fc=box(12,4,1.6,M.ink);fc.position.set(0,-10.2,fz+0.8);g.add(fc);
-  var fcg=box(11.0,1.0,0.4,M.gold2);fcg.position.set(0,-11.6,fz+1.62);g.add(fcg);
-  /* 貼片被動元件 */
-  for(var k=0;k<16;k++){
-    var cx2=-16.5+((k*7)%33), cxy=-9+((k*11)%19);
-    if(Math.abs(cx2+6)<6.5&&Math.abs(cxy-2.5)<6.5)continue;
-    var c3=box(1.1,0.55,0.42,(k%3===0)?M.aluDark:M.inkSoft);
-    c3.position.set(cx2,cxy,fz+0.21);g.add(c3);
-  }
-  /* 背面：microSD 卡座 13.2 × 11 */
-  var sd=box(13.2,11,1.0,M.aluDark);sd.position.set(9.0,3.0,bz-0.5);g.add(sd);
-  var sds=box(11.6,8.4,0.3,M.ink);sds.position.set(9.0,3.0,bz-1.05);g.add(sds);
-  var sdg=box(1.6,4.0,0.4,M.gold2);sdg.position.set(2.0,3.0,bz-1.2);g.add(sdg);
-  /* MX1.25 電池座 6 × 4.5 */
-  var mx=box(6,4.5,3.6,M.white);mx.position.set(-14.5,6.0,bz-1.8);g.add(mx);
-  var mxp=box(4.0,2.6,1.0,M.gold2);mxp.position.set(-14.5,6.0,bz-3.4);g.add(mxp);
-  /* 背側金焊盤 */
+  var mats=[side,side,top,side,side,side];
+  var board=new THREE.Mesh(new THREE.BoxGeometry(W,T,D),mats);
+  board.castShadow=true;board.receiveShadow=true;board.position.y=Y;g.add(board);
+
+  var ty=Y+T/2;   /* 頂面 */
+  /* XIAO ESP32S3 21.0 × 17.8 × 1.2 */
+  var xw=21.0, xd=17.8;
+  var xiao=box(xw,1.2,xd,M.ink);xiao.position.set(W*0.12,ty+0.6,0);g.add(xiao);
+  var shield=box(xw-3.2,0.35,xd-3.6,M.aluDark);shield.position.set(W*0.12,ty+1.24,0);g.add(shield);
+  var usb=box(7.2,2.6,3.2,M.steel);usb.position.set(W*0.12+xw/2+1.4,ty+0.4,0);g.add(usb);
+  var usbIn=box(5.4,1.0,2.4,M.ink);usbIn.position.set(W*0.12+xw/2+1.6,ty+1.0,0);g.add(usbIn);
+  /* 排針 */
+  var hdr=box(2.2,0.9,xd-2,M.gold2);hdr.position.set(W*0.12-xw/2+0.4,ty+0.5,0);g.add(hdr);
+
+  /* INMP441 4.72 × 3.76 × 1.0 */
+  var m1=box(4.72,1.0,3.76,M.ink);m1.position.set(-W*0.30,ty+0.5,D*0.24);g.add(m1);
+  var m1p=cylY(0.45,0.45,0.3,M.ink,10);m1p.position.set(-W*0.30,ty+1.05,D*0.24);g.add(m1p);
+  /* LSM6DS3TR-C 2.5 × 3.0 × 0.83 */
+  var m2=box(3.0,0.83,2.5,M.ink);m2.position.set(-W*0.30,ty+0.42,-D*0.10);g.add(m2);
+  /* 電源管理 IC */
+  var m3=box(5.0,0.9,5.0,M.ink);m3.position.set(W*0.30,ty+0.45,-D*0.24);g.add(m3);
+  var m4=box(3.2,0.7,3.2,M.inkSoft);m4.position.set(W*0.05,ty+0.35,-D*0.30);g.add(m4);
+  /* 電池焊盤 */
+  var bp=box(4.0,0.25,3.0,M.gold2);bp.position.set(-W*0.16,ty+0.13,-D*0.36);g.add(bp);
+  /* 邊緣金手指（焊盤陣列） */
   for(var i=0;i<9;i++){
-    var p2=box(1.6,2.2,0.2,M.gold2);
-    p2.position.set(-16+i*3.4,-10.4,bz-0.1);g.add(p2);
+    var p=box(1.8,0.22,2.6,M.gold2);
+    p.position.set(-W/2+2.5+i*3.2,ty+0.12,D/2-2.2);g.add(p);
   }
-  /* 固定孔（金環） */
+  /* 固定孔環 */
   [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
-    var r=mesh(new THREE.TorusGeometry(1.5,0.42,6,16),M.gold2);
-    r.position.set(s[0]*(W/2-3.0),s[1]*(D/2-3.0),fz+0.05);g.add(r);
+    var r=mesh(new THREE.TorusGeometry(1.5,0.45,6,16),M.gold2);
+    r.rotation.x=-Math.PI/2;
+    r.position.set(s[0]*(W/2-4),ty+0.06,s[1]*(D/2-4));g.add(r);
   });
   return g;
 }
-/* ⑩ 麥克風 INMP441 4.72 × 3.76 × 1.0 */
-function bMic(){
+
+/* 電池 */
+function bBatt(){
   var g=new THREE.Group();
-  var chip=box(4.72,3.76,1.0,M.ink);
-  chip.position.set(12.0,8.0,Z_PCB+1.2);g.add(chip);
-  var lid=box(4.2,3.3,0.18,M.aluDark);lid.position.set(12.0,8.0,Z_PCB+1.78);g.add(lid);
-  var port=cylZ(0.42,0.42,0.26,M.gold2,12);
-  port.position.set(12.0,8.0,Z_PCB+1.94);g.add(port);
-  for(var i=0;i<4;i++){
-    var p=box(0.7,0.5,0.25,M.gold2);
-    p.position.set(10.6+i*1.3,6.4,Z_PCB+0.75);g.add(p);
+  var W=(V.key==='a')?31.6:34.0, D=(V.key==='a')?20.6:26.0, T=(V.key==='a')?4.3:5.4;
+  var Y=(V.key==='a')?-3.45:-4.30, Z=(V.key==='a')?5.0:0;
+  var lab=mat({color:0xffffff,roughness:.62,metalness:.10,map:BTEX});
+  lab.envMapIntensity=0.22;
+  var matSide=mat({color:0xd8dee3,roughness:.30,metalness:.62});
+  var mats=[lab,lab,matSide,matSide,lab,lab];
+  var body=new THREE.Mesh(new THREE.BoxGeometry(W,T,D),mats);
+  body.castShadow=true;body.receiveShadow=true;body.position.set(0,Y,Z);g.add(body);
+  /* 封邊 */
+  var edge=box(W+0.5,T*0.9,D+0.5,M.pouch2);edge.position.set(0,Y,Z);edge.visible=false;g.add(edge);
+  /* 保護板 */
+  var pcm=box(W*0.55,0.8,3.2,M.pcbEdge);
+  pcm.position.set(0,Y+T/2+0.4,Z-D/2+1.6);g.add(pcm);
+  var ic=box(2.4,0.5,2.0,M.ink);ic.position.set(0,Y+T/2+0.95,Z-D/2+1.6);g.add(ic);
+  /* 紅黑線（往主板上方繞） */
+  var redPts=[new THREE.Vector3(-3,Y+T/2+0.6,Z-D/2+0.6),
+              new THREE.Vector3(-3,Y+T/2+1.6,Z-D/2-1.2),
+              new THREE.Vector3(-5,Y+T/2+2.2,Z-D/2-3.0)];
+  var blkPts=[new THREE.Vector3(1.6,Y+T/2+0.6,Z-D/2+0.6),
+              new THREE.Vector3(1.6,Y+T/2+1.5,Z-D/2-1.4),
+              new THREE.Vector3(0.4,Y+T/2+2.0,Z-D/2-3.2)];
+  [['r',redPts,M.red],['k',blkPts,M.black]].forEach(function(o){
+    var cu=new THREE.CatmullRomCurve3(o[1]);
+    var t2=new THREE.Mesh(new THREE.TubeGeometry(cu,24,0.34,8,false),o[2]);
+    t2.castShadow=true;g.add(t2);
+  });
+  return g;
+}
+
+/* FPC 軟排線 */
+function bFpc(){
+  var g=new THREE.Group();
+  if(V.key==='a'){
+    var v=box(12,3.2,0.2,M.fpc);v.position.set(-20,3.35,-9.6);g.add(v);
+    var h=box(12,0.2,7,M.fpc);h.position.set(-20,1.78,-13.6);g.add(h);
+    var f1=box(10,0.3,1.6,M.gold2);f1.position.set(-20,1.80,-16.9);g.add(f1);
+    var f2=box(10,0.3,1.6,M.gold2);f2.position.set(-20,5.06,-9.6);g.add(f2);
+    /* 補強板 */
+    var st=box(12,0.35,2.2,M.inkSoft);st.position.set(-20,5.25,-9.6);g.add(st);
+  }else{
+    var v2=box(14,5.0,0.5,M.fpc);v2.position.set(-14,1.1,-18.0);g.add(v2);
+    var h2=box(14,0.5,6.5,M.fpc);h2.position.set(-14,-0.05,-14.5);g.add(h2);
+    var f3=box(12,0.35,1.8,M.gold2);f3.position.set(-14,-0.05,-11.4);g.add(f3);
+    var f4=box(12,0.35,1.8,M.gold2);f4.position.set(-14,3.62,-18.0);g.add(f4);
+    var st2=box(14,0.4,2.4,M.inkSoft);st2.position.set(-14,3.75,-18.0);g.add(st2);
   }
   return g;
 }
-/* ⑪ USB-C 16P 母座 8.94 × 7.35 × 3.26（開口朝 -Y） */
-function bUsbC(){
+
+/* 震動馬達（幣型 ERM） */
+function bMotor(){
   var g=new THREE.Group();
-  /* 8.94 寬 × 7.35 高 × 3.26 厚，插入方向沿 -Y */
-  var shell=box(8.94,7.35,3.26,M.steel);
-  shell.position.set(0,-10.9,-1.9);g.add(shell);
-  var mouth=box(8.1,5.6,1.6,M.ink);
-  mouth.position.set(0,-14.0,-1.9);g.add(mouth);
-  /* 24 個金接點（舌片上下各 12） */
-  for(var i=0;i<12;i++){
+  var P=(V.key==='a')?[-22,-3.6,12.5]:[19,1.4,13.0];
+  var can=cylY(5,5,3.4,M.motor,32);can.position.set(P[0],P[1],P[2]);g.add(can);
+  var top=cylY(4.6,4.6,0.3,M.aluDark,32);top.position.set(P[0],P[1]+1.82,P[2]);g.add(top);
+  /* 偏心錘 */
+  var wt=box(7.4,0.8,3.4,M.inkSoft);wt.position.set(P[0]+1.8,P[1]+2.1,P[2]);g.add(wt);
+  var wt2=cylY(1.9,1.9,0.8,M.inkSoft,20);wt2.position.set(P[0]+3.2,P[1]+2.1,P[2]);g.add(wt2);
+  /* 引線 */
+  [[-2.6,M.red],[2.6,M.black]].forEach(function(o){
+    var w=box(0.6,0.6,4.2,o[1]);
+    w.position.set(P[0]+o[0],P[1]+0.2,P[2]-6.0);g.add(w);
+  });
+  var pad=box(4.4,0.4,2.2,M.pcbEdge);pad.position.set(P[0],P[1]-1.85,P[2]);g.add(pad);
+  return g;
+}
+
+/* 磁鐵 */
+function bMag(){
+  var g=new THREE.Group();
+  var list,r,h,Y;
+  if(V.key==='a'){
+    list=[[-14,13],[14,13]];r=2.5;h=2.0;Y=-6.45;
+  }else{
+    list=[[-22,-18],[22,-18],[-22,18],[22,18]];r=3.0;h=2.0;Y=-7.9;
+  }
+  list.forEach(function(p){
+    var cu=cylY(r,r,h,M.nickel,32);cu.position.set(p[0],Y,p[1]);g.add(cu);
+    var ch=mesh(new THREE.TorusGeometry(r*0.86,0.16,6,26),M.alu);
+    ch.rotation.x=-Math.PI/2;ch.position.set(p[0],Y+h/2, p[1]);g.add(ch);
+    var ch2=mesh(new THREE.TorusGeometry(r*0.86,0.16,6,26),M.alu);
+    ch2.rotation.x=-Math.PI/2;ch2.position.set(p[0],Y-h/2,p[1]);g.add(ch2);
+  });
+  return g;
+}
+
+/* pogo pin */
+function bPogo(){
+  var g=new THREE.Group();
+  var Y=(V.key==='a')?-6.2:-8.0;
+  [-7,7].forEach(function(x){
+    var barrel=cylY(0.75,0.75,3.4,M.gold,20);barrel.position.set(x,Y+1.0,13);g.add(barrel);
+    var spring=cylY(0.62,0.62,1.2,M.aluDark,16);spring.position.set(x,Y-0.9,13);g.add(spring);
+    var tip=mesh(new THREE.SphereGeometry(0.75,16,12),M.gold2);
+    tip.scale.set(1,0.72,1);tip.position.set(x,Y-1.75,13);g.add(tip);
+    var base=cylY(1.35,1.35,0.8,M.rubber,20);base.position.set(x,Y+2.6,13);g.add(base);
+  });
+  return g;
+}
+
+/* 背蓋（A：白殼底面＋充電孔；B：PPG／聽診器面） */
+function bBack(){
+  var g=new THREE.Group(),W=V.W,D=V.D;
+  if(V.key==='a'){
+    var fl=mesh(hplate(W,D,1.8,V.cr,22),M.shell);fl.position.y=-6.6;g.add(fl);
+    var out=rrShape(W,D,V.cr);out.holes.push(rrPath(59.4,35.4,5.0));
+    var wa=extY(out,6.4,22);wa.translate(0,-5.7,0);g.add(mesh(wa,M.shell));
+    /* 內側電池擋牆 */
+    [[0,-15.5],[0,15.5]].forEach(function(p){
+      var b=box(34,3.2,1.6,M.shell2);b.position.set(p[0],-4.2,p[1]);g.add(b);
+    });
+    [-25.5,25.5].forEach(function(x){
+      var b=box(1.6,3.2,26,M.shell2);b.position.set(x,-4.2,0);g.add(b);
+    });
+    /* 磁吸充電孔 Ø2.4 ×2（距 14） */
+    [-7,7].forEach(function(x){
+      var hole=cylY(1.2,1.2,0.9,M.black,18);hole.position.set(x,-6.55,13);g.add(hole);
+      var rim=mesh(new THREE.TorusGeometry(1.5,0.22,8,20),M.gold);
+      rim.rotation.x=-Math.PI/2;rim.position.set(x,-5.72,13);g.add(rim);
+    });
+    /* 麥克風進音孔 2 × Ø1.0（孔距 1.4） */
+    [-0.7,0.7].forEach(function(x){
+      var h=cylY(0.5,0.5,0.9,M.black,12);h.position.set(x,-6.55,-14.5);g.add(h);
+    });
+    /* 走帶槽（22 × 3.0）兩端 */
     [-1,1].forEach(function(s){
-      var p=box(0.55,1.4,0.16,M.gold2);
-      p.position.set(-3.7+i*0.67,-12.4,-1.9+s*0.62);g.add(p);
+      var slot=box(2.4,3.0,22,M.inkSoft);
+      slot.position.set(s*(W/2-0.8),-3.2,0);g.add(slot);
+    });
+    /* 磁鐵槽 */
+    [-14,14].forEach(function(x){
+      var p=cylY(3.1,3.1,0.5,M.inkSoft,24);p.position.set(x,-5.75,13);g.add(p);
+    });
+  }else{
+    var fl2=mesh(hplate(W,D,1.8,V.cr,22),M.frame);fl2.position.y=-8.0;g.add(fl2);
+    var out2=rrShape(W,D,V.cr);out2.holes.push(rrPath(52.4,40.4,5));
+    var wa2=extY(out2,5.4,22);wa2.translate(0,-7.1,0);g.add(mesh(wa2,M.frame));
+    /* 聽診器式振膜 Ø28 × 5（外凸） */
+    var bell=cylY(14,13.2,5.0,M.steel,56);bell.position.y=-11.4;g.add(bell);
+    var bface=cylY(13.6,13.6,0.8,M.nickel,56);bface.position.y=-13.9;g.add(bface);
+    var brim=mesh(new THREE.TorusGeometry(14.6,0.7,10,56),M.steel);
+    brim.rotation.x=-Math.PI/2;brim.position.y=-9.0;g.add(brim);
+    var bgroove=mesh(new THREE.TorusGeometry(9.4,0.3,8,48),M.aluDark);
+    bgroove.rotation.x=-Math.PI/2;bgroove.position.y=-14.2;g.add(bgroove);
+    /* 12 孔聲學陣列 */
+    for(var i=0;i<12;i++){
+      var a=i*Math.PI/6;
+      var h2=cylY(0.95,0.95,1.0,M.black,12);
+      h2.position.set(Math.cos(a)*12.2,-14.15,Math.sin(a)*12.2);g.add(h2);
+    }
+    /* 雙波長 PPG（綠 530 / 紅外 660・940） */
+    [-19.5,19.5].forEach(function(x){
+      for(var k=-1;k<=1;k+=2){
+        var glassDisc=cylY(2.9,2.9,0.9,M.glass,28);
+        glassDisc.position.set(x,-8.55,k*7.0);g.add(glassDisc);
+        var em=cylY(1.7,1.7,0.5,M.emitG,24);
+        em.position.set(x,-8.95,k*7.0);g.add(em);
+      }
+    });
+    /* 磁鐵槽 */
+    [[-22,-18],[22,-18],[-22,18],[22,18]].forEach(function(p){
+      var pk=cylY(3.6,3.6,0.6,M.inkSoft,26);
+      pk.position.set(p[0],-8.35,p[1]);g.add(pk);
+    });
+    /* pogo 孔 Ø2.4 ×2 */
+    [-7,7].forEach(function(x){
+      var hole2=cylY(1.2,1.2,1.0,M.black,18);hole2.position.set(x,-8.4,13);g.add(hole2);
+      var rim2=mesh(new THREE.TorusGeometry(1.5,0.22,8,20),M.gold);
+      rim2.rotation.x=-Math.PI/2;rim2.position.set(x,-7.05,13);g.add(rim2);
     });
   }
-  /* 固定腳（兩側） */
-  [-4.3,4.3].forEach(function(x){
-    var l=box(0.8,2.2,0.9,M.steel);
-    l.position.set(x,-7.6,-1.9);g.add(l);
-  });
   return g;
 }
-/* ⑫ 喇叭 Ø14 × 2.5 */
-function bSpeaker(){
+
+/* 磁吸套框（僅 B 版） */
+function bCradle(){
   var g=new THREE.Group();
-  var can=cylZ(7,7,2.1,M.steel,40);
-  can.position.set(-12.5,-6.5,Z_SPK);g.add(can);
-  var face=cylZ(6.6,6.6,0.3,M.inkSoft,40);
-  face.position.set(-12.5,-6.5,Z_SPK+1.15);g.add(face);
-  var ring=mesh(new THREE.TorusGeometry(6.9,0.4,8,40),M.rubber);
-  ring.position.set(-12.5,-6.5,Z_SPK-1.1);g.add(ring);
-  /* 振膜同心紋 */
-  for(var i=1;i<=3;i++){
-    var t=mesh(new THREE.TorusGeometry(i*1.5,0.09,6,36),M.ink);
-    t.position.set(-12.5,-6.5,Z_SPK+1.3);g.add(t);
+  var frame=mesh(hframe(60,48,3.2,6.0,46,30,4.5),M.frame);
+  frame.position.y=-10.5;g.add(frame);
+  /* 夾帶翼（夾住 20 mm 織帶：上下面各一片，寬度沿 Z） */
+  [-1,1].forEach(function(s){
+    var o=box(9,1.3,26,M.frame);o.position.set(s*30,-8.25,0);g.add(o);
+    var i2=box(9,1.3,26,M.frame);i2.position.set(s*30,-12.75,0);g.add(i2);
+    var br=box(2.4,4.6,26,M.frame);br.position.set(s*34.2,-10.5,0);g.add(br);
+  });
+  /* 4 顆 Ø6.2 磁鐵槽 */
+  [[-22,-18],[22,-18],[-22,18],[22,18]].forEach(function(p){
+    var pk=cylY(3.5,3.5,0.9,M.inkSoft,26);pk.position.set(p[0],-10.5,p[1]);g.add(pk);
+    var mg=cylY(3.0,3.0,0.7,M.nickel,26);mg.position.set(p[0],-10.5,p[1]);g.add(mg);
+  });
+  /* 定位銷 */
+  [14,-16].forEach(function(x){
+    var pin=cylY(1.25,1.25,3.0,M.steel,18);pin.position.set(x,-10.5,18);g.add(pin);
+  });
+  var acc=box(44,0.6,1.2,M.emitM);acc.position.set(0,-9.0,-20.5);g.add(acc);
+  return g;
+}
+
+/* 錶帶（沿曲線擠出，寬度 20 沿 Z） */
+function bStrap(){
+  var g=new THREE.Group();
+  var pts,cx,cy;
+  if(V.key==='a'){
+    pts=[[31,-3.2,0],[33.5,-13,0],[27,-27,0],[13,-37,0],[0,-40,0],
+         [-13,-37,0],[-27,-27,0],[-33.5,-13,0],[-31,-3.2,0]];
+    cx=-27;cy=-27;
+  }else{
+    pts=[[31,-10.2,0],[34,-20,0],[27,-33,0],[13,-43,0],[0,-46,0],
+         [-13,-43,0],[-27,-33,0],[-34,-20,0],[-31,-10.2,0]];
+    cx=-27;cy=-33;
   }
-  /* 端子 */
-  [[-2.0],[2.0]].forEach(function(o){
-    var p=box(1.2,0.5,0.6,M.gold2);
-    p.position.set(-12.5+o[0],-6.5-6.4,Z_SPK+0.2);g.add(p);
+  var pv=pts.map(function(p){return new THREE.Vector3(p[0],p[1],p[2]);});
+  var band=mesh(ribbon(pv,20,2.5,110),M.strap);
+  g.add(band);
+  /* 車縫線 */
+  [-1,1].forEach(function(s){
+    var sp=pv.map(function(p){return new THREE.Vector3(p.x,p.y,p.z+s*8.4);});
+    var cu=new THREE.CatmullRomCurve3(sp);
+    var st=new THREE.Mesh(new THREE.TubeGeometry(cu,90,0.24,6,false),M.strap2);
+    g.add(st);
   });
-  return g;
-}
-/* ⑬ AMOLED 螢幕模組（玻璃 40 × 25 ＋ 可視 35.5 × 21.8） */
-function bAmoled(){
-  var g=new THREE.Group();
-  var body=box(40,25,1.4,M.lcdBody);body.position.z=Z_AMO;g.add(body);
-  var gl=box(40,25,1.2,M.glass);gl.position.z=Z_GL;g.add(gl);
-  /* 螢幕 UI：比可視區大 0.5 mm、往前 0.14 mm，不與玻璃共面 */
-  var ui=new THREE.Mesh(new THREE.PlaneGeometry(ACT_W+0.5,ACT_H+0.5),uiMat());
-  ui.position.z=Z_GL+0.6+0.14;g.add(ui);
-  /* FPC 排線（往下折） */
-  var tail=box(11,5.2,0.22,M.fpc);tail.position.set(0,-12.3,Z_AMO-1.0);g.add(tail);
-  var conn=box(11.4,1.2,0.42,M.gold2);conn.position.set(0,-14.0,Z_AMO-1.0);g.add(conn);
-  /* 驅動 IC */
-  var drv=box(13,1.5,0.5,M.ink);drv.position.set(0,-10.4,Z_AMO-0.9);g.add(drv);
-  return g;
-}
-/* ⑭ 主機前殼（44 × 29.1 × 3.0 框 ＋ 1.8 面板） */
-function bShell(){
-  var g=new THREE.Group();
-  /* 側壁框：從背蓋前緣 -3.2 一路到前緣 +4.8（內腔 41 × 26）
-     原本只做 1.8 → 4.8，會留下一圈 5 mm 的側面開口，斜看就從縫裡看到綠色 PCB */
-  var ring=mesh(winPlate(HW-0.4,HD-0.4,8.0,3.2,HW-3.0,HD-3.0,3.0),M.hostShell);
-  ring.position.z=0.8;g.add(ring);
-  /* 前面板（3.0 → 4.8，開窗 39 × 24，唇邊壓住 40 × 25 玻璃） */
-  var face=mesh(winPlate(HW,HD,1.8,3.4,WIN_W,WIN_H,2.6),M.hostShell);
-  face.position.z=Z_SHELL;g.add(face);
-  /* 開窗內壁（黑色，深 1.2 mm，讀得出螢幕凹進去） */
-  var well=mesh(winPlate(WIN_W+2.2,WIN_H+2.2,1.2,2.4,WIN_W+0.5,WIN_H+0.5,2.2),M.hostShell2);
-  well.position.z=Z_SHELL-0.6;g.add(well);
-  /* 四顆螺絲柱 */
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
-    var b=cylZ(2.1,2.1,4.6,M.hostShell2,16);
-    b.position.set(s[0]*(HW/2-3.2),s[1]*(HD/2-3.2),Z_SHELL-2.6);g.add(b);
-  });
-  /* 頂緣麥克風收音孔（2 × Ø1.0，孔距 1.4，貫穿前面板） */
-  [-0.7,0.7].forEach(function(x){
-    var h=cylZ(0.5,0.5,2.0,M.ink,12);
-    h.position.set(x,HD/2-1.5,Z_SHELL+0.4);g.add(h);
-    var rim=mesh(new THREE.TorusGeometry(0.72,0.16,6,16),M.hostShell2);
-    rim.position.set(x,HD/2-1.5,Z_SHELL+0.92);g.add(rim);
+  /* 側壓快扣（放在帶子正後方，切線沿 X 才好對齊） */
+  var bky=(V.key==='a')?-40:-46;
+  var bk=box(15,6.4,26,M.buckle);bk.position.set(0,bky,0);g.add(bk);
+  var bk2=box(17,3.4,28,M.buckle);bk2.position.set(0,bky+4.0,0);g.add(bk2);
+  var bk3=box(3.6,6.8,6.0,M.nickel);bk3.position.set(0,bky-0.6,0);g.add(bk3);
+  var bk4=box(2.0,6.4,26,M.buckle);bk4.position.set(-10.5,bky,0);g.add(bk4);
+  /* 帶環（兩道車縫壓條） */
+  [-6,6].forEach(function(dx){
+    var lp=box(2.6,4.2,22,M.strap2);lp.position.set(dx,bky,0);g.add(lp);
   });
   return g;
 }
 
-/* ═══════════════ 零件定義（組裝順序＝編號順序，由下往上） ═══════════════ */
-var DEFS=[
- {id:'feet', f:bFeet, host:false, n:'防滑墊 ×4',
-  d:'Ø12 × 1.5 mm（孔位 44 × 44）', mt:'矽膠 60 Shore A・背膠',
-  u:'四角各一顆，讓立架在桌面不滑動也不刮桌面；Ø12 對應 60 × 60 底座的 44 mm 孔距，受力落在四角而不是中央。',
-  ex:[0,-12,0]},
- {id:'base', f:bBase, host:false, n:'立架底座',
-  d:'60.0 × 12.0 × 60.0 mm（R8・壁厚 1.6）', mt:'PLA 霧白・0.4 mm 噴嘴・3 層牆',
-  u:'整片配重底盤，內部走線；後方留 9.6 × 3.8 mm 進線孔配應力消除套，USB-C 供電線從背面進來。',
-  ex:[0,-2,0]},
- {id:'led', f:bLed, host:false, n:'狀態指示燈（導光條）',
-  d:'導光條 26 × 2.6 mm・WS2812B 5 × 5 × 1.6', mt:'壓克力導光＋RGB LED・PWM 呼吸',
-  u:'底座前方 26 mm 導光條：待機慢呼吸橘光、收到叫聲事件閃兩下、斷線轉紅。發光面比底座前緣凸 0.2 mm，不做動畫也不會有共面雜訊。',
-  ex:[0,-4,26]},
- {id:'c3', f:bC3, host:false, n:'ESP32-C3 SuperMini（無線橋）',
-  d:'22.5 × 18.0 × 3.2 mm', mt:'FR-4 綠板＋金屬屏蔽罩',
-  u:'RP2350 這塊板子沒有 WiFi/BT，所以另外掛一顆 C3 專做 BLE Central ＋ WiFi 上傳，用 UART 115200（GP16/GP17）跟主機對接。',
-  pos:[0,16.8,-6.5], ex:[-56,-4,10]},
- {id:'batt', f:bBatt, host:false, n:'鋰聚合物電池 2000 mAh',
-  d:'38.0 × 60.0 × 8.5 mm', mt:'鋁塑膜・3.7 V 7.4 Wh・附保護板',
-  u:'直立在背板內側、貼著 20° 斜背，重心落在底座範圍內不會倒。斷電備援 4–5 天（待機 15–25 mA）。',
-  pos:[0,44,-22], ex:[48,2,8]},
- {id:'tower', f:bTower, host:false, n:'立架立柱／背板',
-  d:'60.0 × 66.5 × 40.0 mm（前面板後傾 20°）', mt:'PLA 霧白・壁厚 1.6・M3 螺絲柱',
-  u:'主體結構：20° 斜面板讓桌面視角正對螢幕，背面 25 mm 深腔放電池與 C3；面板內側四顆 M3 螺絲柱鎖住主機安裝框。',
-  ex:[0,62,-8]},
- {id:'hdr', f:bHeader, host:false, n:'排針 1 × 6（2.54 mm）',
-  d:'15.24 × 2.54 × 8.5 mm', mt:'黃銅鍍金 pin＋PBT 本體',
-  u:'主機插上立架的電源／UART 介面：5V、GND、TX、RX、兩條備用。針穿過面板 31 × 7.5 mm 走線槽插進主機背面。',
-  ex:[-38,10,20]},
- {id:'back', f:bBackCover, host:true, n:'主機背蓋',
-  d:'44.0 × 29.1 × 1.6 mm', mt:'PC+ABS 霧黑・超音波熔接',
-  u:'背面：喇叭柵孔 7 孔、電池線出口、4 個測試點、側邊 5 道散熱縫；四角 M2 螺絲孔對鎖前殼。',
-  ex:[0,10,8]},
- {id:'pcb', f:bPcb, host:true, n:'RP2350 主機板',
-  d:'38.0 × 24.0 × 1.2 mm（4 層）', mt:'FR-4 綠板＋ENIG 金焊盤',
-  u:'RP2350A ＋ QSPI Flash ＋ QMI8658（6 軸）＋ PCF85063（RTC）＋ microSD 卡座 ＋ MX1.25 電池座；AMOLED 走 20 pin FPC。',
-  ex:[0,32,16]},
- {id:'mic', f:bMic, host:true, n:'麥克風 INMP441',
-  d:'4.72 × 3.76 × 1.0 mm（9-pin LGA）', mt:'MEMS 麥克風・I²S 數位輸出',
-  u:'基地台自己的耳朵：I²S 24-bit、60 Hz–15 kHz，用來現場收音再交給 RP2350 做分類，不倚賴項圈麥克風。',
-  ex:[28,22,14]},
- {id:'usbc', f:bUsbC, host:true, n:'USB-C 16P 母座',
-  d:'8.94 × 7.35 × 3.26 mm', mt:'不鏽鋼殼＋鍍金接點・24 pin',
-  u:'主供電（5 V / 2 A）與韌體燒錄；接座藏在背蓋下緣，插著線也能立在桌上。',
-  ex:[-40,14,18]},
- {id:'spk', f:bSpeaker, host:true, n:'微型喇叭 Ø14',
-  d:'Ø14.0 × 2.5 mm', mt:'鎳鐵氧體＋PET 振膜・8 Ω 1 W',
-  u:'播放翻譯語音（「我餓了」）與提示音；從背蓋柵孔出聲，背腔在背蓋與 PCB 之間留 1.5 mm。',
-  ex:[-32,42,22]},
- {id:'amoled', f:bAmoled, host:true, n:'1.64 吋 AMOLED 模組',
-  d:'玻璃 40.0 × 25.0 mm（可視 35.5 × 21.8）', mt:'280 × 456 AMOLED・QSPI・觸控',
-  u:'主畫面：貓臉表情 ＋ 一行翻譯結果 ＋ 音量／情緒波形。模組凹進前框 1.6 mm，斜看也不會漏光。',
-  ex:[0,54,30]},
- {id:'shell', f:bShell, host:true, n:'主機前殼（螢幕框）',
-  d:'44.0 × 29.1 × 3.0 mm（開窗 39 × 24）', mt:'PC+ABS 霧黑・噴砂咬花',
-  u:'開窗 39 × 24 的唇邊壓住 40 × 25 玻璃邊緣 0.5 mm，斜看也不會露出內部；玻璃凹進框內 1.6 mm，頂緣兩孔 Ø1.0 給麥克風進音。',
-  ex:[0,72,44]}
-];
+var BUILD={lid:bLid,screen:bScreen,mid:bMid,pcb:bPcb,batt:bBatt,fpc:bFpc,
+  motor:bMotor,mag:bMag,pogo:bPogo,back:bBack,strap:bStrap,cradle:bCradle};
 
-/* ═══════════════ 建構 ═══════════════ */
+/* ═══════════════ 建構／切換型號 ═══════════════ */
 var model=new THREE.Group();scene.add(model);
 var PARTS=[],LBL=[];
 window.PARTS=PARTS;
 
-var axisMat=new THREE.LineDashedMaterial({color:0x2f8fff,dashSize:5,gapSize:4,
+/* 爆炸虛線軸 */
+var axisMat=new THREE.LineDashedMaterial({color:0x2f8fff,dashSize:4,gapSize:3,
   transparent:true,opacity:.9});
 var axisGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-40,0),
-  new THREE.Vector3(0,170,0)]);
+  new THREE.Vector3(0,140,0)]);
 var axisLine=new THREE.Line(axisGeo,axisMat);
 axisLine.computeLineDistances();axisLine.visible=false;scene.add(axisLine);
 
@@ -2100,16 +2258,16 @@ var dimGroup=new THREE.Group();dimGroup.visible=false;scene.add(dimGroup);
 function sprLabel(text,size,fg,bg){
   var fs=64,pad=18;
   var c=document.createElement('canvas').getContext('2d');
-  var ff='bold '+fs+'px "PingFang TC","Noto Sans TC",sans-serif';
+  var ff='bold '+fs+'px "PingFang TC",sans-serif';
   c.font=ff;
   var w=Math.ceil(c.measureText(text).width)+pad*2,h=fs+pad*2;
   var cv=document.createElement('canvas');cv.width=w;cv.height=h;
   c=cv.getContext('2d');c.font=ff;
-  var r=18;c.fillStyle=bg||'#ff8a5c';c.beginPath();
+  var r=18;c.fillStyle=bg||'#4be3a8';c.beginPath();
   c.moveTo(r,0);c.lineTo(w-r,0);c.quadraticCurveTo(w,0,w,r);c.lineTo(w,h-r);
   c.quadraticCurveTo(w,h,w-r,h);c.lineTo(r,h);c.quadraticCurveTo(0,h,0,h-r);
   c.lineTo(0,r);c.quadraticCurveTo(0,0,r,0);c.closePath();c.fill();
-  c.fillStyle=fg||'#2a1108';c.textBaseline='middle';c.fillText(text,pad,h/2+2);
+  c.fillStyle=fg||'#06231b';c.textBaseline='middle';c.fillText(text,pad,h/2+2);
   var t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;t.encoding=THREE.sRGBEncoding;
   var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,depthWrite:false,
     transparent:true}));
@@ -2125,82 +2283,192 @@ function rod(a,b,r,col){
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
   m.renderOrder=998;return m;
 }
-function V(x,y,z){return new THREE.Vector3(x,y,z);}
 function addDim(a,b,label,size){
-  var col=0xff8a5c;
-  var m=rod(a,b,0.30,col);if(m)dimGroup.add(m);
+  var col=0x4be3a8;
+  dimGroup.add(rod(a,b,0.30,col));
   var dir=new THREE.Vector3().subVectors(b,a).normalize();
   var perp=new THREE.Vector3(0,1,0);
   if(Math.abs(dir.dot(perp))>0.9)perp.set(1,0,0);
-  [a,b].forEach(function(p){
-    var c1=p.clone().add(new THREE.Vector3().crossVectors(dir,perp).multiplyScalar(1.9));
-    var c2=p.clone().add(new THREE.Vector3().crossVectors(dir,perp).multiplyScalar(-1.9));
-    var t=rod(c1,c2,0.28,col);if(t)dimGroup.add(t);
+  [1,-1].forEach(function(sg){
+    [a,b].forEach(function(p){
+      var t1=p.clone().add(new THREE.Vector3().crossVectors(dir,perp).multiplyScalar(2.2*sg));
+      var t2=p.clone().add(new THREE.Vector3().crossVectors(dir,perp).multiplyScalar(-2.2*sg));
+      dimGroup.add(rod(t1,t2,0.30,col));
+    });
   });
   var lb=sprLabel(label,size||3.4);
   lb.position.copy(a).add(b).multiplyScalar(.5);
   dimGroup.add(lb);
 }
-function extLine(from,to){
-  var m=rod(from,to,0.14,0xff8a5c);if(m)dimGroup.add(m);
-}
 function buildDims(){
   while(dimGroup.children.length){dimGroup.remove(dimGroup.children[0]);}
-  var sz=3.2;
-  /* 立架三尺寸 */
-  var yT=SH+8, zR=-SD/2-10, xR=SW/2+12;
-  addDim(V(-SW/2,yT,-SD/2),V(SW/2,yT,-SD/2),'立架寬 60 mm',sz);
-  [-SW/2,SW/2].forEach(function(x){extLine(V(x,SH,zR),V(x,yT,-SD/2));});
-  addDim(V(xR,yT,-SD/2),V(xR,yT,SD/2),'深 60 mm',sz);
-  [-SD/2,SD/2].forEach(function(z){extLine(V(xR,SH,z),V(xR,yT,z));});
-  addDim(V(xR,0,SD/2+8),V(xR,SH,SD/2+8),'總高 80 mm',sz);
-  [0,SH].forEach(function(y){extLine(V(SW/2,y,SD/2),V(xR,y,SD/2+8));});
-  /* 主機三尺寸（沿面板座標） */
-  var X=new THREE.Vector3(1,0,0);
-  var hs=(function(){return 2.7;})();
-  var front=HOST_C.clone().addScaledVector(N,HT/2);
-  var topA=front.clone().addScaledVector(UP,HD/2).addScaledVector(N,4);
-  addDim(topA.clone().addScaledVector(X,-HW/2),topA.clone().addScaledVector(X,HW/2),
-    '主機寬 44 mm',hs);
-  [1,-1].forEach(function(s){
-    extLine(front.clone().addScaledVector(X,s*HW/2).addScaledVector(UP,HD/2),
-            topA.clone().addScaledVector(X,s*HW/2));
+  var W=V.W,D=V.D,H=V.H,sz=(V.key==='a')?3.2:3.0;
+  var yTop=H/2+7, zOut=-D/2-9, xOut=W/2+10;
+  var c=0x4be3a8;
+  /* 寬（X） */
+  addDim(new THREE.Vector3(-W/2,yTop,zOut),new THREE.Vector3(W/2,yTop,zOut),
+    '寬 '+W.toFixed(1)+' mm',sz);
+  [-W/2,W/2].forEach(function(x){
+    dimGroup.add(rod(new THREE.Vector3(x,H/2,zOut+2),new THREE.Vector3(x,yTop,zOut),0.16,c));
   });
-  var rEdge=front.clone().addScaledVector(X,HW/2+6);
-  addDim(rEdge.clone().addScaledVector(UP,-HD/2),rEdge.clone().addScaledVector(UP,HD/2),
-    '高 29.1 mm',hs);
-  [1,-1].forEach(function(s){
-    extLine(front.clone().addScaledVector(X,HW/2).addScaledVector(UP,s*HD/2),
-            rEdge.clone().addScaledVector(UP,s*HD/2));
+  /* 深（Z） */
+  addDim(new THREE.Vector3(xOut,yTop,-D/2),new THREE.Vector3(xOut,yTop,D/2),
+    '深 '+D.toFixed(1)+' mm',sz);
+  [-D/2,D/2].forEach(function(z){
+    dimGroup.add(rod(new THREE.Vector3(xOut-2,H/2,z),new THREE.Vector3(xOut,yTop,z),0.16,c));
   });
-  var tA=front.clone().addScaledVector(X,HW/2+6).addScaledVector(UP,HD/2+5);
-  addDim(tA.clone().addScaledVector(N,-HT),tA.clone().addScaledVector(N,0),'厚 9.6 mm',hs);
-  extLine(front.clone().addScaledVector(X,HW/2).addScaledVector(UP,HD/2),
-          tA.clone().addScaledVector(N,0));
-  extLine(HOST_C.clone().addScaledVector(X,HW/2).addScaledVector(UP,HD/2).addScaledVector(N,-HT/2),
-          tA.clone().addScaledVector(N,-HT));
+  /* 厚（Y） */
+  addDim(new THREE.Vector3(xOut,-H/2,zOut),new THREE.Vector3(xOut,H/2,zOut),
+    '厚 '+H.toFixed(1)+' mm',sz);
+  [-H/2,H/2].forEach(function(y){
+    dimGroup.add(rod(new THREE.Vector3(xOut-2,y,zOut+2),new THREE.Vector3(xOut,y,zOut),0.16,c));
+  });
 }
 
-DEFS.forEach(function(d){
-  var g=(d.host?d.f():d.f());
-  if(d.host){g.rotation.x=HOST_ROT;g.position.copy(HOST_C);}
-  else if(d.pos){g.position.set(d.pos[0],d.pos[1],d.pos[2]);}
-  g.userData.info={t:d.n,rows:[['尺寸',d.d],['材質',d.mt],['用途',d.u]]};
-  model.add(g);
-  var rec={id:d.id,def:d,g:g,num:0,ex:new THREE.Vector3().fromArray(d.ex),
-    home:g.position.clone()};
-  g.userData.rec=rec;PARTS.push(rec);
-});
+function buildVariant(key,keepMode){
+  SCREENS.length=0;
+  /* 先把上一個型號改過的殼色還原，再切到該型號對應的外殼材質 */
+  if(typeof restoreShellBase==='function')restoreShellBase();
+  if(typeof SHELLSET!=='undefined')SHELLM=SHELLSET[key]||SHELLSET.a;
+  V=VD[key]||VD.a;
+  /* 清舊 */
+  for(var i=model.children.length-1;i>=0;i--)model.remove(model.children[i]);
+  PARTS.length=0;
+  LBL.forEach(function(L){
+    if(L.el.parentNode)L.el.parentNode.removeChild(L.el);
+    if(L.line.parentNode)L.line.parentNode.removeChild(L.line);
+    if(L.dot.parentNode)L.dot.parentNode.removeChild(L.dot);
+  });
+  LBL.length=0;
+  clearFocus(true);
+  hideInfo();clearOutline();
+  buildDims();
 
-buildDims();
-buildLabels();
+  V.parts.forEach(function(d){
+    var g=BUILD[d.f]();
+    g.userData.info={t:d.n,rows:[['尺寸',d.d],['材質',d.mt],['用途',d.u]]};
+    g.position.set(0,0,0);
+    model.add(g);
+    var rec={id:d.id,def:d,g:g,num:d.o,ex:new THREE.Vector3().fromArray(d.ex)};
+    g.userData.rec=rec;PARTS.push(rec);
+  });
+  buildLabels();
+  /* 軸長度 */
+  var bb=new THREE.Box3().setFromObject(model);
+  axisGeo.setFromPoints([new THREE.Vector3(0,bb.min.y-30,0),
+    new THREE.Vector3(0,bb.max.y+150,0)]);
+  axisLine.computeLineDistances();
+  /* HUD */
+  document.getElementById('hudtag').innerHTML='<b>'+V.label+'</b> ｜ '+V.size;
+  var bs=document.querySelectorAll('#vsw button');
+  for(var j=0;j<bs.length;j++)bs[j].className=(bs[j].getAttribute('data-v')===key)?'on':'';
+  applyExplode();
+  /* 換型號後重新套用目前選的外殼色（新 meshes 才會拿到新顏色） */
+  if(window.__shellHex&&typeof setShellColor==='function')setShellColor(window.__shellHex);
+  window.__pp.variant=key;
+  window.__pp.win={w:V.win.w,h:V.win.h};
+  if(keepMode!==false)setMode(MODE,true);
+}
 
-/* ═══════════════ 標籤（左右分欄＋引線） ═══════════════ */
+/* ═══════════════ 相機取景（解析式 fitBox） ═══════════════ */
+function modelBox(){
+  var b=new THREE.Box3();
+  model.children.forEach(function(o){if(o.visible)b.expandByObject(o);});
+  if(dimGroup.visible)b.union(new THREE.Box3().setFromObject(dimGroup));
+  return b;
+}
+function fitBox(dir,pad){
+  var b=modelBox();
+  var c=b.getCenter(new THREE.Vector3()),size=b.getSize(new THREE.Vector3());
+  var d=dir.clone().normalize();
+  var up=new THREE.Vector3(0,1,0);
+  var right=new THREE.Vector3().crossVectors(up,d).normalize();
+  if(right.lengthSq()<1e-6)right.set(1,0,0);
+  var upv=new THREE.Vector3().crossVectors(d,right).normalize();
+  var tanV=Math.tan(camera.fov*Math.PI/360),tanH=tanV*camera.aspect;
+  var hu=0,hr=0,hf=0,p=new THREE.Vector3();
+  for(var i=0;i<8;i++){
+    p.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).sub(c);
+    hf=Math.max(hf,-p.dot(d));
+    hr=Math.max(hr,Math.abs(p.dot(right)));
+    hu=Math.max(hu,Math.abs(p.dot(upv)));
+  }
+  var dist=Math.max(hu/tanV,hr/tanH)*pad+hf;
+  var pr=Math.max(size.x,size.y,size.z);
+  camera.near=Math.max(pr/150,0.05);
+  camera.far=pr*40;
+  camera.updateProjectionMatrix();
+  controls.target.copy(c);
+  camera.position.copy(c).addScaledVector(d,dist);
+  camera.lookAt(c);
+  controls.update();
+  return b;
+}
+var DIRS={
+  asm:new THREE.Vector3(0.48,0.62,0.58),
+  exploded:new THREE.Vector3(0.40,0.46,0.79),
+  dims:new THREE.Vector3(0.52,0.62,0.59)
+};
+function padOf(mode){
+  var narrow=window.innerWidth<760;
+  if(mode==='exploded')return narrow?1.95:1.42;
+  if(mode==='dims')return narrow?1.55:1.26;
+  return narrow?1.26:1.16;
+}
+var userMoved=false;
+controls.addEventListener('start',function(){userMoved=true;});
+
+/* ═══════════════ 模式 ═══════════════ */
+var MODE='asm',EX=0,EXT=0;
+var exr=document.getElementById('exr'),exv=document.getElementById('exv');
+var lblLayer=document.getElementById('lblLayer'),leadSvg=document.getElementById('lead');
+
+function setMode(m,instant){
+  MODE=m;
+  var bs=document.querySelectorAll('#bar button[data-mode]');
+  for(var i=0;i<bs.length;i++)bs[i].className=(bs[i].getAttribute('data-mode')===m)?'on':'';
+  axisLine.visible=(m==='exploded');
+  lblLayer.style.display=(m==='exploded')?'block':'none';
+  dimGroup.visible=(m==='dims');
+  /* 尺寸視圖只看機身：錶帶收起，避免尺寸線被大環拉遠 */
+  PARTS.forEach(function(p){if(p.id==='strap')p.g.visible=(m!=='dims');});
+  if(m==='exploded'){EXT=(exr.value|0)/100;if(EXT<0.35){EXT=1;exr.value=100;}}
+  else{EXT=0;exr.value=0;}
+  exv.textContent=Math.round(EXT*100)+'%';
+  if(instant)EX=EXT;
+  clearFocus(true);
+  applyExplode();
+  userMoved=false;
+  fitBox(DIRS[m]||DIRS.asm,padOf(m));
+  MODEFIT[m]=camera.position.distanceTo(controls.target);
+  updateLabels(true);
+  hideInfo();
+  syncSlider();
+  try{renderer.render(scene,camera);}catch(e){}
+  window.__pp.mode=m;
+}
+var EXK=0.92;
+function applyExplode(){
+  var t=EX*EXK;
+  for(var i=0;i<PARTS.length;i++){
+    var p=PARTS[i];
+    p.g.position.copy(p.ex).multiplyScalar(t);
+    /* 特寫：選中的零件沿相機方向再往前推，成為最前層 */
+    if(FOCUS.rec&&p===FOCUS.rec&&FOCUS.t>0.0005)
+      p.g.position.addScaledVector(FOCUS.dir,FOCUS.push*FOCUS.t);
+  }
+  model.updateMatrixWorld(true);
+}
+
+/* ═══════════════ 標籤 ═══════════════ */
 function buildLabels(){
-  var lead=document.getElementById('lead');
-  lead.innerHTML='';
-  PARTS.slice().sort(function(a,b){return a.def.ex?0:0;});
-  PARTS.forEach(function(p,i){
+  lblLayer.appendChild(leadSvg);
+  var order=PARTS.slice().sort(function(a,b){
+    var ia=a.def.o||99,ib=b.def.o||99;
+    if(ia!==ib)return ia-ib;
+    return a.id<b.id?-1:1;
+  });
+  order.forEach(function(p,i){
     p.num=i+1;
     var el=document.createElement('div');
     el.className='lbl';
@@ -2211,11 +2479,11 @@ function buildLabels(){
     t.appendChild(nb);t.appendChild(ii);
     el.appendChild(b);el.appendChild(t);
     el.style.display='none';
-    document.getElementById('lblLayer').appendChild(el);
+    lblLayer.appendChild(el);
     var line=document.createElementNS('http://www.w3.org/2000/svg','polyline');
     var dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
     dot.setAttribute('r','2.6');
-    lead.appendChild(line);lead.appendChild(dot);
+    leadSvg.appendChild(line);leadSvg.appendChild(dot);
     LBL.push({p:p,el:el,line:line,dot:dot,side:'L',ty:0,ay:0});
   });
 }
@@ -2223,7 +2491,7 @@ function projPoint(v){
   var q=v.clone().project(camera);
   return {x:(q.x*.5+.5)*window.innerWidth,y:(-q.y*.5+.5)*window.innerHeight,z:q.z};
 }
-function updateLabels(){
+function updateLabels(force){
   if(MODE!=='exploded')return;
   var W=window.innerWidth,H=window.innerHeight,cx=W/2;
   var narrow=W<760;
@@ -2231,8 +2499,7 @@ function updateLabels(){
   /* 底部界線＝控制列上緣（不能只用視窗高度，否則最下方標籤會壓到按鈕列／被切掉） */
   var _barEl=document.getElementById('bar');
   var LIM=(_barEl?_barEl.getBoundingClientRect().top:window.innerHeight)-12;
-  var lead=document.getElementById('lead');
-  lead.setAttribute('width',W);lead.setAttribute('height',H);
+  leadSvg.setAttribute('width',W);leadSvg.setAttribute('height',H);
   LBL.forEach(function(L){
     var bb=new THREE.Box3().setFromObject(L.p.g);
     var ctr=bb.getCenter(new THREE.Vector3());
@@ -2241,7 +2508,7 @@ function updateLabels(){
     L.side=(pr.x<cx)?'L':'R';
     L.el.style.display='flex';
   });
-  var colW=narrow?Math.max(118,Math.min(166,W*0.40)):Math.min(310,Math.max(150,W*0.235));
+  var colW=narrow?Math.max(118,Math.min(166,W*0.40)):Math.min(310,Math.max(140,W*0.24));
   ['L','R'].forEach(function(side){
     var arr=LBL.filter(function(L){return L.side===side;})
       .sort(function(a,b){return a.ay-b.ay;});
@@ -2281,106 +2548,12 @@ function updateLabels(){
       L.el.style.width=colW+'px';
       L.el.style.top=Math.round(L.ty)+'px';
       var edgeX=(side==='L')?(colW-10):(W-colW+10);
-      L.line.setAttribute('points',
-        (edgeX+(side==='L'?4:-4)).toFixed(0)+','+Math.round(L.ty)+' '+
+      L.line.setAttribute('points',(edgeX+(side==='L'?4:-4)).toFixed(0)+','+Math.round(L.ty)+' '+
         (edgeX+(side==='L'?26:-26)).toFixed(0)+','+Math.round(L.ty)+' '+
         (L.ax+(side==='L'?9:-9)).toFixed(0)+','+L.ay.toFixed(0));
       L.dot.setAttribute('cx',L.ax.toFixed(1));L.dot.setAttribute('cy',L.ay.toFixed(1));
     });
   });
-}
-
-/* ═══════════════ 相機取景（解析式 fitBox） ═══════════════ */
-function modelBox(){
-  var b=new THREE.Box3();
-  model.children.forEach(function(o){if(o.visible)b.expandByObject(o);});
-  if(dimGroup.visible)b.union(new THREE.Box3().setFromObject(dimGroup));
-  return b;
-}
-function fitBox(dir,pad){
-  var b=modelBox();
-  var c=b.getCenter(new THREE.Vector3()),size=b.getSize(new THREE.Vector3());
-  var d=dir.clone().normalize();
-  var up=new THREE.Vector3(0,1,0);
-  var right=new THREE.Vector3().crossVectors(up,d).normalize();
-  if(right.lengthSq()<1e-6)right.set(1,0,0);
-  var upv=new THREE.Vector3().crossVectors(d,right).normalize();
-  var tanV=Math.tan(camera.fov*Math.PI/360),tanH=tanV*camera.aspect;
-  var hu=0,hr=0,hf=0,p=new THREE.Vector3();
-  for(var i=0;i<8;i++){
-    p.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).sub(c);
-    hf=Math.max(hf,-p.dot(d));
-    hr=Math.max(hr,Math.abs(p.dot(right)));
-    hu=Math.max(hu,Math.abs(p.dot(upv)));
-  }
-  var dist=Math.max(hu/tanV,hr/tanH)*pad+hf;
-  var pr=Math.max(size.x,size.y,size.z);
-  /* near/far 隨尺度，但比例要收斂（near 太小會讓 0.1 mm 級間隙 z-fighting） */
-  camera.near=Math.min(Math.max(pr*0.012,0.35),6);
-  camera.far=pr*45;
-  camera.updateProjectionMatrix();
-  controls.target.copy(c);
-  camera.position.copy(c).addScaledVector(d,dist);
-  camera.lookAt(c);
-  controls.update();
-  return b;
-}
-var DIRS={
-  asm:new THREE.Vector3(0.62,0.46,0.80),
-  exploded:new THREE.Vector3(0.46,0.30,0.90),
-  dims:new THREE.Vector3(0.58,0.40,0.82)
-};
-function padOf(mode){
-  var narrow=window.innerWidth<760;
-  if(mode==='exploded')return narrow?1.92:1.40;
-  if(mode==='dims')return narrow?1.60:1.22;
-  return narrow?1.28:1.14;
-}
-var userMoved=false;
-controls.addEventListener('start',function(){userMoved=true;});
-
-/* ═══════════════ 模式 ═══════════════ */
-var MODE='asm',EX=0,EXT=0,EXK=1.0;
-var exr=document.getElementById('exr'),exv=document.getElementById('exv');
-var lblLayer=document.getElementById('lblLayer');
-
-function setMode(m,instant){
-  MODE=m;
-  var bs=document.querySelectorAll('#bar button[data-mode]');
-  for(var i=0;i<bs.length;i++)bs[i].className=(bs[i].getAttribute('data-mode')===m)?'on':'';
-  axisLine.visible=(m==='exploded');
-  lblLayer.style.display=(m==='exploded')?'block':'none';
-  dimGroup.visible=(m==='dims');
-  /* 爆炸圖要留左右標籤欄，圖例會壓到左下標籤 → 收起 */
-  document.getElementById('legend').style.display=(m==='exploded')?'none':'';
-  if(m==='exploded'){EXT=(exr.value|0)/100;if(EXT<0.35){EXT=1;exr.value=100;}}
-  else{EXT=0;exr.value=0;}
-  exv.textContent=Math.round(EXT*100)+'%';
-  if(instant)EX=EXT;
-  clearFocus(true);
-  applyExplode();
-  userMoved=false;
-  fitBox(DIRS[m]||DIRS.asm,padOf(m));
-  MODEFIT[m]=camera.position.distanceTo(controls.target);
-  updateLabels();
-  hideInfo();
-  syncSlider();
-  try{renderer.render(scene,camera);}catch(e){}
-  window.__bs.mode=m;
-}
-function applyExplode(){
-  var t=EX*EXK;
-  for(var i=0;i<PARTS.length;i++){
-    var p=PARTS[i];
-    p.g.position.copy(p.home).addScaledVector(p.ex,t);
-    /* 特寫：選中的零件沿相機方向再往前推，成為最前層 */
-    if(FOCUS.rec&&p===FOCUS.rec&&FOCUS.t>0.0005)
-      p.g.position.addScaledVector(FOCUS.dir,FOCUS.push*FOCUS.t);
-  }
-  model.updateMatrixWorld(true);
-  /* 爆炸時地板下沉，讓零件不被地面切掉 */
-  floor.position.y=(MODE==='exploded')?FLOOR_Y-14:FLOOR_Y;
-  grid.position.y=floor.position.y+0.02;
 }
 
 
@@ -2591,8 +2764,29 @@ function __focusDbg(){
 
 
 /* ═══════════════ 外殼顏色（換色不動幾何，共用材質一起換） ═══════════════ */
-var SHELLM=[{k:'stand',f:1},{k:'stand2',f:0.94},{k:'standIn',f:0.88}];
-var SHELLC=[['霧白','e9e0d4'],['石墨','2f3336'],['水泥灰','9a968d'],['霧綠','6f8a5f'],['陶土','93522f']];
+/* 兩個型號的外殼不是同一組材質：
+   A 版是白色 PLA 上／下蓋（shell／shell2）；B 版是可拆表頭，機身是霧黑 PC+ABS
+   （frame）＋滿版黑玻璃上蓋，所以 B 版要一起把 frame 換色才有反應。 */
+var SHELLSET={
+  a:[{k:'shell',f:1},{k:'shell2',f:0.93}],
+  b:[{k:'frame',f:1},{k:'shell',f:1},{k:'shell2',f:0.93}]
+};
+var SHELLM=SHELLSET.a;
+function restoreShellBase(){
+  var map0={},i,k;
+  for(i=0;i<SHELLM.length;i++){
+    var sk=SHELLM[i].k,m=M[sk];
+    if(m&&M0&&M0[sk]!==undefined){m.color.setHex(M0[sk]);map0[m.uuid]=M0[sk];}
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map0[src]!==undefined)arr[k].color.setHex(map0[src]);
+    }
+  }
+}
+var SHELLC=[['珍珠白','f4f1ea'],['石墨黑','2b2f31'],['霧玫瑰','bc8590'],['薄荷綠','8fae95'],['霧藍','7d95a8']];
 function shadeHex(hex,f){var c=new THREE.Color(hex);c.multiplyScalar(f);return c;}
 function setShellColor(hex){
   if(hex.charAt(0)!=='#')hex='#'+hex;
@@ -2602,6 +2796,15 @@ function setShellColor(hex){
   var GAIN=0.52;
   var isDefault=(hex.toLowerCase()==='#'+SHELLC[0][1].toLowerCase());
   var gain=isDefault?1:GAIN;
+  if(isDefault){          /* 第一顆＝原色：直接還原該型號自己的材質色 */
+    restoreShellBase();
+    var e0s=document.querySelectorAll('#csw em[data-g="shell"] b');
+    for(var e0=0;e0<e0s.length;e0++)
+      e0s[e0].className=(e0s[e0].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+    window.__shellHex=hex;
+    if(renderer&&scene)renderer.render(scene,camera);
+    return;
+  }
   for(i=0;i<SHELLM.length;i++){
     var m=M[SHELLM[i].k];if(!m)continue;
     m.color.set(hex);
@@ -2617,27 +2820,104 @@ function setShellColor(hex){
       if(src&&map[src]!==undefined)arr[k].color.setHex(map[src]);
     }
   }
-  var els=document.querySelectorAll('#csw b');
+  var els=document.querySelectorAll('#csw em[data-g="shell"] b');
   for(j=0;j<els.length;j++)els[j].className=(els[j].getAttribute('data-c')===hex.replace('#',''))?'on':'';
   window.__shellHex=hex;
   if(renderer&&scene)renderer.render(scene,camera);
 }
 (function wireShell(){
   /* 色球一律由 SHELLC 產生（單一來源），避免 HTML 寫死色號與 JS 不同步 */
-  var box=document.getElementById('csw');
+  var box=document.querySelector('#csw em[data-g="shell"]');
   for(var i=0;i<SHELLC.length;i++){
     var b=document.createElement('b');
     b.setAttribute('data-c',SHELLC[i][1]);
-    b.setAttribute('title',SHELLC[i][0]);
-    b.style.background='#'+SHELLC[i][1];
+    if(i===0){
+      b.setAttribute('title','原色（A 版珍珠白／B 版霧黑）');
+      b.style.background='linear-gradient(135deg,#f4f1ea 0 50%,#2b2f31 50% 100%)';
+    }else{
+      b.setAttribute('title',SHELLC[i][0]);
+      b.style.background='#'+SHELLC[i][1];
+    }
     b.onclick=function(){setShellColor('#'+this.getAttribute('data-c'));};
     box.appendChild(b);
   }
   setShellColor(SHELLC[0][1]);
 })();
+
+/* ═══════════════ 頸帶顏色（織帶本體＋縫線帶扣） ═══════════════ */
+var STRAPM=[{k:'strap',f:1},{k:'strap2',f:0.94}];
+var STRAPC=[['原色','2f6360'],['墨黑','24282a'],['焦糖棕','8a5a34'],['霧藍','33506b'],['酒紅','6b2f38']];
+function restoreStrapBase(){
+  var map0={},i,k;
+  for(i=0;i<STRAPM.length;i++){
+    var sk=STRAPM[i].k,m=M[sk];
+    if(m&&M0&&M0[sk]!==undefined){m.color.setHex(M0[sk]);map0[m.uuid]=M0[sk];}
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map0[src]!==undefined)arr[k].color.setHex(map0[src]);
+    }
+  }
+}
+function setStrapColor(hex){
+  if(hex.charAt(0)!=='#')hex='#'+hex;
+  var map={},i,j,k;
+  var GAINS=0.74;   /* 織帶本來就深色，壓暗幅度比外殼小一點 */
+  var isDef=(hex.toLowerCase()==='#'+STRAPC[0][1].toLowerCase());
+  var gain=isDef?1:GAINS;
+  if(isDef){
+    restoreStrapBase();
+    var e1s=document.querySelectorAll('#csw em[data-g="strap"] b');
+    for(var e1=0;e1<e1s.length;e1++)
+      e1s[e1].className=(e1s[e1].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+    window.__strapHex=hex;
+    if(renderer&&scene)renderer.render(scene,camera);
+    return;
+  }
+  for(i=0;i<STRAPM.length;i++){
+    var m=M[STRAPM[i].k];if(!m)continue;
+    m.color.set(hex);
+    var f=(STRAPM[i].f===1?1:STRAPM[i].f)*gain;
+    if(f!==1)m.color.multiplyScalar(f);
+    map[m.uuid]=m.color.getHex();
+  }
+  for(i=0;i<FADED.length;i++){
+    var cl=FADED[i].cl,arr=(cl.length!==undefined)?cl:[cl];
+    for(k=0;k<arr.length;k++){
+      var src=arr[k].userData._osrc;
+      if(src&&map[src]!==undefined)arr[k].color.setHex(map[src]);
+    }
+  }
+  var els=document.querySelectorAll('#csw em[data-g="strap"] b');
+  for(j=0;j<els.length;j++)els[j].className=(els[j].getAttribute('data-c')===hex.replace('#',''))?'on':'';
+  window.__strapHex=hex;
+  if(renderer&&scene)renderer.render(scene,camera);
+}
+(function wireStrap(){
+  var box=document.querySelector('#csw em[data-g="strap"]');
+  if(!box)return;
+  for(var i=0;i<STRAPC.length;i++){
+    var b=document.createElement('b');
+    b.setAttribute('data-c',STRAPC[i][1]);
+    if(i===0){
+      b.setAttribute('title','原色（織帶綠）');
+      b.style.background='#2f6360';
+    }else{
+      b.setAttribute('title',STRAPC[i][0]);
+      b.style.background='#'+STRAPC[i][1];
+    }
+    b.onclick=function(){setStrapColor('#'+this.getAttribute('data-c'));};
+    box.appendChild(b);
+  }
+  setStrapColor(STRAPC[0][1]);
+})();
 /* 出圖／分享用：?shell=<6 碼色號> 直接指定外殼顏色 */
 var QSHELL=((location.search||'').match(/[?&]shell=([0-9a-fA-F]{6})/)||[])[1];
 if(QSHELL)setShellColor('#'+QSHELL);
+var QSTRAP=((location.search||'').match(/[?&]strap=([0-9a-fA-F]{6})/)||[])[1]; if(QSTRAP)setStrapColor('#'+QSTRAP);
+window.__strap={set:setStrapColor,get hex(){return window.__strapHex||STRAPC[0][1];},matOf:function(k){var m=M[k];return m?m.color.getHexString():null;},keys:['strap','strap2'],list:STRAPC};
 window.__shell={set:function(h){setShellColor(h);},
   get hex(){return window.__shellHex;},
   get matHex(){var m=M[SHELLM[0].k];return m?m.color.getHexString():null;},
@@ -2677,8 +2957,8 @@ function showInfo(rec){
   var bb=new THREE.Box3().setFromObject(rec.g);
   var size=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());
   outline=new THREE.LineSegments(new THREE.EdgesGeometry(
-    new THREE.BoxGeometry(size.x*1.06+1.0,size.y*1.06+1.0,size.z*1.06+1.0)),
-    new THREE.LineBasicMaterial({color:0xff8a5c,transparent:true,opacity:.95,depthTest:false}));
+    new THREE.BoxGeometry(size.x*1.05+1.2,size.y*1.05+1.2,size.z*1.05+1.2)),
+    new THREE.LineBasicMaterial({color:0x4be3a8,transparent:true,opacity:.95,depthTest:false}));
   outline.position.copy(c);outline.renderOrder=997;scene.add(outline);
   /* 爆炸圖：點零件 → 飛到最前層特寫；其他零件淡化 */
   if(MODE==='exploded')focusPart(rec);else clearFocus(true);
@@ -2735,10 +3015,19 @@ document.getElementById('breset').onclick=function(){
   userMoved=false;
   clearFocus(true);
   fitBox(DIRS[MODE],padOf(MODE));
-  updateLabels();
+  updateLabels(true);
 };
 var bfocusEl=document.getElementById('bfocus');
 if(bfocusEl)bfocusEl.onclick=function(){hideInfo();};   /* 取消特寫：還原材質＋相機回原取景 */
+var vbs=document.querySelectorAll('#vsw button');
+for(var vi=0;vi<vbs.length;vi++){
+  vbs[vi].onclick=function(){
+    var k=this.getAttribute('data-v');
+    if(k===V.key)return;
+    buildVariant(k,true);
+    updateLabels(true);
+  };
+}
 exr.oninput=function(){
   EXT=(this.value|0)/100;
   exv.textContent=Math.round(EXT*100)+'%';
@@ -2754,13 +3043,13 @@ window.addEventListener('resize',function(){
   camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   if(!userMoved)fitBox(DIRS[MODE],padOf(MODE));
-  updateLabels();
+  updateLabels(true);
 });
 
 /* ═══════════════ 主迴圈 ═══════════════ */
 var spin=SHOT?0:0.05;
 var last=performance.now(),frame=0;
-var STILL=/[?&]still=1/.test(QS);   /* 驗證用：停止連續渲染，主執行緒才不會被軟體 GL 佔滿 */
+var STILL=/[?&]still=1/.test(QS);  /* 驗證用：只畫前 3 幀，主執行緒才不會被軟體 GL 佔滿 */
 function tick(){
   if(!STILL||frame<3)requestAnimationFrame(tick);
   var now=performance.now(),dt=Math.min((now-last)/16.7,3);last=now;
@@ -2778,6 +3067,7 @@ function tick(){
   updateFloorVis();
   controls.update();
   if(MODE==='exploded')updateLabels();
+  if(!window.__pause)updateScreens(now);
   if(outline){outline.material.opacity=0.70+0.28*Math.sin(now*0.004);}
   renderer.render(scene,camera);
   frame++;
@@ -2824,126 +3114,43 @@ setInterval(function(){
 },500);
 
 /* ═══════════════ 啟動 ═══════════════ */
-window.__M=M;
-window.__bs={
-  mode:'asm',
-  M:M,
+window.__pp={
+  mode:'asm',variant:VKEY,win:null,
   __f:__focusDbg(),
-  redraw:function(){renderer.render(scene,camera);},
-  /* 驗證用：以指定視窗比例重新取景，回傳 NDC 命中的零件與材質色 */
-  hitNdc:function(nx,ny,aw,ah){
-    camera.aspect=aw/ah;camera.updateProjectionMatrix();
-    fitBox(DIRS[MODE],padOf(MODE));
-    renderer.render(scene,camera);
-    var rc=new THREE.Raycaster();
-    rc.setFromCamera(new THREE.Vector2(nx,ny),camera);
-    var hits=rc.intersectObjects(model.children,true);
-    var out=[];
-    for(var i=0;i<Math.min(hits.length,4);i++){
-      var o=hits[i].object,rec=null;
-      while(o&&o!==model){if(o.userData&&o.userData.rec){rec=o.userData.rec;break;}o=o.parent;}
-      var mm=Array.isArray(hits[i].object.material)?hits[i].object.material[0]:hits[i].object.material;
-      out.push({part:rec?rec.def.n:'?',geom:hits[i].object.geometry.type,
-        col:mm&&mm.color?('#'+mm.color.getHexString()):null,
-        emissive:(mm&&mm.emissive&&mm.emissive.getHex())?('#'+mm.emissive.getHexString()):null,
-        d:+hits[i].distance.toFixed(1)});
-    }
-    return out;
-  },
-  hide:function(id,v){PARTS.forEach(function(p){if(p.id===id)p.g.visible=!v;});
-    renderer.render(scene,camera);},
   get labels(){return document.querySelectorAll('.lbl').length;},
   get leads(){return document.querySelectorAll('#lead polyline').length;},
   get parts(){return PARTS.length;},
-  get names(){return PARTS.map(function(p){return p.def.n;});},
+  get stripParts(){return PARTS.map(function(p){return p.def.n;});},
   get errors(){return window.__errors;},
   get bbox(){var b=modelBox();var s=b.getSize(new THREE.Vector3());
     return [+s.x.toFixed(2),+s.y.toFixed(2),+s.z.toFixed(2)];},
-  boxes:function(){return PARTS.map(function(p){var b=new THREE.Box3().setFromObject(p.g);
-    return {n:p.def.n,y:[+b.min.y.toFixed(1),+b.max.y.toFixed(1)],
-            z:[+b.min.z.toFixed(1),+b.max.z.toFixed(1)],
-            x:[+b.min.x.toFixed(1),+b.max.x.toFixed(1)]};});},
   get cam(){return camera.position.toArray().map(function(v){return +v.toFixed(1);});},
   get info(){var e=document.getElementById('finfo');return e.style.display!=='none'?e.textContent:'';},
   view:function(v){setMode(v,true);},
+  setVariant:function(k){buildVariant(k,true);},
   explode:function(v){EXT=v;EX=v;applyExplode();},
   pick:function(x,y){var r=pickAt(x,y);return r?r.def.n:null;},
-  pickPart:function(id){          /* 驗證用：以零件包圍盒中心投影點做 raycast */
-    var arr=PARTS.filter(function(p){return p.id===id;});
-    if(!arr.length)return 'no-part';
-    var bb=new THREE.Box3().setFromObject(arr[0].g);
-    var c=bb.getCenter(new THREE.Vector3());
-    var q=c.clone().project(camera);
-    var x=(q.x*.5+.5)*window.innerWidth,y=(-q.y*.5+.5)*window.innerHeight;
-    var r=pickAt(x,y);
-    if(r)showInfo(r);
-    return r?r.def.n:null;
-  },
   screenPix:function(){
+    /* 取螢幕 UI 貼圖的平均亮度，驗證不是空白 */
     var sp=null;
-    PARTS.forEach(function(p){if(p.id==='amoled')sp=p.g;});
+    PARTS.forEach(function(p){if(p.id==='screen')sp=p.g;});
     if(!sp)return null;
     var found=null;
     sp.traverse(function(o){if(o.isMesh&&o.material&&o.material.map&&o.material.emissiveMap)found=o;});
     if(!found)return null;
     var img=found.material.map.image;
-    var cv=document.createElement('canvas');cv.width=96;cv.height=64;
-    var c=cv.getContext('2d');c.drawImage(img,0,0,96,64);
-    var d=c.getImageData(0,0,96,64).data;
+    var cv=document.createElement('canvas');cv.width=64;cv.height=64;
+    var c=cv.getContext('2d');c.drawImage(img,0,0,64,64);
+    var d=c.getImageData(0,0,64,64).data;
     var s=0,mx=0;
     for(var i=0;i<d.length;i+=4){var l=(d[i]+d[i+1]+d[i+2])/3;s+=l;if(l>mx)mx=l;}
     return {avg:+(s/(d.length/4)).toFixed(1),max:mx};
-  },
-  /* 驗證用：以指定視窗比例重新取景並回傳零件的投影矩形（NDC 與解析度無關） */
-  projAt:function(id,aw,ah){
-    var oldA=camera.aspect;
-    camera.aspect=aw/ah;camera.updateProjectionMatrix();
-    fitBox(DIRS[MODE],padOf(MODE));
-    var b=new THREE.Box3().setFromObject(PARTS.filter(function(p){return p.id===id;})[0].g);
-    var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-    for(var i=0;i<8;i++){
-      var q=new THREE.Vector3(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,
-        i&4?b.max.z:b.min.z).project(camera);
-      var sx=(q.x*.5+.5)*aw,sy=(-q.y*.5+.5)*ah;
-      x0=Math.min(x0,sx);x1=Math.max(x1,sx);y0=Math.min(y0,sy);y1=Math.max(y1,sy);
-    }
-    camera.aspect=oldA;camera.updateProjectionMatrix();
-    fitBox(DIRS[MODE],padOf(MODE));
-    return [Math.round(x0),Math.round(y0),Math.round(x1),Math.round(y1)];
-  },
-  uiTexURL:function(){
-    var sp=null;
-    PARTS.forEach(function(p){if(p.id==='amoled')sp=p.g;});
-    if(!sp)return null;
-    var found=null;
-    sp.traverse(function(o){if(o.isMesh&&o.material&&o.material.map&&o.material.emissiveMap)found=o;});
-    return found?found.material.map.image.toDataURL('image/png'):null;
   }
 };
-window.__pp=window.__bs;
+buildVariant(VKEY,false);
 setMode(VIEW==='exploded'?'exploded':(VIEW==='dims'?'dims':'asm'),true);
 applyQueryView();
 tick();
-/* 出圖驗證用：把關鍵零件的投影矩形寫進 DOM（?probe=1） */
-if(/[?&]probe=1/.test(QS)){
-  setTimeout(function(){
-    var out={w:window.innerWidth,h:window.innerHeight,parts:{}};
-    PARTS.forEach(function(p){
-      var b=new THREE.Box3().setFromObject(p.g);
-      var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-      for(var i=0;i<8;i++){
-        var q=new THREE.Vector3(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,
-          i&4?b.max.z:b.min.z).project(camera);
-        var sx=(q.x*.5+.5)*window.innerWidth,sy=(-q.y*.5+.5)*window.innerHeight;
-        x0=Math.min(x0,sx);x1=Math.max(x1,sx);y0=Math.min(y0,sy);y1=Math.max(y1,sy);
-      }
-      out.parts[p.id]=[Math.round(x0),Math.round(y0),Math.round(x1),Math.round(y1)];
-    });
-    var d=document.createElement('div');
-    d.id='probejson';d.setAttribute('data-json',JSON.stringify(out));
-    document.body.appendChild(d);
-  },300);
-}
 window.__ready=true;
 })();
 </script>
