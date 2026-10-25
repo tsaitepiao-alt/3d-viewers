@@ -71,7 +71,8 @@
       <div class="status" id="addrStatus">門牌號在免費圖資覆蓋不全，定位到「路／段」後，可直接在地圖上點一下微調。</div>
       <div class="hits" id="hits"></div>
       <div id="map"></div>
-      <div class="status" style="margin-top:4px">提示：<b>直接在地圖上點一下</b>最快也最準；定位到路名後可拖曳藍標微調門牌。</div>
+      <div class="status" style="margin-top:4px">提示：<b>直接在地圖上點一下</b>最快也最準；定位到路名後可拖曳藍標微調門牌。
+        <button onclick="recenter()" style="margin-top:6px;padding:6px 12px;font-size:12px">把地圖拉回標記</button></div>
 
       <label>快速地點</label>
       <select id="preset">
@@ -348,15 +349,29 @@ function initMap(){
     $('addrStatus').textContent = `已用手動定位：${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`;
     compute();
   });
-  map.on('click', e => setPoint(e.latlng.lat, e.latlng.lng, '地圖點選'));
+  map.on('click', e => setPoint(e.latlng.lat, e.latlng.lng, '地圖點選（已更新座標）'));
+
+  // 版面變動（結果清單出現／手機轉向）時讓 Leaflet 重算尺寸，避免圖磚與標記錯位
+  if (window.ResizeObserver){
+    new ResizeObserver(() => map.invalidateSize({pan:false})).observe(document.getElementById('map'));
+  }
+  window.addEventListener('resize', () => map.invalidateSize({pan:false}));
+  setTimeout(() => map.invalidateSize({pan:false}), 300);
 }
 
-function setPoint(la, ln, note){
+function setPoint(la, ln, note, opts){
+  opts = opts || {};
   $('lat').value = la.toFixed(5); $('lng').value = ln.toFixed(5);
   if (marker) marker.setLatLng([la, ln]);
-  if (map) map.setView([la, ln], 18);
+  // 只有「地址定位／載入連結」才自動置中；地圖點選、拖曳不重設視角，避免畫面跳走
+  if (map && opts.center) map.setView([la, ln], opts.zoom || 18);
   if (note) $('addrStatus').textContent = note;
   compute();
+}
+
+function recenter(){
+  const la = +$('lat').value, ln = +$('lng').value;
+  if (map) map.setView([la, ln], Math.max(map.getZoom(), 17));
 }
 
 function parseCoords(t){
@@ -488,7 +503,7 @@ function showHits(arr, usedQuery, fuzzy){
     b.className = 'hit';
     b.textContent = `採用：${it.display_name}`;
     b.onclick = () => {
-      setPoint(+it.lat, +it.lon, '定位到：' + it.display_name + '　→ 這是路段位置，請在地圖上點一下微調到實際門牌。');
+      setPoint(+it.lat, +it.lon, '定位到：' + it.display_name + '　→ 這是路段位置，請在地圖上點一下微調到實際門牌。', {center:true, zoom:18});
       hits.innerHTML = '';
     };
     hits.appendChild(b);
@@ -505,7 +520,7 @@ function showHits(arr, usedQuery, fuzzy){
           ob.className = 'hit';
           ob.textContent = `${i+2}. ${o.display_name}`;
           ob.onclick = () => {
-            setPoint(+o.lat, +o.lon, '定位到：' + o.display_name + '　→ 請在地圖上微調。');
+            setPoint(+o.lat, +o.lon, '定位到：' + o.display_name + '　→ 請在地圖上微調。', {center:true, zoom:18});
             hits.innerHTML = '';
           };
           hits.appendChild(ob);
