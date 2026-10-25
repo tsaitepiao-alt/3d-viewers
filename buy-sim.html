@@ -473,10 +473,52 @@ function showHits(arr, usedQuery, fuzzy){
   if (seg) list = [...list].sort((a, b) =>
     (b.display_name.includes(seg) ? 1 : 0) - (a.display_name.includes(seg) ? 1 : 0));
 
-  st.textContent = (fuzzy ? '模糊比對' : '找到') + ` ${list.length} 筆（查詢：${usedQuery}）`
-    + (m ? `｜只顯示含「${m}」的結果` : '')
-    + ' — 點一筆套用，再用滑鼠微調：';
-  list.slice(0, 4).forEach((it, i) => {
+  // 去重（同名同區只留一筆）
+  const seen = new Set();
+  list = list.filter(it => {
+    const k = (it.display_name || '') + '|' + (+it.lat).toFixed(4);
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+
+  const showOne = () => {
+    hits.innerHTML = '';
+    const it = list[0];
+    const b = document.createElement('button');
+    b.className = 'hit';
+    b.textContent = `採用：${it.display_name}`;
+    b.onclick = () => {
+      setPoint(+it.lat, +it.lon, '定位到：' + it.display_name + '　→ 這是路段位置，請在地圖上點一下微調到實際門牌。');
+      hits.innerHTML = '';
+    };
+    hits.appendChild(b);
+
+    if (list.length > 1){
+      const more = document.createElement('button');
+      more.className = 'hit';
+      more.style.background = '#fff';
+      more.textContent = `不是這一個？看其他 ${list.length - 1} 筆`;
+      more.onclick = () => {
+        hits.innerHTML = '';
+        list.slice(1, 5).forEach((o, i) => {
+          const ob = document.createElement('button');
+          ob.className = 'hit';
+          ob.textContent = `${i+2}. ${o.display_name}`;
+          ob.onclick = () => {
+            setPoint(+o.lat, +o.lon, '定位到：' + o.display_name + '　→ 請在地圖上微調。');
+            hits.innerHTML = '';
+          };
+          hits.appendChild(ob);
+        });
+      };
+      hits.appendChild(more);
+    }
+  };
+
+  st.innerHTML = (fuzzy ? '模糊比對' : '找到') + ` 1 筆（查詢：${usedQuery}）`
+    + (m ? `｜含「${m}」` : '') + ' — 按「採用」套用：';
+  showOne();
+  list.slice(0, 0).forEach((it, i) => {
     const b = document.createElement('button');
     b.className = 'hit';
     b.textContent = `${i+1}. ${it.display_name}`;
