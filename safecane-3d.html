@@ -34,6 +34,7 @@
     overflow:hidden;text-overflow:ellipsis}
   #lines{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
   @media(max-width:760px){
+    #labels .lab{width:116px;font-size:10.5px;padding:2px 5px}
     #t{max-width:calc(100vw - 24px);font-size:12px;padding:10px 12px}
     #lg{display:none}
     #sliderBox{bottom:74px;left:8px;right:8px;transform:none;justify-content:center}
@@ -50,8 +51,8 @@
 <div id="t" class="panel">
   <b>SAFECANE 智慧防跌手杖</b>
   <span class="sub">3D 收合／爆炸圖 · 實際尺寸建模</span><br>
-  全長 <span class="dim">85–95 cm</span>｜外徑 <span class="dim">Ø22 mm</span>｜重量 <span class="dim">480 g</span><br>
-  握把 <span class="dim">92 × 34 × 46 mm</span>｜感測頭 <span class="dim">25 × 23 × 32 mm</span><br>
+  全長 <span class="dim">85–95 cm</span>｜Ø<span class="dim">22 mm</span>｜<span class="dim">480 g</span><br>
+  握把 <span class="dim">92×34×46</span>｜感測頭 <span class="dim">25×23×32</span><br>
   <span class="sub">拖曳旋轉、滾輪縮放、點零件看規格</span>
 </div>
 
@@ -388,7 +389,9 @@ addEventListener('resize', () => {
 const _v = new THREE.Vector3();
 function updateLabels(){
   const W = innerWidth, H = innerHeight;
-  const TOP = 96, BOT = H - 150;   // 避開上方資訊卡與下方控制列
+  const mobile = W < 760;
+  const TOP = mobile ? 216 : 96;
+  const BOT = H - (mobile ? 200 : 150);   // 避開上方資訊卡與下方控制列
   const items = [];
   labelEls.forEach(it => {
     const p = it.part;
@@ -427,7 +430,7 @@ function updateLabels(){
 
   items.forEach(o => {
     const {it, sx, sy, ly, side} = o;
-    const LW = 152;
+    const LW = mobile ? 116 : 152;
     // 固定左右兩欄（技術插圖做法）→ 標籤永不互壓
     const lx = side < 0 ? 46 : (W - LW - 46);
     it.el.style.opacity = 1;
