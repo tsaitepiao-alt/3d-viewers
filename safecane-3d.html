@@ -17,6 +17,12 @@
   #c button{background:#242935;color:#e9eaee;border:1px solid #39404f;border-radius:8px;
     padding:9px 13px;font-size:13px;cursor:pointer;font-family:inherit}
   #c button.on{background:#cbf24c;border-color:#cbf24c;color:#14160f;font-weight:800}
+  #cw{top:12px;right:12px;padding:9px 11px;display:flex;gap:8px;align-items:center}
+  #cw .sw{width:26px;height:26px;border-radius:50%;border:2px solid #3a4152;cursor:pointer;
+    position:relative;transition:transform .15s,border-color .15s}
+  #cw .sw:hover{transform:scale(1.08)}
+  #cw .sw.on{border-color:#cbf24c;box-shadow:0 0 0 3px rgba(203,242,76,.18)}
+  #cw .nm{font-size:11px;color:#9aa2b1;margin-left:2px}
   #lg{bottom:14px;right:12px;padding:10px 13px;font-size:12px;line-height:1.75;max-width:280px}
   #lg b{color:#cbf24c}
   #lg div{color:#9aa2b1}
@@ -24,7 +30,7 @@
     background:rgba(20,23,29,.92);border:1px solid #2c3140;border-radius:12px;padding:9px 14px;
     display:flex;align-items:center;gap:10px;font-size:12px;color:#9aa2b1}
   #sliderBox input{width:170px}
-  #info{position:fixed;top:12px;right:12px;padding:10px 13px;font-size:12.5px;max-width:260px;
+  #info{position:fixed;top:64px;right:12px;padding:10px 13px;font-size:12.5px;max-width:260px;
     display:none;line-height:1.6}
   #info b{color:#cbf24c}
   #labels{position:fixed;inset:0;pointer-events:none;z-index:5}
@@ -33,10 +39,15 @@
     border-radius:8px;padding:3px 7px;opacity:0;transition:opacity .18s;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis}
   #lines{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+  #labels .dimtag{width:124px;text-align:center;background:rgba(19,26,36,.94);
+    border:1px solid rgba(159,178,208,.9);color:#e8f1ff;font-weight:800;font-size:12.5px;
+    box-shadow:0 2px 10px rgba(0,0,0,.45)}
   @media(max-width:760px){
     #labels .lab{width:116px;font-size:10.5px;padding:2px 5px}
     #t{max-width:calc(100vw - 24px);font-size:12px;padding:10px 12px}
     #lg{display:none}
+    #cw{top:auto;bottom:124px;left:8px;right:auto;padding:7px 9px}
+    #cw .nm{display:none}
     #sliderBox{bottom:74px;left:8px;right:8px;transform:none;justify-content:center}
     #sliderBox input{width:120px}
     #c{left:8px;right:8px;bottom:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
@@ -64,12 +75,14 @@
   <span id="expv">0%</span>
 </div>
 
+<div id="cw" class="panel"></div>
+
 <div id="c" class="panel">
   <button id="b1" class="on">收合</button>
   <button id="b2">爆炸圖</button>
   <button id="b3">握把分解</button>
   <button id="b4">杖身分節</button>
-  <button id="b5">自動旋轉</button>
+  <button id="b5">自動旋轉</button><button id="b6">尺寸標註</button>
 </div>
 
 <div id="lg" class="panel">
@@ -329,6 +342,92 @@ part(batGrp, {dir:V(0,-6,-46)}, "18650 電池＋充電板", "2,500 mAh · Type-C
   parts.forEach(p => { if (L[p.name]) addLabel(p, L[p.name]); });
 })();
 
+
+// ---------- 外觀配色 ----------
+const WAYS = [
+  {id:'graphite', name:'石墨黑', alu:0x44484f, aluD:0x33373d, grip:0x232528, tpe:0x2c2e32, brass:0xc9a227},
+  {id:'titan',    name:'鈦灰',   alu:0xc2c8ce, aluD:0x9aa2aa, grip:0x33363b, tpe:0x3b3e44, brass:0xc9a227},
+  {id:'champ',    name:'霧金',   alu:0xd9c49b, aluD:0xb8a37c, grip:0x4a4238, tpe:0x5a5148, brass:0xe6cd8a},
+  {id:'ivory',    name:'象牙白', alu:0xeeece4, aluD:0xd5d3ca, grip:0x6b7076, tpe:0x828790, brass:0xc9a227},
+];
+function applyWay(w){
+  M.alu.color.setHex(w.alu);   M.aluD.color.setHex(w.aluD);
+  M.grip.color.setHex(w.grip); M.tpe.color.setHex(w.tpe);
+  M.brass.color.setHex(w.brass);
+  M.alu.metalness = 0.95; M.alu.roughness = 0.28;
+  M.aluD.metalness = 0.9; M.aluD.roughness = 0.36;
+  Object.values(M).forEach(m => { if (m.color) m.needsUpdate = true; });
+  document.querySelectorAll('#cw .sw').forEach(b => b.classList.toggle('on', b.dataset.id === w.id));
+}
+const cwBox = document.getElementById('cw');
+WAYS.forEach((w, i) => {
+  const b = document.createElement('div');
+  b.className = 'sw' + (i === 1 ? ' on' : '');
+  b.dataset.id = w.id;
+  b.title = w.name;
+  b.style.background = `linear-gradient(135deg, #${w.alu.toString(16).padStart(6,'0')} 0 55%, #${w.grip.toString(16).padStart(6,'0')} 55% 100%)`;
+  b.onclick = () => applyWay(w);
+  cwBox.appendChild(b);
+  const n = document.createElement('span');
+  n.className = 'nm'; n.textContent = w.name;
+  if (i === 1) n.style.color = '#cbf24c';
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#cw .nm').forEach(x => x.style.color = '#9aa2b1');
+    n.style.color = '#cbf24c';
+  });
+  cwBox.appendChild(n);
+});
+
+// ---------- 尺寸標註 ----------
+const dims = [];
+const dimLabels = [];
+function makeDim(a, b, off, text, up){
+  const A = a.clone().add(off), B = b.clone().add(off);
+  const g = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({color:0x9fb2d0, transparent:true, opacity:.95});
+  g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([A, B]), mat));
+  const n = off.clone().normalize().multiplyScalar(1.5);
+  [A, B].forEach(P => {
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([P.clone().sub(n), P.clone().add(n)]), mat));
+  });
+  [a, b].forEach((P, i) => {
+    const Q = i ? B : A;
+    const geo = new THREE.BufferGeometry().setFromPoints([P, Q]);
+    const ln = new THREE.Line(geo, new THREE.LineDashedMaterial({
+      color:0x62748e, dashSize:1.4, gapSize:1.2, transparent:true, opacity:.6}));
+    ln.computeLineDistances();
+    g.add(ln);
+  });
+  g.visible = false;
+  root.add(g);
+  const mid = A.clone().add(B).multiplyScalar(0.5).add(up || V(0,1.8,0));
+  const el = document.createElement('div');
+  el.className = 'lab dimtag';
+  el.textContent = text;
+  el.style.opacity = 0;
+  document.getElementById('labels').appendChild(el);
+  const rec = {g, mid, el};
+  dims.push(rec);
+  return rec;
+}
+
+makeDim(V(0,1,0),   V(0,88,0),  V(9,0,0),  "850–950 mm 可調");
+makeDim(V(-2.2,84.4,0), V(9.0,84.4,0), V(0,-8.5,0), "92 mm 握把");
+makeDim(V(6.6,80.6,1.72), V(6.6,80.6,-1.72), V(0,-11.5,0), "34 mm");
+makeDim(V(-1.1,50,0), V(1.1,50,0), V(0,0,6.0), "Ø22 mm 杖身");
+makeDim(V(-1.95,0.7,0), V(1.95,0.7,0), V(0,0,7.0), "Ø39 mm 腳墊");
+makeDim(V(-2.9,79.3,1.1), V(-2.9,79.3,-1.1), V(-7.5,0,0), "25 × 23 × 32 mm");
+
+let dimOn = false;
+document.getElementById('b6').onclick = () => {
+  dimOn = !dimOn;
+  dims.forEach(d => d.g.visible = dimOn);
+  document.getElementById('b6').classList.toggle('on', dimOn);
+  updateLabels();
+};
+
+applyWay(WAYS[1]);
+
 // ---------- 收合／分解控制 ----------
 let t = 0, target = 0, spin = false, mode = 'all';
 const tGrip = {v:0}, tShaft = {v:0};
@@ -402,6 +501,17 @@ function updateLabels(){
     const sy = (-_v.y * 0.5 + 0.5) * H;
     items.push({it, sx, sy, side: 0, ly: sy});
   });
+  // 尺寸標籤（跟著 3D 尺寸線的中央移動）
+  dims.forEach(d => {
+    if (!dimOn){ d.el.style.opacity = 0; return; }
+    _v.copy(d.mid); root.localToWorld(_v); _v.project(camera);
+    let dx = (_v.x * 0.5 + 0.5) * W, dy = (-_v.y * 0.5 + 0.5) * H;
+    dx = Math.min(Math.max(dx, 70), W - 70);
+    dy = Math.min(Math.max(dy, 84), H - 120);
+    d.el.style.opacity = 1;
+    d.el.style.transform = `translate(${dx - 62}px, ${dy - 10}px)`;
+  });
+
   if (!items.length) return;
 
   // 依螢幕高度排序，左右交錯分配，讓兩欄平均
