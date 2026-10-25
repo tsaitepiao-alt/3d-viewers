@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAFECANE 智慧防跌手杖 — 3D 收合／爆炸圖</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0f1115;color:#e9eaee;
+    font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+  #cv{display:block}
+  .panel{position:fixed;background:rgba(20,23,29,.92);border:1px solid #2c3140;border-radius:12px;
+         backdrop-filter:blur(8px)}
+  #t{top:12px;left:12px;padding:12px 15px;font-size:13px;line-height:1.6;max-width:420px}
+  #t b{font-size:16px;display:block;margin-bottom:4px}
+  #t .sub{color:#8d95a6;font-size:12px}
+  #t .dim{color:#cbf24c;font-weight:700}
+  #c{bottom:14px;left:12px;padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 24px)}
+  #c button{background:#242935;color:#e9eaee;border:1px solid #39404f;border-radius:8px;
+    padding:9px 13px;font-size:13px;cursor:pointer;font-family:inherit}
+  #c button.on{background:#cbf24c;border-color:#cbf24c;color:#14160f;font-weight:800}
+  #lg{bottom:14px;right:12px;padding:10px 13px;font-size:12px;line-height:1.75;max-width:280px}
+  #lg b{color:#cbf24c}
+  #lg div{color:#9aa2b1}
+  #sliderBox{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+    background:rgba(20,23,29,.92);border:1px solid #2c3140;border-radius:12px;padding:9px 14px;
+    display:flex;align-items:center;gap:10px;font-size:12px;color:#9aa2b1}
+  #sliderBox input{width:170px}
+  #info{position:fixed;top:12px;right:12px;padding:10px 13px;font-size:12.5px;max-width:260px;
+    display:none;line-height:1.6}
+  #info b{color:#cbf24c}
+  #labels{position:fixed;inset:0;pointer-events:none;z-index:5}
+  #labels .lab{position:absolute;left:0;top:0;width:150px;font-size:12px;font-weight:700;
+    color:#eaf7c8;background:rgba(18,21,27,.88);border:1px solid rgba(203,242,76,.55);
+    border-radius:8px;padding:3px 7px;opacity:0;transition:opacity .18s;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  #lines{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+  @media(max-width:760px){
+    #t{max-width:calc(100vw - 24px);font-size:12px;padding:10px 12px}
+    #lg{display:none}
+    #sliderBox{bottom:74px;left:8px;right:8px;transform:none;justify-content:center}
+    #sliderBox input{width:120px}
+    #c{left:8px;right:8px;bottom:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+    #c::-webkit-scrollbar{display:none}
+    #c button{flex:0 0 auto}
+  }
+</style></head><body>
+<canvas id="cv"></canvas>
+<svg id="lines" xmlns="http://www.w3.org/2000/svg"></svg>
+<div id="labels"></div>
+
+<div id="t" class="panel">
+  <b>SAFECANE 智慧防跌手杖</b>
+  <span class="sub">3D 收合／爆炸圖 · 實際尺寸建模</span><br>
+  全長 <span class="dim">85–95 cm</span>｜外徑 <span class="dim">Ø22 mm</span>｜重量 <span class="dim">480 g</span><br>
+  握把 <span class="dim">92 × 34 × 46 mm</span>｜感測頭 <span class="dim">25 × 23 × 32 mm</span><br>
+  <span class="sub">拖曳旋轉、滾輪縮放、點零件看規格</span>
+</div>
+
+<div id="info" class="panel"></div>
+
+<div id="sliderBox">
+  <span>分解</span>
+  <input id="exp" type="range" min="0" max="100" value="0">
+  <span id="expv">0%</span>
+</div>
+
+<div id="c" class="panel">
+  <button id="b1" class="on">收合</button>
+  <button id="b2">爆炸圖</button>
+  <button id="b3">握把分解</button>
+  <button id="b4">杖身分節</button>
+  <button id="b5">自動旋轉</button>
+</div>
+
+<div id="lg" class="panel">
+  <b>零件（10 項）</b>
+  <div>① 握把上蓋（TPE 止滑）</div>
+  <div>② 握把骨架＋掌托</div>
+  <div>③ 感測頭：超音波 ×2</div>
+  <div>④ ToF 測距＋夜燈</div>
+  <div>⑤ 主控 PCB（ESP32-C3）</div>
+  <div>⑥ 18650 電池＋充電板</div>
+  <div>⑦ SOS 按鈕（Ø19）</div>
+  <div>⑧ 鋁管三節＋鎖扣</div>
+  <div>⑨ 銅環裝飾／序號</div>
+  <div>⑩ 橡膠腳墊（可換）</div>
+</div>
+
+<script>
+window.__errs = [];
+window.addEventListener('error', e => { window.__errs.push((e.message||'') + ' @' + (e.filename||'').split('/').pop() + ':' + e.lineno); });
+window.addEventListener('unhandledrejection', e => { window.__errs.push('promise: ' + (e.reason && e.reason.message || e.reason)); });
+</script>
+<script type="importmap">{"imports":{
+"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f1115);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.05).texture;
+
+const camera = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.5, 3000);
+camera.position.set(46, 96, 118);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 48, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 40;
+controls.maxDistance = 420;
+
+// 燈光
+const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(60, 130, 90);
+key.castShadow = true; key.shadow.mapSize.set(2048,2048);
+key.shadow.camera.left=-90; key.shadow.camera.right=90; key.shadow.camera.top=140; key.shadow.camera.bottom=-40;
+scene.add(key);
+scene.add(new THREE.DirectionalLight(0xffe6cc, 0.9).translateX(-80).translateY(40).translateZ(70));
+const rim = new THREE.DirectionalLight(0x9fd0ff, 1.2); rim.position.set(-50, 60, -90); scene.add(rim);
+
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(400,400),
+  new THREE.MeshStandardMaterial({color:0x14171c, roughness:0.95}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+const grid = new THREE.GridHelper(400, 40, 0x2a3040, 0x1c2130);
+grid.position.y = 0.05; scene.add(grid);
+
+// ---------- 材質 ----------
+const M = {
+  alu:   new THREE.MeshStandardMaterial({color:0xc2c8ce, metalness:0.95, roughness:0.28}),
+  aluD:  new THREE.MeshStandardMaterial({color:0x9aa2aa, metalness:0.92, roughness:0.36}),
+  grip:  new THREE.MeshStandardMaterial({color:0x2b2d31, metalness:0.1,  roughness:0.86}),
+  tpe:   new THREE.MeshStandardMaterial({color:0x3a3d42, metalness:0.05, roughness:0.95}),
+  dark:  new THREE.MeshStandardMaterial({color:0x17181b, metalness:0.45, roughness:0.5}),
+  rubber:new THREE.MeshStandardMaterial({color:0x1e1f22, metalness:0.03, roughness:0.98}),
+  brass: new THREE.MeshStandardMaterial({color:0xc9a227, metalness:0.96, roughness:0.25}),
+  red:   new THREE.MeshStandardMaterial({color:0xcf3f2c, metalness:0.15, roughness:0.42}),
+  lime:  new THREE.MeshStandardMaterial({color:0xcbf24c, emissive:0x8fbb1e, emissiveIntensity:1.5, roughness:0.5}),
+  glass: new THREE.MeshStandardMaterial({color:0x0b1116, metalness:0.7, roughness:0.08}),
+  pcb:   new THREE.MeshStandardMaterial({color:0x1f6b4a, metalness:0.25, roughness:0.62}),
+  chip:  new THREE.MeshStandardMaterial({color:0x111214, metalness:0.55, roughness:0.4}),
+  cell:  new THREE.MeshStandardMaterial({color:0x2a6ea8, metalness:0.35, roughness:0.55}),
+  copper:new THREE.MeshStandardMaterial({color:0xb87333, metalness:0.9,  roughness:0.35}),
+};
+
+// 零件容器：每個 part 有 base 位置與 explode 向量
+const parts = [];
+const root = new THREE.Group();
+scene.add(root);
+
+const allParts = [];
+// HTML 標籤（螢幕座標、防重疊）
+const labelLayer = document.getElementById('labels');
+const svgLayer = document.getElementById('lines');
+const labelEls = [];
+const labelData = new Map();
+
+function addLabel(p, text){
+  const el = document.createElement('div');
+  el.className = 'lab';
+  el.textContent = text;
+  labelLayer.appendChild(el);
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('stroke', 'rgba(150,170,205,.85)');
+  line.setAttribute('stroke-width', '1.2');
+  line.setAttribute('stroke-dasharray', '4 3');
+  svgLayer.appendChild(line);
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('r', '2.6');
+  dot.setAttribute('fill', '#cbf24c');
+  svgLayer.appendChild(dot);
+  labelEls.push({el, line, dot, part: p});
+}
+
+function part(obj, explode, name, spec, group){
+  const g = new THREE.Group();
+  g.add(obj);
+  root.add(g);
+  const p = {g, base: new THREE.Vector3(), dir: explode.dir, name, spec,
+             pos0: new THREE.Vector3(), group: group || 'all'};
+  g.position.copy(p.base);
+  p.pos0.copy(g.position);
+  const idx = parts.length;
+  obj.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; o.userData.partIdx = idx; } });
+  parts.push(p);
+  return p;
+}
+const V = (x,y,z) => new THREE.Vector3(x,y,z);
+
+// ---------- 杖身三節 ----------
+function tube(y0,y1,r0,r1,mat){
+  const h=y1-y0;
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r0,h,56,1,true), mat);
+  m.position.y=y0+h/2;
+  return m;
+}
+part(tube(6,40,1.15,1.05,M.alu),  {dir:V(0,-30,0)}, "下節鋁管", "Ø22→21 mm · 200 g · 6082-T6", "shaft");
+part(tube(38,64,1.0,0.95,M.alu),  {dir:V(0,-2,0)},  "中節鋁管", "Ø20 mm · 可調 5 段", "shaft");
+part(tube(62,80,0.95,0.95,M.aluD),{dir:V(0,26,0)},  "上節鋁管", "Ø19 mm · 連接握把座", "shaft");
+
+// 鎖扣 ×2
+[41.0, 65.4].forEach((y,i)=>{
+  const grp=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.CylinderGeometry(1.32,1.32,3.2,32), M.dark);
+  grp.add(ring);
+  const lever=new THREE.Mesh(new THREE.BoxGeometry(0.7,1.6,1.5), M.brass);
+  lever.position.set(1.25,0,0); grp.add(lever);
+  grp.position.y=y;
+  part(grp, {dir:V(i?18:-18,0,0)}, i? "上鎖扣":"下鎖扣", "凸輪鎖扣 · 耐重 120 kg", "shaft");
+});
+
+// 銅環
+const band=new THREE.Mesh(new THREE.TorusGeometry(1.02,0.09,10,40), M.brass);
+band.rotation.x=Math.PI/2; band.position.y=44.2;
+part(band, {dir:V(0,8,0)}, "銅環／序號圈", "雷雕序號 · 保固識別", "shaft");
+
+// 腳墊
+const footGrp=new THREE.Group();
+const cone=new THREE.Mesh(new THREE.CylinderGeometry(1.0,0.78,2.6,32), M.aluD); cone.position.y=4.9; footGrp.add(cone);
+const ferrule=new THREE.Mesh(new THREE.CylinderGeometry(1.62,1.95,3.0,40), M.rubber); ferrule.position.y=2.1; footGrp.add(ferrule);
+const pad=new THREE.Mesh(new THREE.CylinderGeometry(1.95,1.95,0.9,40), M.rubber); pad.position.y=0.6; footGrp.add(pad);
+part(footGrp, {dir:V(0,-46,0)}, "橡膠腳墊（可換）", "Ø39 mm · 標準／三腳／冰爪", "tip");
+
+// ---------- 握把 ----------
+const gripGrp = new THREE.Group();
+gripGrp.position.set(0, 79.5, 0);
+
+// 握把骨架（曲線管）
+const pts=[V(0,0,0),V(0.5,1.5,0),V(1.7,2.5,0),V(3.6,2.85,0),V(5.9,2.75,0),V(7.9,2.15,0),V(9.0,1.35,0)];
+const gripCore = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 90, 1.45, 22, false), M.grip);
+gripGrp.add(gripCore);
+
+// 上蓋（TPE）
+const capPts=[V(2.0,4.0,0),V(4.2,4.22,0),V(6.4,3.98,0),V(8.2,3.35,0)];
+const cap = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(capPts), 60, 0.82, 18, false), M.tpe);
+cap.scale.set(1,0.6,1.45);
+gripGrp.add(cap);
+
+const capTip = new THREE.Mesh(new THREE.SphereGeometry(1.47,26,20), M.aluD);
+capTip.position.copy(pts[pts.length-1]); gripGrp.add(capTip);
+
+part(gripGrp, {dir:V(0,30,0)}, "握把（骨架＋TPE 上蓋）", "92 × 34 × 46 mm · 人體工學 12°", "grip");
+
+// 握把上蓋單獨分解
+const capOnly = new THREE.Group();
+const capM = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(capPts), 60, 0.86, 18, false), M.tpe);
+capM.position.y = 1.15; capM.scale.set(1.06,0.55,1.5); capOnly.add(capM);
+part(capOnly, {dir:V(0,52,0)}, "TPE 止滑上蓋", "可拆換（磨損件）", "grip");
+
+// ---------- 感測頭 ----------
+const headGrp = new THREE.Group();
+const hRim = new THREE.Mesh(new THREE.BoxGeometry(2.5,2.3,3.2), M.aluD); headGrp.add(hRim);
+const hBody = new THREE.Mesh(new THREE.BoxGeometry(2.28,2.05,2.95), M.dark); hBody.position.x=-0.12; headGrp.add(hBody);
+[-0.72,0.72].forEach(z=>{
+  const can=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.42,28), M.dark);
+  can.rotation.z=Math.PI/2; can.position.set(-1.3,0.28,z); headGrp.add(can);
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(0.47,0.47,0.14,28), M.dark);
+  mesh.rotation.z=Math.PI/2; mesh.position.set(-1.52,0.28,z); headGrp.add(mesh);
+});
+const tof=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.5,1.1), M.glass); tof.position.set(-1.24,-0.55,0); headGrp.add(tof);
+const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.26,0.16,20),
+  new THREE.MeshStandardMaterial({color:0xfff6e0, emissive:0xfff1c9, emissiveIntensity:2.2}));
+lamp.rotation.z=Math.PI/2; lamp.position.set(-1.3,-1.0,0); headGrp.add(lamp);
+headGrp.position.set(-2.1, 80.1, 0);
+part(headGrp, {dir:V(-40,16,0)}, "感測頭（超音波 ×2＋ToF）", "25 × 23 × 32 mm · 0.4–1.8 m", "grip");
+
+// 感測板（感測頭內部）
+const sensorPcb = new THREE.Group();
+const sp = new THREE.Mesh(new THREE.BoxGeometry(0.2,1.5,2.4), M.pcb); sensorPcb.add(sp);
+const spChip = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.5,0.5), M.chip); spChip.position.set(-0.12,0.3,0.3); sensorPcb.add(spChip);
+part(sensorPcb, {dir:V(-56,-6,0)}, "感測板（超音波驅動）", "40 kHz ×2 · ToF 940 nm", "grip");
+
+// ---------- LED 環 ----------
+const led=new THREE.Mesh(new THREE.TorusGeometry(1.6,0.16,12,44), M.lime);
+led.rotation.y=Math.PI/2; led.rotation.x=Math.PI/2.6; led.position.set(1.15,81.85,0);
+part(led, {dir:V(-44,34,0)}, "LED 狀態環", "RGB · 待機／聆聽／警示", "grip");
+
+// ---------- SOS 按鈕 ----------
+const sosGrp=new THREE.Group();
+const sosBase=new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,0.4,28), M.aluD); sosGrp.add(sosBase);
+const sos=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.78,0.44,28), M.red); sos.position.y=0.36; sosGrp.add(sos);
+sosGrp.position.set(6.5,83.55,0);
+part(sosGrp, {dir:V(10,56,0)}, "SOS 按鈕", "Ø19 mm · 長按 2 秒觸發", "grip");
+
+// ---------- 主控 PCB + 電池（握把內） ----------
+const pcbGrp=new THREE.Group();
+const pcb=new THREE.Mesh(new THREE.BoxGeometry(6.4,0.25,3.0), M.pcb); pcbGrp.add(pcb);
+const mcu=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.35,1.6), M.chip); mcu.position.set(-1.6,0.3,0); pcbGrp.add(mcu);
+const rf=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.3,0.9), M.chip); rf.position.set(0.9,0.28,0); pcbGrp.add(rf);
+const conn=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.3,0.5), M.brass); conn.position.set(2.6,0.25,0); pcbGrp.add(conn);
+pcbGrp.position.set(3.2, 82.4, 0);
+part(pcbGrp, {dir:V(0,-6,44)}, "主控 PCB（ESP32-C3）", "BLE 5.0 · IMU 六軸 · 64 × 25 mm", "grip");
+
+const batGrp=new THREE.Group();
+const cell=new THREE.Mesh(new THREE.CylinderGeometry(0.92,0.92,5.2,32), M.cell);
+cell.rotation.z=Math.PI/2; batGrp.add(cell);
+const bms=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.35,1.9), M.pcb); bms.position.set(3.1,0,0); batGrp.add(bms);
+const usbc=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.28,0.9), M.dark); usbc.position.set(4.0,-0.1,0); batGrp.add(usbc);
+batGrp.position.set(3.6, 83.0, 0);
+part(batGrp, {dir:V(0,-6,-46)}, "18650 電池＋充電板", "2,500 mAh · Type-C · 續航 5–7 天", "grip");
+
+
+// ---- 為主要零件掛標籤 ----
+(function(){
+  const L = {
+    "TPE 止滑上蓋": "① 止滑上蓋",
+    "握把（骨架＋TPE 上蓋）": "② 握把骨架",
+    "感測頭（超音波 ×2＋ToF）": "③④ 感測頭",
+    "感測板（超音波驅動）": "③ 超音波驅動板",
+    "主控 PCB（ESP32-C3）": "⑤ 主控 PCB",
+    "18650 電池＋充電板": "⑥ 18650 電池",
+    "SOS 按鈕": "⑦ SOS 按鈕",
+    "LED 狀態環": "LED 狀態環",
+    "上節鋁管": "⑧ 三節鋁管",
+    "橡膠腳墊（可換）": "⑩ 腳墊",
+  };
+  parts.forEach(p => { if (L[p.name]) addLabel(p, L[p.name]); });
+})();
+
+// ---------- 收合／分解控制 ----------
+let t = 0, target = 0, spin = false, mode = 'all';
+const tGrip = {v:0}, tShaft = {v:0};
+
+function factorFor(p){
+  if (mode === 'grip')  return (p.group === 'grip')  ? tGrip.v  : 0;
+  if (mode === 'shaft') return (p.group === 'shaft' || p.group === 'tip') ? tShaft.v : 0;
+  return t;
+}
+
+function apply(){
+  parts.forEach(p => {
+    const f = factorFor(p);
+    p.g.position.copy(p.pos0).addScaledVector(p.dir, f);
+    // 引導虛線
+
+  });
+}
+document.getElementById('exp').addEventListener('input', e => {
+  target = e.target.value / 100;
+  document.getElementById('expv').textContent = e.target.value + '%';
+  setBtn(null);
+});
+function setBtn(id){
+  ['b1','b2','b3','b4','b5'].forEach(b => document.getElementById(b).classList.toggle('on', b === id));
+}
+document.getElementById('b1').onclick = () => { mode='all'; target = 0; syncSlider(); setBtn('b1'); };
+document.getElementById('b2').onclick = () => { mode='all'; target = 1; syncSlider(); setBtn('b2'); };
+document.getElementById('b5').onclick = () => { spin = !spin; document.getElementById('b5').classList.toggle('on', spin); };
+
+document.getElementById('b3').onclick = () => { mode='grip';  target = 1; syncSlider(); setBtn('b3'); };
+document.getElementById('b4').onclick = () => { mode='shaft'; target = 1; syncSlider(); setBtn('b4'); };
+function syncSlider(){ document.getElementById('exp').value = target*100; document.getElementById('expv').textContent = Math.round(target*100)+'%'; }
+
+// ---------- 點選零件顯示規格 ----------
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+canvas.addEventListener('pointerdown', ev => {
+  ndc.x = (ev.clientX/innerWidth)*2 - 1;
+  ndc.y = -(ev.clientY/innerHeight)*2 + 1;
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(root.children, true)[0];
+  const box = document.getElementById('info');
+  if (hit && hit.object.userData.partIdx !== undefined){
+    const p = parts[hit.object.userData.partIdx];
+    box.style.display = 'block';
+    box.innerHTML = `<b>${p.name}</b><br><span style="color:#9aa2b1">${p.spec}</span>`;
+  } else {
+    box.style.display = 'none';
+  }
+});
+
+// ---------- 動畫 ----------
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+const _v = new THREE.Vector3();
+function updateLabels(){
+  const W = innerWidth, H = innerHeight;
+  const TOP = 96, BOT = H - 150;   // 避開上方資訊卡與下方控制列
+  const items = [];
+  labelEls.forEach(it => {
+    const p = it.part;
+    const f = factorFor(p);
+    if (f < 0.2){ it.el.style.opacity = 0; it.line.style.opacity = 0; it.dot.style.opacity = 0; return; }
+    _v.copy(p.g.position); root.localToWorld(_v); _v.project(camera);
+    const sx = (_v.x * 0.5 + 0.5) * W;
+    const sy = (-_v.y * 0.5 + 0.5) * H;
+    items.push({it, sx, sy, side: 0, ly: sy});
+  });
+  if (!items.length) return;
+
+  // 依螢幕高度排序，左右交錯分配，讓兩欄平均
+  items.sort((a,b) => a.sy - b.sy);
+  const cx = items.reduce((a,o) => a + o.sx, 0) / items.length;   // 以模型自身中心分欄
+  items.forEach(o => { o.side = o.sx < cx ? -1 : 1; });
+  // 若某一欄過多（>6），把最靠近中線的幾筆移到另一欄
+  const cap = 6;
+  [-1, 1].forEach(sd => {
+    const col = items.filter(o => o.side === sd);
+    if (col.length > cap){
+      col.sort((a,b) => Math.abs(b.sx-cx) - Math.abs(a.sx-cx))
+         .slice(0, col.length - cap)
+         .forEach(o => { o.side = -sd; });
+    }
+  });
+
+  // 每欄平均分配到可視範圍（保證不重疊，像技術插圖）
+  [-1, 1].forEach(side => {
+    const col = items.filter(o => o.side === side);
+    const n = col.length;
+    if (!n) return;
+    const gap = n > 1 ? (BOT - TOP) / (n - 1) : 0;
+    col.forEach((o, i) => { o.ly = n > 1 ? TOP + gap * i : (TOP + BOT) / 2; });
+  });
+
+  items.forEach(o => {
+    const {it, sx, sy, ly, side} = o;
+    const LW = 152;
+    // 固定左右兩欄（技術插圖做法）→ 標籤永不互壓
+    const lx = side < 0 ? 46 : (W - LW - 46);
+    it.el.style.opacity = 1;
+    it.el.style.transform = `translate(${lx}px, ${ly - 11}px)`;
+    it.el.style.textAlign = side < 0 ? 'right' : 'left';
+    it.line.style.opacity = .8;
+    it.line.setAttribute('x1', side < 0 ? lx + LW : lx);   // 從標籤內側出發
+    it.line.setAttribute('y1', ly);
+    it.line.setAttribute('x2', sx);
+    it.line.setAttribute('y2', sy);
+    it.dot.style.opacity = .95;
+    it.dot.setAttribute('cx', sx); it.dot.setAttribute('cy', sy);
+  });
+}
+
+let spinT = 0;
+function loop(){
+  requestAnimationFrame(loop);
+  // 平滑逼近（全體與分組各自內插）
+  t += (target - t) * 0.12;
+  tGrip.v  += ((mode === 'grip'  ? target : 0) - tGrip.v)  * 0.12;
+  tShaft.v += ((mode === 'shaft' ? target : 0) - tShaft.v) * 0.12;
+  apply();
+  if (spin){
+    spinT += 0.004;
+    root.rotation.y = spinT;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  updateLabels();
+}
+apply();
+loop();
+window.__ready = true;
+window.__setExplode = v => { target = v; syncSlider(); };
+window.__tick = v => {          // 供無頭瀏覽器／截圖用：立即套用並重畫
+  target = v; t = v; syncSlider();
+  tGrip.v  = (mode === 'grip')  ? v : 0;
+  tShaft.v = (mode === 'shaft') ? v : 0;
+  apply(); renderer.render(scene, camera); updateLabels();
+};
+</script>
+</body></html>
