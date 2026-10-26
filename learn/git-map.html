@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12140f">
+<title>Git 四區地圖 · 22 個指令</title>
+<style>
+:root{--bg:#12140f;--card:#1a1d16;--card2:#20241b;--line:#2c3126;--ink:#eceae2;--dim:#a2a89a;
+--lime:#c9f24d;--amber:#e8b04b;--red:#ff8b73;--blue:#7fb2d8;--zone:#232a1c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Noto Sans TC","PingFang TC",sans-serif;
+  line-height:1.6;padding-bottom:40px}
+header{padding:18px 16px 10px;max-width:1100px;margin:0 auto}
+h1{margin:0;font-size:20px;letter-spacing:.01em}
+.sub{color:var(--dim);font-size:13px;margin-top:4px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 12px}
+
+/* 四區 */
+.zones{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:center;gap:0;
+  margin:14px 0 6px}
+.zone{background:var(--zone);border:1px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center;
+  transition:.25s}
+.zone .n{font-size:10.5px;color:var(--dim);letter-spacing:.08em}
+.zone .t{font-size:13.5px;font-weight:700;margin-top:2px}
+.zone .s{font-size:11px;color:var(--dim);margin-top:2px}
+.zone.on{border-color:var(--lime);background:#26301b;box-shadow:0 0 0 1px #c9f24d33,0 0 22px #c9f24d1a}
+.zone.dst{border-color:var(--blue);background:#1c2833;box-shadow:0 0 0 1px #7fb2d833}
+.arrow{position:relative;height:2px;background:#333a2c;margin:0 2px}
+.arrow.on{background:linear-gradient(90deg,#c9f24d,#7fb2d8)}
+.arrow span{position:absolute;left:50%;top:-16px;transform:translateX(-50%);font-size:9.5px;color:var(--dim);
+  white-space:nowrap}
+.arrow i{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--lime);opacity:0}
+.arrow.moving i{opacity:1;animation:run 1.1s linear infinite}
+@keyframes run{from{left:0}to{left:calc(100% - 8px)}}
+@media(max-width:720px){
+  .zones{grid-template-columns:1fr 1fr;gap:8px}
+  .arrow{display:none}
+  .zone{padding:10px 8px;text-align:left}
+}
+
+/* 篩選 */
+.filters{display:flex;gap:7px;overflow-x:auto;padding:12px 2px 4px;-webkit-overflow-scrolling:touch}
+.filters button{flex:0 0 auto;font:inherit;font-size:12.5px;padding:6px 13px;border-radius:99px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--dim)}
+.filters button.on{background:#2a331d;border-color:#4d5c2f;color:var(--lime)}
+
+/* 指令列表 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:8px;margin:8px 0 0}
+.cmd{text-align:left;font:inherit;cursor:pointer;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:11px 12px;color:var(--ink);transition:.15s}
+.cmd:hover{border-color:#47512f;background:var(--card2)}
+.cmd.on{border-color:var(--lime);background:#242c1a;box-shadow:0 0 0 1px #c9f24d33}
+.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--lime)}
+.cmd .zh{display:block;font-size:12px;color:var(--dim);margin-top:3px}
+.badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:1px}
+.b-safe{color:#8fd6a8;border:1px solid #3d5b46;background:#18251c}
+.b-write{color:var(--amber);border:1px solid #5d4a24;background:#251f12}
+.b-danger{color:var(--red);border:1px solid #5f342b;background:#251713}
+
+/* 詳情 */
+.detail{margin:14px 0 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;min-height:180px}
+.detail h2{margin:0 0 2px;font-size:17px}
+.detail .syn{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;color:var(--lime);
+  background:#151810;border:1px solid #262c1d;border-radius:9px;padding:9px 11px;margin:10px 0;overflow-x:auto;white-space:pre}
+.detail p{margin:8px 0;font-size:13.5px}
+.detail .lab{font-size:11.5px;color:var(--dim);letter-spacing:.06em;margin-top:14px}
+.flowline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin-top:4px}
+.flowline b{color:var(--ink);font-weight:600}
+.risk{margin-top:12px;font-size:13px;border-radius:10px;padding:10px 12px}
+.r-safe{background:#18251c;border:1px solid #3d5b46;color:#a9dcbb}
+.r-warn{background:#251f12;border:1px solid #5d4a24;color:#f0cd8f}
+.r-bad{background:#251713;border:1px solid #5f342b;color:#ffb4a0}
+.fix{margin-top:8px;font-size:12.8px;color:#cfd3c5;border-left:2px solid #4d5c2f;padding-left:10px}
+footer{max-width:1100px;margin:22px auto 0;padding:0 16px;color:#7c8274;font-size:11.5px}
+@media(max-width:720px){
+  .detail{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:16px 16px 0 0;max-height:72vh;overflow:auto;
+    transform:translateY(101%);transition:transform .25s;z-index:20;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+  .detail.show{transform:translateY(0)}
+  .detail .close{display:block}
+}
+.detail .close{display:none;position:sticky;top:0;float:right;background:#2a2f22;border:1px solid var(--line);
+  color:var(--dim);border-radius:8px;font-size:12px;padding:4px 10px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>Git 四區地圖</h1>
+  <div class="sub">22 個指令，其實都只是在「四個地方」之間搬東西。點任一個看它動哪一區、用錯怎麼救。</div>
+</header>
+
+<div class="wrap">
+  <div class="zones" id="zones">
+    <div class="zone" data-z="0"><div class="n">01</div><div class="t">工作區</div><div class="s">你正在編輯的檔案</div></div>
+    <div class="arrow" data-a="0"><span>add</span><i></i></div>
+    <div class="zone" data-z="1"><div class="n">02</div><div class="t">暫存區</div><div class="s">下次提交的內容</div></div>
+    <div class="arrow" data-a="1"><span>commit</span><i></i></div>
+    <div class="zone" data-z="2"><div class="n">03</div><div class="t">本機儲存庫</div><div class="s">你的提交歷史</div></div>
+    <div class="arrow" data-a="2"><span>push / pull</span><i></i></div>
+    <div class="zone" data-z="3"><div class="n">04</div><div class="t">遠端儲存庫</div><div class="s">GitHub 上的那份</div></div>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="on" data-g="all">全部 22</button>
+    <button data-g="本機">本機循環</button>
+    <button data-g="分支">分支與整合</button>
+    <button data-g="遠端">遠端</button>
+    <button data-g="救援">救援與危險</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="detail" id="detail">
+    <button class="close" id="closeD">收起</button>
+    <h2 id="d-title">選一個指令</h2>
+    <div class="syn" id="d-syn">—</div>
+    <p id="d-zh">左邊是 22 個常用指令。點下去會告訴你：它動哪一區、風險多高、做錯怎麼救。</p>
+    <div class="lab">動到哪一區</div>
+    <div class="flowline" id="d-flow">—</div>
+    <div id="d-risk"></div>
+    <div class="fix" id="d-fix" style="display:none"></div>
+  </div>
+  <footer>
+    風險分級：安全＝不破壞資料｜改寫歷史＝會換掉提交雜湊，共用分支上要小心｜危險＝可能一次帶走未提交的工作。
+    這份對照的是 Git 2.23 之後的 <code>switch</code>／<code>restore</code> 用法。
+  </footer>
+</div>
+
+<script>
+const Z = ['工作區','暫存區','本機儲存庫','遠端儲存庫'];
+const CMDS = [
+  // ── 本機循環 ──
+  {g:'本機', cmd:'git status', zh:'看四區現在的狀態', risk:'safe', z:[0,1],
+   syn:'git status\ngit status -s        # 短格式',
+   desc:'不會動任何資料，只是告訴你：哪些檔案改了、哪些已暫存、目前在哪個分支、跟遠端差幾個提交。',
+   flow:'唯讀：工作區 ↔ 暫存區 的差異',
+   fix:'每天第一個下的指令。看到 untracked 檔案就先決定：要提交、要 ignore、還是要刪。'},
+  {g:'本機', cmd:'git diff', zh:'看還沒暫存的改動', risk:'safe', z:[0],
+   syn:'git diff             # 工作區 vs 暫存區\ngit diff --staged    # 暫存區 vs 上次提交',
+   desc:'預設比的是「工作區」與「暫存區」。加上 --staged 就變成比「暫存區」與「本機儲存庫」，也就是你 commit 之後真正會存進去的內容。',
+   flow:'唯讀：只比對，不搬東西',
+   fix:'commit 前一定先看 --staged，這是唯一能確認「我到底要提交什麼」的方式。'},
+  {g:'本機', cmd:'git add <file>', zh:'把改動放進暫存區', risk:'safe', z:[0,1], a:0,
+   syn:'git add app.js\ngit add .            # 全部（含新檔，不含被 ignore 的）\ngit add -p          # 逐段挑',
+   desc:'把工作區的內容複製一份到暫存區，等下一次 commit。原檔案完全不動，所以 add 一百次也不會壞。',
+   flow:'工作區 → 暫存區',
+   fix:'add 錯了不用緊張：git restore --staged <file> 就退回未暫存，工作區內容還在。'},
+  {g:'本機', cmd:'git commit -m', zh:'把暫存區存成一個時間點', risk:'safe', z:[1,2], a:1,
+   syn:'git commit -m "修正登入逾時"\ngit commit --amend   # 改掉上一個提交',
+   desc:'把暫存區當下的快照存進本機歷史。訊息寫「為什麼改」，不是「改了什麼」——後者 diff 已經寫了。',
+   flow:'暫存區 → 本機儲存庫',
+   fix:'訊息打錯、或漏了一個檔：git commit --amend（還沒 push 才能用，push 過就要開新提交）。'},
+  {g:'本機', cmd:'git restore <file>', zh:'丟掉工作區的改動', risk:'write', z:[0],
+   syn:'git restore app.js\ngit restore .        # 全部丟掉',
+   desc:'把檔案還原成暫存區的版本（沒有暫存就用上次提交）。你剛剛手改的東西會直接消失，而且救不回來。',
+   flow:'暫存區 → 工作區（覆蓋）',
+   fix:'丟錯就只能靠編輯器的 undo 或備份。這條指令沒有 reflog 可救，養成先 commit 或 stash 的習慣。'},
+  {g:'本機', cmd:'git restore --staged', zh:'取消暫存（不丟改動）', risk:'safe', z:[1,0],
+   syn:'git restore --staged app.js\ngit reset HEAD app.js   # 舊寫法，等價',
+   desc:'把檔案從暫存區拿出來，變成未暫存。工作區的內容完全保留，只是「這次不提交它」。',
+   flow:'暫存區 → 工作區（僅取消標記）',
+   fix:'這是 add 的反悔鍵，很安全。注意它不會刪掉任何程式碼。'},
+  {g:'本機', cmd:'git log --oneline --graph', zh:'看提交歷史與分支線', risk:'safe', z:[2],
+   syn:'git log --oneline --graph --all\ngit log -5           # 只看最近 5 筆',
+   desc:'唯讀。--graph 會畫出分支的分叉與合併，--all 連遠端分支一起看。',
+   flow:'唯讀：本機儲存庫',
+   fix:'找不到「剛剛明明還在」的提交時，改用 git reflog——它記錄 HEAD 每一次移動。'},
+  {g:'本機', cmd:'git stash', zh:'把做到一半的東西收起來', risk:'safe', z:[0,1],
+   syn:'git stash push -m "wip: 表單驗證"\ngit stash list\ngit stash pop        # 拿回來並刪除',
+   desc:'把工作區與暫存區的改動收進抽屜，工作區回到乾淨狀態。常用在「臨時要切分支修 bug」。',
+   flow:'工作區＋暫存區 → stash 抽屜',
+   fix:'pop 衝突時不會消失，會留在 stash list；解決後 git stash drop 清掉。'},
+  {g:'本機', cmd:'git stash pop', zh:'把抽屜裡的東西拿回來', risk:'safe', z:[0,1],
+   syn:'git stash pop\ngit stash apply      # 拿回來但保留在抽屜',
+   desc:'把最近一次 stash 套回工作區並從清單移除。apply 則是套回但不刪，適合同一個 WIP 要用在兩條分支。',
+   flow:'stash 抽屜 → 工作區＋暫存區',
+   fix:'套回衝突時 stash 不會被刪，修完再 drop。'},
+  {g:'本機', cmd:'git rm --cached', zh:'停止追蹤但保留檔案', risk:'safe', z:[1],
+   syn:'git rm --cached .env\necho ".env" >> .gitignore\ngit commit -m "stop tracking .env"',
+   desc:'把檔案從版本控制移除，但硬碟上的檔案留著。忘記加 .gitignore 而誤傳機密時，這是最常用的補救。',
+   flow:'暫存區 → 移除追蹤',
+   fix:'已經 push 過的機密要當作外洩：換掉金鑰，光刪檔案不夠（歷史裡還在）。'},
+
+  // ── 分支與整合 ──
+  {g:'分支', cmd:'git branch <name>', zh:'建立分支指標', risk:'safe', z:[2],
+   syn:'git branch feature/login\ngit branch -d old   # 刪除已合併分支',
+   desc:'只是多一個指向某個提交的標籤，不會複製檔案。Git 的分支成本近乎為零。',
+   flow:'本機儲存庫內新增指標',
+   fix:'刪錯分支還有救：git branch <name> <sha>，用 reflog 找 sha。'},
+  {g:'分支', cmd:'git switch', zh:'切換分支（或新建後切換）', risk:'safe', z:[2,0],
+   syn:'git switch main\ngit switch -c feature/login   # 新建並切換',
+   desc:'把 HEAD 移到另一個分支，工作區檔案跟著換成那個分支的內容。switch 是 2.23 之後的指令，取代舊的 checkout。',
+   flow:'本機儲存庫 → 工作區（換內容）',
+   fix:'有未提交改動時會被擋下來（好事）。先 commit 或 stash 再切。'},
+  {g:'分支', cmd:'git merge <branch>', zh:'把分支合進來', risk:'safe', z:[2],
+   syn:'git switch main\ngit merge feature/login\ngit merge --no-ff feature/login   # 保留合併點',
+   desc:'把另一條分支的提交接進來。能快轉就快轉，不能就產生一個合併提交；衝突要手動解。',
+   flow:'本機儲存庫內：分支 → 當前分支',
+   fix:'合錯：還沒 push 就 git reset --hard ORIG_HEAD；push 過就 git revert -m 1 <merge-sha>。'},
+  {g:'分支', cmd:'git rebase <base>', zh:'把提交重播到新基準', risk:'write', z:[2],
+   syn:'git switch feature\ngit rebase main',
+   desc:'把你這條分支的提交一個一個「重播」到 main 最新進度後面，歷史變成一條直線。每個提交都會換新雜湊。',
+   flow:'本機儲存庫內：改寫歷史',
+   fix:'千萬別對已 push 的共用分支 rebase。做壞了：git reflog 找原本的 sha，git reset --hard <sha>。'},
+  {g:'分支', cmd:'git cherry-pick <sha>', zh:'只挑一個提交過來', risk:'write', z:[2],
+   syn:'git switch main\ngit cherry-pick 3f9a1c2',
+   desc:'把某個提交的變更複製到目前分支，產生一個新提交（新雜湊）。常用在「hotfix 要同時進 main 與 release」。',
+   flow:'本機儲存庫內：複製單一提交',
+   fix:'挑錯：git reset --hard HEAD~1（還沒 push）。衝突時解完 git add 再 cherry-pick --continue。'},
+
+  // ── 遠端 ──
+  {g:'遠端', cmd:'git fetch', zh:'把遠端更新抓下來（不動你的工作）', risk:'safe', z:[3,2], a:2,
+   syn:'git fetch origin\ngit fetch --prune      # 順便清掉已刪除的遠端分支',
+   desc:'更新「遠端追蹤分支」（origin/main），工作區與你的分支完全不動。這是最安全的「先看看遠端有什麼」。',
+   flow:'遠端儲存庫 → 本機（僅追蹤分支）',
+   fix:'fetch 之後用 git log HEAD..origin/main 看遠端多了什麼，再決定 merge 或 rebase。'},
+  {g:'遠端', cmd:'git pull', zh:'抓下來並合併', risk:'write', z:[3,2,0], a:2,
+   syn:'git pull            # = fetch + merge\ngit pull --rebase   # = fetch + rebase',
+   desc:'先 fetch 再 merge（或 rebase）。預設會產生合併提交；專案習慣線性歷史就用 --rebase。',
+   flow:'遠端儲存庫 → 本機儲存庫 → 工作區',
+   fix:'pull 出衝突：解衝突 → git add → git commit（rebase 模式則是 git rebase --continue）。'},
+  {g:'遠端', cmd:'git push', zh:'把本機提交送上遠端', risk:'write', z:[2,3], a:2,
+   syn:'git push\ngit push -u origin feature/login   # 第一次推新分支',
+   desc:'把本機分支的提交送到遠端。被拒絕（rejected）通常代表遠端有你沒有的提交，先 pull 再推。',
+   flow:'本機儲存庫 → 遠端儲存庫',
+   fix:'絕對不要用 push --force 解決 rejected（會蓋掉別人的提交）。要改已推的歷史，用 --force-with-lease 並先確認没人基於它工作。'},
+  {g:'遠端', cmd:'git clone <url>', zh:'把整個專案抓成本機', risk:'safe', z:[3,2,0],
+   syn:'git clone git@github.com:user/repo.git\ngit clone --depth 1 <url>   # 只抓最新一層',
+   desc:'建立一個新目錄，把遠端歷史抓下來、預設分支檢出到工作區。這是唯一同時填滿四區的指令。',
+   flow:'遠端儲存庫 → 本機儲存庫 → 工作區',
+   fix:'抓錯網址就到上一層刪掉目錄重抓；不要刪到有未提交改動的專案。'},
+
+  // ── 救援 ──
+  {g:'救援', cmd:'git reflog', zh:'HEAD 去過哪裡，全都在這', risk:'safe', z:[2],
+   syn:'git reflog\ngit reset --hard HEAD@{3}',
+   desc:'記錄 HEAD 每一次移動（commit、reset、rebase、checkout 都算）。reset --hard 丟掉的提交，通常都能在這裡找回來。',
+   flow:'唯讀：本機儲存庫的移動紀錄',
+   fix:'這是 Git 的救命索：先 git reflog 找到 sha，再 git branch rescue <sha> 把它固定住，別急著 reset。'},
+  {g:'救援', cmd:'git reset --hard', zh:'把三個地方一起倒回去', risk:'danger', z:[2,1,0],
+   syn:'git reset --hard HEAD~1\ngit reset --hard origin/main',
+   desc:'同時移動分支指標、重設暫存區、覆蓋工作區。未提交的改動會消失，而且 git 不會問你。',
+   flow:'本機儲存庫 → 暫存區 → 工作區（全覆蓋）',
+   fix:'先 git stash 或 commit 再 reset。真的按下去：未提交的內容救不回來；已提交的用 reflog 找。'},
+  {g:'救援', cmd:'git clean -fd', zh:'刪掉所有未追蹤檔案', risk:'danger', z:[0],
+   syn:'git clean -nd      # 先乾跑，看會刪什麼\ngit clean -fd',
+   desc:'刪掉沒被 Git 追蹤的檔案與目錄。那些「還沒 add 但是很重要」的草稿、.env、資料檔都會消失。',
+   flow:'工作區：刪除未追蹤檔案',
+   fix:'永遠先跑一次 git clean -nd 看名單。這條沒有 reflog，刪掉就是刪掉。'}
+];
+
+const grid=document.getElementById('grid'), detail=document.getElementById('detail');
+const zonesEl=[...document.querySelectorAll('.zone')], arrowsEl=[...document.querySelectorAll('.arrow')];
+let active=-1, filter='all';
+
+const RISK={safe:['safe','安全'],write:['write','改寫歷史'],danger:['danger','危險']};
+
+function render(){
+  grid.innerHTML='';
+  CMDS.forEach((c,i)=>{
+    if(filter!=='all' && c.g!==filter) return;
+    const b=document.createElement('button');
+    b.className='cmd'+(i===active?' on':'');
+    b.dataset.i=i;
+    b.innerHTML=`<code>${c.cmd}</code><span class="badge b-${c.risk}">${RISK[c.risk][1]}</span>
+      <span class="zh">${c.zh}</span>`;
+    b.onclick=()=>select(i);
+    grid.appendChild(b);
+  });
+}
+
+function clearZones(){
+  zonesEl.forEach(z=>z.classList.remove('on','dst'));
+  arrowsEl.forEach(a=>a.classList.remove('on','moving'));
+}
+
+function select(i){
+  active=i;
+  render();
+  const c=CMDS[i];
+  clearZones();
+  // 高亮：z 陣列第一個是起點（on），最後一個是終點（dst），中間都 on
+  const zs=c.z||[];
+  zs.forEach((zi,k)=>{
+    if(k===0) zonesEl[zi].classList.add('on');
+    else zonesEl[zi].classList.add(k===zs.length-1?'dst':'on');
+  });
+  if(typeof c.a==='number'){
+    const ar=arrowsEl[c.a]; if(ar){ar.classList.add('on','moving');}
+  }
+  // 若跨多區，箭頭依序點亮
+  if(zs.length>1){
+    const min=Math.min(...zs), max=Math.max(...zs);
+    for(let k=min;k<max && k<arrowsEl.length;k++) arrowsEl[k].classList.add('on');
+    if(typeof c.a!=='number'){ arrowsEl[Math.min(max-1,arrowsEl.length-1)].classList.add('moving'); }
+  }
+  document.getElementById('d-title').textContent=c.cmd;
+  document.getElementById('d-syn').textContent=c.syn;
+  document.getElementById('d-zh').textContent=c.desc;
+  document.getElementById('d-flow').innerHTML=c.flow.replace(/(工作區|暫存區|本機儲存庫|遠端儲存庫|stash 抽屜)/g,'<b>$1</b>');
+  const r=document.getElementById('d-risk');
+  r.className='risk r-'+({safe:'safe',write:'warn',danger:'bad'})[c.risk];
+  r.textContent=(c.risk==='safe'?'✅ 安全：':c.risk==='write'?'⚠ 會改寫歷史：':'⛔ 危險：')+
+    (c.risk==='safe'?'不破壞任何資料':c.risk==='write'?'會產生新雜湊，共用分支上要先講':'可能一次帶走未提交的工作');
+  const fx=document.getElementById('d-fix');
+  fx.style.display='block';
+  fx.textContent='做錯怎麼救：'+c.fix;
+  detail.classList.add('show');
+  // 手機：捲到詳情
+  if(window.innerWidth<=720) detail.scrollTop=0;
+}
+
+document.getElementById('filters').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...document.querySelectorAll('#filters button')].forEach(x=>x.classList.toggle('on',x===b));
+  filter=b.dataset.g; render();
+});
+document.addEventListener('click',e=>{
+  if(window.innerWidth<=720 && !e.target.closest('.cmd') && !e.target.closest('.detail')){
+    detail.classList.remove('show');
+  }
+});
+document.getElementById('closeD').onclick=()=>detail.classList.remove('show');
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') detail.classList.remove('show');
+  if(e.key==='ArrowRight') select(Math.min(CMDS.length-1, active+1));
+  if(e.key==='ArrowLeft') select(Math.max(0, active-1));
+});
+
+render();
+select(2);   // 預設示範 git add
+</script>
+</body>
+</html>
