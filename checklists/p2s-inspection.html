@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12140f">
+<title>P2S 面交驗機清單</title>
+<style>
+:root{--bg:#12140f;--card:#1b1e18;--line:#2b2f26;--ink:#eceae2;--dim:#a9ab9f;--lime:#c9f24d;--warn:#ffb4a2;--ok:#7fd1a8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Noto Sans TC","PingFang TC",sans-serif;
+  line-height:1.65;padding-bottom:96px}
+header{position:sticky;top:0;z-index:10;background:rgba(18,20,15,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);padding:14px 16px 10px}
+h1{margin:0;font-size:17px;letter-spacing:.01em}
+.sub{font-size:12px;color:var(--dim);margin-top:3px}
+.bar{height:5px;background:#262a21;border-radius:99px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--lime);transition:width .25s}
+main{padding:14px 12px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+h2{margin:0 0 4px;font-size:14.5px;display:flex;gap:8px;align-items:baseline}
+h2 span.n{font-size:11px;color:var(--lime);border:1px solid #c9f24d55;border-radius:99px;padding:1px 7px}
+.why{font-size:12.5px;color:var(--dim);margin:0 0 10px}
+label{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-top:1px solid #23261f;cursor:pointer}
+label:first-of-type{border-top:0}
+input[type=checkbox]{appearance:none;flex:0 0 auto;width:24px;height:24px;margin:1px 0 0;border-radius:7px;
+  border:1.5px solid #4a4f41;background:#15170f;position:relative;transition:.15s}
+input[type=checkbox]:checked{background:var(--lime);border-color:var(--lime)}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;
+  border-right:2.5px solid #12140f;border-bottom:2.5px solid #12140f;transform:rotate(42deg)}
+label .t{font-size:13.5px}
+label .t b{font-weight:600}
+label .t em{display:block;font-style:normal;font-size:12px;color:var(--dim);margin-top:2px}
+input:checked + .t{opacity:.55}
+input:checked + .t b{text-decoration:line-through;text-decoration-color:#6f7a5e}
+.red{border-color:#5a2f2a}
+.red h2{color:var(--warn)}
+.note{font-size:12.5px;color:#cfd3c5;background:#1f231b;border-left:2px solid #6f7a5e;border-radius:0 8px 8px 0;
+  padding:9px 11px;margin:10px 0 0}
+footer{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,rgba(18,20,15,.97) 35%);display:flex;gap:8px}
+footer button{flex:1;font:inherit;font-size:13px;padding:11px 0;border-radius:11px;border:1px solid #3a3f33;
+  background:#22261d;color:var(--ink)}
+footer .count{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-width:74px;
+  font-size:13px;color:var(--lime)}
+@media (min-width:620px){main{max-width:640px;margin:0 auto}header{padding:16px}footer{max-width:640px;margin:0 auto;left:50%;transform:translateX(-50%);width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1>P2S 面交驗機清單</h1>
+  <div class="sub">天母・1101 小時・原箱・自取 17,500（現場可議）</div>
+  <div class="bar"><i id="pbar"></i></div>
+</header>
+
+<main id="list">
+  <section>
+    <h2><span class="n">01</span>時數與使用狀況</h2>
+    <p class="why">賣家說 1101 小時。數字對不上就是有問題，這是最容易查的一項。</p>
+    <label><input type="checkbox" data-k="h1"><span class="t"><b>螢幕／App 顯示列印時數</b><em>設定 → 裝置 → 列印統計。1101 小時上下合理；若接近 0 或整數（1000.0）很可疑</em></span></label>
+    <label><input type="checkbox" data-k="h2"><span class="t"><b>序號與外箱、機身一致</b><em>機身背面貼紙 vs 紙箱標籤，兩個要一樣</em></span></label>
+    <label><input type="checkbox" data-k="h3"><span class="t"><b>有購買證明</b><em>3D列印基地／官網訂單截圖，確認購買日 2026/05、保固到 2027/05</em></span></label>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span>熱端與噴嘴</h2>
+    <p class="why">噴嘴是最常被操壞的零件。一支幾百元，但磨損代表這台跑得很兇。</p>
+    <label><input type="checkbox" data-k="n1"><span class="t"><b>拆下噴嘴看孔</b><em>孔應該是正圓；橢圓、變大、內壁發黑焦化 → 換過度使用</em></span></label>
+    <label><input type="checkbox" data-k="n2"><span class="t"><b>熱端外殼無熔料堆積</b><em>有塑膠包住加熱塊，通常代表曾漏料或堵料處理不當</em></span></label>
+    <label><input type="checkbox" data-k="n3"><span class="t"><b>工具包、備用噴嘴、通針在不在</b><em>原廠附的小盒；缺了不致命，但可當議價點</em></span></label>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span>皮帶、Z 軸、機構</h2>
+    <p class="why">30 秒就能感覺出來，但決定你未來半年會不會一直調機。</p>
+    <label><input type="checkbox" data-k="m1"><span class="t"><b>手推 XY 滑軌</b><em>來回推，應該滑順、有阻力但不卡；一邊鬆一邊緊＝皮帶張力不均</em></span></label>
+    <label><input type="checkbox" data-k="m2"><span class="t"><b>皮帶有無毛邊、脫絲</b><em>手電筒照 Z 軸與 XY 皮帶內側</em></span></label>
+    <label><input type="checkbox" data-k="m3"><span class="t"><b>Z 軸上下跑一次</b><em>聽有沒有規律的「咔」或金屬摩擦聲</em></span></label>
+    <label><input type="checkbox" data-k="m4"><span class="t"><b>四支腳、玻璃門、上蓋卡榫完好</b><em>玻璃裂或卡榫斷都會漏溫</em></span></label>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span>PEI 板與加熱床</h2>
+    <p class="why">板子一片約 1,000，翹曲的話很難救。</p>
+    <label><input type="checkbox" data-k="b1"><span class="t"><b>PEI 板沒有深刮痕、沒有被刮到見底</b><em>細微霧化正常，深溝會讓第一層附著不均</em></span></label>
+    <label><input type="checkbox" data-k="b2"><span class="t"><b>板子放上去不會翹</b><em>四角輕壓，不該有咔咔聲</em></span></label>
+    <label><input type="checkbox" data-k="b3"><span class="t"><b>加熱到 60°C 均勻</b><em>摸四角與中央溫差不要太大</em></span></label>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span>版本與帳號（最關鍵）</h2>
+    <p class="why">陸版在台灣會被鎖區，價格再便宜都不要。</p>
+    <label><input type="checkbox" data-k="v1"><span class="t"><b>包裝標籤是國際版／台灣公司貨</b><em>看紙箱上的地區標示與 BSMI 標籤</em></span></label>
+    <label><input type="checkbox" data-k="v2"><span class="t"><b>你的 Bambu 帳號能綁定這台</b><em>現場用你的手機 App 綁定；綁不上就是地區或所有權問題</em></span></label>
+    <label><input type="checkbox" data-k="v3"><span class="t"><b>雲端列印／遠端監看可用</b><em>綁定後開一次雲端連線，能連上才算真的國際版</em></span></label>
+    <label><input type="checkbox" data-k="v4"><span class="t"><b>賣家已解除綁定</b><em>否則你接手後會卡在「裝置已綁定其他帳號」</em></span></label>
+  </section>
+
+  <section>
+    <h2><span class="n">06</span>現場印一個小件</h2>
+    <p class="why">十分鐘，勝過看一小時外觀。</p>
+    <label><input type="checkbox" data-k="p1"><span class="t"><b>自備一小段線材，印 10 分鐘的小方塊</b><em>看第一層是否均勻、邊角有沒有翹</em></span></label>
+    <label><input type="checkbox" data-k="p2"><span class="t"><b>全程聽聲音</b><em>正常是風扇與步進聲；出現刮擦、爆裂聲就追問</em></span></label>
+    <label><input type="checkbox" data-k="p3"><span class="t"><b>印完看尺寸</b><em>20 mm 方塊量出來應在 19.8–20.2；差太多是校正或機械問題</em></span></label>
+  </section>
+
+  <section class="red">
+    <h2>看到這些就走</h2>
+    <label><input type="checkbox" data-k="r1"><span class="t"><b>帳號綁不上，或賣家不肯解除綁定</b></span></label>
+    <label><input type="checkbox" data-k="r2"><span class="t"><b>是陸版（包裝或 App 顯示地區不符）</b></span></label>
+    <label><input type="checkbox" data-k="r3"><span class="t"><b>時數與外觀嚴重不符（看起來很操卻顯示 100 小時）</b></span></label>
+    <label><input type="checkbox" data-k="r4"><span class="t"><b>現場拒絕通電或拒絕印小件</b></span></label>
+  </section>
+
+  <section>
+    <h2>議價與成交</h2>
+    <p class="why">先驗完再談錢，順序不要顛倒。</p>
+    <label><input type="checkbox" data-k="d1"><span class="t"><b>開 16,500（自取、現金、當天帶走）</b><em>賣家原本 17,500；留 1,000 給他回</em></span></label>
+    <label><input type="checkbox" data-k="d2"><span class="t"><b>若堅持 17,500 也接受</b><em>1101 小時＋原箱＋能驗機，這個價位合理</em></span></label>
+    <label><input type="checkbox" data-k="d3"><span class="t"><b>問 AMS 2 Pro 是否真的自留</b><em>8,000 含 buffer 就加購；不含 buffer 就之後再買</em></span></label>
+    <label><input type="checkbox" data-k="d4"><span class="t"><b>拿齊：電源線、原箱、工具包、購買證明</b><em>缺件的部分當場折價</em></span></label>
+    <p class="note">日後要接 AMS：P2S 單機<b>不含 filament buffer（SA011）</b>，需另購 buffer 與 6-pin 線，否則 AMS 買回來不能進料。</p>
+  </section>
+</main>
+
+<footer>
+  <div class="count" id="cnt">0 / 0</div>
+  <button id="reset">全部清除</button>
+</footer>
+
+<script>
+(function(){
+  var KEY='p2s-inspect-v1';
+  var boxes=[].slice.call(document.querySelectorAll('input[type=checkbox]'));
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}');}catch(e){}
+  boxes.forEach(function(b){
+    if(saved[b.dataset.k]) b.checked=true;
+    b.addEventListener('change',function(){
+      saved[b.dataset.k]=b.checked;
+      localStorage.setItem(KEY,JSON.stringify(saved));
+      paint();
+    });
+  });
+  function paint(){
+    var done=boxes.filter(function(b){return b.checked;}).length;
+    document.getElementById('cnt').textContent=done+' / '+boxes.length;
+    document.getElementById('pbar').style.width=(done/boxes.length*100)+'%';
+  }
+  document.getElementById('reset').onclick=function(){
+    boxes.forEach(function(b){b.checked=false;});
+    saved={};localStorage.removeItem(KEY);paint();
+  };
+  paint();
+})();
+</script>
+</body>
+</html>
