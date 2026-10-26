@@ -1770,11 +1770,11 @@ var VD={
   parts:[
    {id:'strap',o:1,f:'strap',n:'錶帶（20 mm 織帶）',
     d:'20 × 2.5 mm 織帶（頸圍示意 Ø68）',mt:'尼龍織帶＋側壓快扣',
-    u:'穿過機殼兩端 3.0 mm 高的走帶槽；側壓快扣受拉力會脫開，避免貓咪勾到勒傷。',
+    u:'穿過機殼兩端 4.5 mm 高、6.0 mm 深的走帶槽（邊緣 R2.5）；側壓快扣受拉力會脫開，避免貓咪勾到勒傷。',
     ex:[0,-56,20]},
    {id:'back',o:2,f:'back',n:'下蓋／背蓋',
     d:'63.0 × 39.0 × 8.2 mm（內腔 59.4 × 35.4）',mt:'白色 PLA・壁厚 1.8・R7 全圓角',
-    u:'容納 500 mAh 電池與震動馬達；底面開 2 × Ø2.4 磁吸充電孔與麥克風進音孔。',
+    u:'容納 500 mAh 電池與震動馬達；底面開 2 × Ø2.4 磁吸充電孔與麥克風進音孔。改版：2 顆 M1.6 螺絲 + 2 個懸臂卡扣（L≈12 mm）+ O 環溝，背蓋可拆、換電池不必破壞外殼。',
     ex:[18,-34,-12]},
    {id:'batt',o:3,f:'batt',n:'鋰聚合物電池 500 mAh',
     d:'32.0 × 21.0 × 4.5 mm（電池槽）',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
@@ -1798,11 +1798,11 @@ var VD={
     ex:[40,-22,-20]},
    {id:'pogo',o:8,f:'pogo',n:'磁吸充電 pogo pin ×2',
     d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
-    u:'5 V / 0.5 A 充電接點；防水靠 pin 座 O 環與背蓋超音波熔接。',
+    u:'5 V / 0.5 A 充電接點；IPX6 靠 pin 座 O 環＋背蓋 O 環溝（1.3 × 0.72，壓縮 28%）。',
     ex:[-40,-24,-18]},
    {id:'mid',o:9,f:'mid',n:'中框（螢幕支架）',
     d:'59.0 × 35.0 × 2.6 mm（開窗 56 × 33）',mt:'黑色 ABS・遮光',
-    u:'壓住 LCD 四周避免漏光，同時當 PCB 的定位基準；四角落有 M1.4 自攻柱。',
+    u:'壓住 LCD 四周避免漏光，同時當 PCB 的定位基準；四角落改埋 M1.4 熱熔銅螺母（可重複拆裝 20 次以上）。',
     ex:[-14,56,-6]},
    {id:'screen',o:10,f:'screen',n:'2.5 吋 IPS 全滿玻璃螢幕',
     d:'模組 57.0 × 34.0 × 2.2 mm（可視 55.0 × 32.0）',mt:'256 × 448 IPS・SPI 介面',
@@ -1811,7 +1811,15 @@ var VD={
    {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
     d:'63.0 × 39.0 × 2.4 mm（可視 55.0 × 32.0 R4）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
     u:'滿版黑玻璃蓋住整個正面，四周只留 4 mm 邊框；2.5D 邊緣與機身齊平。',
-    ex:[0,96,0]}
+    ex:[0,96,0]},
+   {id:'oring',o:12,f:'oring',n:'防水 O 環（Ø1.0）',
+    d:'Ø1.0 mm 線徑・環長約 176 mm',mt:'矽膠 50 Shore A・黑色',
+    u:'放在背蓋 O 環溝（1.3 × 0.72）內，壓縮 28% 才有 IPX6；換電池時要一起換新環。',
+    ex:[-38,-58,0]},
+   {id:'screw',o:13,f:'screw',n:'背蓋螺絲 M1.6 ×2',
+    d:'M1.6 × 4 mm・頭 Ø2.8',mt:'SUS304 不鏽鋼・十字',
+    u:'鎖進中框的 M1.4 熱熔銅螺母；拆背蓋只需這一支螺絲起子，不必破壞外殼。',
+    ex:[38,-58,0]}
   ]
  },
  b:{
@@ -1830,7 +1838,7 @@ var VD={
     ex:[14,-36,-10]},
    {id:'back',o:3,f:'back',n:'背蓋（PPG／聽診器）',
     d:'56.0 × 44.0 × 7.2 mm（振膜 Ø28 外凸 5）',mt:'PC+ABS 霧黑・PPG 窗 Ø15',
-    u:'貼皮膚面：Ø28 聽診器式振膜收心音／呼吸音，12 孔聲學陣列，兩側雙波長 PPG。',
+    u:'貼皮膚面：Ø28 聽診器式振膜收心音／呼吸音，12 孔聲學陣列，兩側雙波長 PPG。改版：2 顆 M1.6 螺絲 + 2 卡扣 + O 環溝，可拆換電池。',
     ex:[-16,-14,10]},
    {id:'batt',o:4,f:'batt',n:'鋰聚合物電池 500 mAh',
     d:'34.0 × 26.0 × 5.4 mm',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
@@ -1854,11 +1862,11 @@ var VD={
     ex:[38,-26,-18]},
    {id:'pogo',o:9,f:'pogo',n:'磁吸充電 pogo pin ×2',
     d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
-    u:'與套框上的簧片接觸充電；IPX6 靠 pin 座 O 環與背蓋熔接。',
+    u:'與套框上的簧片接觸充電；IPX6 靠 pin 座 O 環＋背蓋 O 環溝（1.3 × 0.72，壓縮 28%）。',
     ex:[-38,-28,-16]},
    {id:'mid',o:10,f:'mid',n:'中框（收音／揚聲開孔）',
     d:'56.0 × 44.0 × 6.0 mm',mt:'PC+ABS 霧黑・揚聲 Ø28 腔體',
-    u:'撐住螢幕與主板，底面留 Ø28 揚聲腔與 Ø1 收音孔；同時當電池的擋牆。',
+    u:'撐住螢幕與主板，底面留 Ø28 揚聲腔與 Ø1 收音孔；同時當電池的擋牆；四角改埋 M1.4 熱熔銅螺母。',
     ex:[-14,66,-4]},
    {id:'screen',o:11,f:'screen',n:'2.4 吋螢幕模組',
     d:'52.0 × 40.0 × 2.4 mm（可視 48.96 × 36.72）',mt:'240 × 320 IPS・MIPI',
@@ -1867,7 +1875,15 @@ var VD={
    {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
     d:'56.0 × 44.0 × 3.0 mm（可視 48.96 × 36.72）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
     u:'2.5D 邊緣、與機身齊平；玻璃開窗 48.96 × 36.72 讓螢幕亮度幾乎不打折。',
-    ex:[0,100,0]}
+    ex:[0,100,0]},
+   {id:'oring',o:12,f:'oring',n:'防水 O 環（Ø1.0）',
+    d:'Ø1.0 mm 線徑・環長約 166 mm',mt:'矽膠 50 Shore A・黑色',
+    u:'背蓋 O 環溝（1.3 × 0.72）壓縮 28%；磁吸套框不參與防水，水氣仍從背蓋這圈擋住。',
+    ex:[-38,-60,0]},
+   {id:'screw',o:13,f:'screw',n:'背蓋螺絲 M1.6 ×2',
+    d:'M1.6 × 4 mm・頭 Ø2.8',mt:'SUS304 不鏽鋼・十字',
+    u:'與 O 環一起構成可拆背蓋：兩顆螺絲 + 兩個卡扣，拆開就能換電池。',
+    ex:[38,-60,0]}
   ]
  }
 };
@@ -2129,12 +2145,30 @@ function bBack(){
     });
     /* 走帶槽（22 × 3.0）兩端 */
     [-1,1].forEach(function(s){
-      var slot=box(2.4,3.0,22,M.inkSoft);
-      slot.position.set(s*(W/2-0.8),-3.2,0);g.add(slot);
+      /* 改版：槽深 2.4 → 6.0、槽高 3.0 → 4.5，織帶折彎半徑 1.2 → 2.5 mm */
+      var slot=box(6.0,4.5,22,M.inkSoft);
+      slot.position.set(s*(W/2-3.0),-3.2,0);g.add(slot);
+      [1,-1].forEach(function(k){
+        var rr=cylY(1.05,1.05,22.4,M.inkSoft,18);
+        rr.rotation.z=Math.PI/2;rr.position.set(s*(W/2-3.0),-3.2+k*2.15,0);g.add(rr);
+      });
     });
     /* 磁鐵槽 */
     [-14,14].forEach(function(x){
       var p=cylY(3.1,3.1,0.5,M.inkSoft,24);p.position.set(x,-5.75,13);g.add(p);
+    });
+    /* 改版：可拆背蓋 — O 環溝 1.3 × 0.72 */
+    var gr=mesh(hframe(W-3.0,D-3.0,0.72,V.cr,W-5.6,D-5.6,4),M.inkSoft);
+    gr.position.y=-5.72;g.add(gr);
+    /* 2 × M1.6 螺絲座（Ø4.2 柱 + Ø3.4 熱熔螺母孔） */
+    [-24,24].forEach(function(x){
+      var bos=cylY(2.1,2.1,5.0,M.shell2,20);bos.position.set(x,-3.2,0);g.add(bos);
+      var nh=cylY(1.7,1.7,3.4,M.black,16);nh.position.set(x,-4.0,0);g.add(nh);
+    });
+    /* 2 個懸臂卡扣（長邊，L≈12 mm） */
+    [-1,1].forEach(function(s2){
+      var tab=box(9.0,1.6,1.2,M.shell2);tab.position.set(0,-4.9,s2*(D/2-2.5));g.add(tab);
+      var lip=box(9.0,0.7,0.8,M.shell2);lip.position.set(0,-5.7,s2*(D/2-3.1));g.add(lip);
     });
   }else{
     var fl2=mesh(hplate(W,D,1.8,V.cr,22),M.frame);fl2.position.y=-8.0;g.add(fl2);
@@ -2173,7 +2207,40 @@ function bBack(){
       var rim2=mesh(new THREE.TorusGeometry(1.5,0.22,8,20),M.gold);
       rim2.rotation.x=-Math.PI/2;rim2.position.set(x,-7.05,13);g.add(rim2);
     });
+    /* 改版：可拆背蓋 — O 環溝 1.3 × 0.72 */
+    var gr2=mesh(hframe(W-3.0,D-3.0,0.72,V.cr,W-5.6,D-5.6,4),M.inkSoft);
+    gr2.position.y=-7.12;g.add(gr2);
+    /* 2 × M1.6 螺絲座 */
+    [-21,21].forEach(function(x){
+      var bos2=cylY(2.1,2.1,4.5,M.frame,20);bos2.position.set(x,-5.0,0);g.add(bos2);
+      var nh2=cylY(1.7,1.7,3.2,M.black,16);nh2.position.set(x,-5.6,0);g.add(nh2);
+    });
+    /* 2 個懸臂卡扣 */
+    [-1,1].forEach(function(s2){
+      var tab2=box(9.0,1.6,1.2,M.frame);tab2.position.set(0,-6.3,s2*(D/2-2.5));g.add(tab2);
+      var lip2=box(9.0,0.7,0.8,M.frame);lip2.position.set(0,-7.1,s2*(D/2-3.1));g.add(lip2);
+    });
   }
+  return g;
+}
+
+/* O 環（背蓋防水，Ø1.0 線徑） */
+function bOring(){
+  var g=new THREE.Group(),W=V.W,D=V.D;
+  var R=mesh(hframe(W-4.2,D-4.2,1.0,Math.max(4,V.cr-2),W-6.2,D-6.2,3.2),M.rubber);
+  R.position.y=(V.key==='a')?-5.68:-7.08;g.add(R);
+  return g;
+}
+
+/* 背蓋螺絲 M1.6 ×2（頭 Ø2.8） */
+function bScrew(){
+  var g=new THREE.Group();
+  var xs=(V.key==='a')?[-24,24]:[-21,21];
+  var yh=(V.key==='a')?-5.9:-7.3;
+  xs.forEach(function(x){
+    var hd=cylY(1.4,1.4,0.55,M.steel,20);hd.position.set(x,yh,0);g.add(hd);
+    var sk=cylY(0.42,0.42,3.2,M.steel,12);sk.position.set(x,yh+1.9,0);g.add(sk);
+  });
   return g;
 }
 
@@ -2238,7 +2305,8 @@ function bStrap(){
 }
 
 var BUILD={lid:bLid,screen:bScreen,mid:bMid,pcb:bPcb,batt:bBatt,fpc:bFpc,
-  motor:bMotor,mag:bMag,pogo:bPogo,back:bBack,strap:bStrap,cradle:bCradle};
+  motor:bMotor,mag:bMag,pogo:bPogo,back:bBack,strap:bStrap,cradle:bCradle,
+  oring:bOring,screw:bScrew};
 
 /* ═══════════════ 建構／切換型號 ═══════════════ */
 var model=new THREE.Group();scene.add(model);
@@ -3158,11 +3226,11 @@ window.__ready=true;
 </script>
 
 <style>
-#tdp{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(18,20,17,.94);
+#tdp{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(18,20,17,.95);
   backdrop-filter:blur(10px);color:#eceae4;font-family:-apple-system,"Noto Sans TC",sans-serif;
   border-top:1px solid rgba(255,255,255,.14);max-height:46vh;overflow:auto}
 #tdp .hd{display:flex;align-items:center;gap:10px;padding:10px 14px 6px}
-#tdp .hd b{font-size:14px;letter-spacing:.02em}
+#tdp .hd b{font-size:14px}
 #tdp .score{font-size:12px;color:#c9f24d;border:1px solid #c9f24d55;border-radius:99px;padding:2px 9px}
 #tdp .step{padding:0 14px 4px;font-size:12px;color:#9aa093}
 #tdp .body{padding:0 14px 14px}
@@ -3172,12 +3240,13 @@ window.__ready=true;
 #tdp p{margin:6px 0;font-size:13px;line-height:1.65;color:#d8d5cc}
 #tdp p.warn{color:#ffb4a2}
 #tdp p.note{color:#a9d5c4;border-left:2px solid #2f6f5e;padding-left:8px}
-#tdp .nav{display:flex;gap:8px;padding:0 14px 14px;position:sticky;bottom:0;background:linear-gradient(transparent,rgba(18,20,17,.96) 40%)}
-#tdp button{flex:1;font:inherit;font-size:13.5px;padding:10px 0;border-radius:10px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.06);color:#eceae4}
+#tdp .nav{display:flex;gap:8px;padding:0 14px 14px;position:sticky;bottom:0;
+  background:linear-gradient(transparent,rgba(18,20,17,.96) 40%)}
+#tdp button{flex:1;font:inherit;font-size:13.5px;padding:10px 0;border-radius:10px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eceae4}
 #tdp button:disabled{opacity:.35}
 #tdp .dots{display:flex;gap:4px;padding:0 14px 8px;flex-wrap:wrap}
-#tdp .dots i{width:22px;height:4px;border-radius:2px;background:rgba(255,255,255,.18)}
+#tdp .dots i{width:18px;height:4px;border-radius:2px;background:rgba(255,255,255,.18)}
 #tdp .dots i.on{background:#c9f24d}
 #tdp .hint{font-size:11px;color:#8a9084;padding:0 14px 8px}
 .lbl.td-hide{display:none !important}
@@ -3185,7 +3254,7 @@ window.__ready=true;
 @media(max-width:560px){#tdp{max-height:56vh}#tdp h3{font-size:15px}}
 </style>
 <div id="tdp" hidden>
-  <div class="hd"><b>拆解流程・嘉蘭一號</b><span class="score">可維修 3.5 / 10</span></div>
+  <div class="hd"><b>拆解流程・嘉蘭一號</b><span class="score">可維修 7.0 / 10</span></div>
   <div class="step" id="tdstep"></div>
   <div class="dots" id="tddots"></div>
   <div class="body">
@@ -3198,73 +3267,72 @@ window.__ready=true;
     <button id="tdprev">← 上一步</button>
     <button id="tdnext">下一步 →</button>
   </div>
-  <div class="hint">拖曳可旋轉；只有當前步驟的零件會留在畫面上。按 ← → 也可切換。</div>
+  <div class="hint">拖曳可旋轉；只有當前步驟的零件留在畫面上。← → 也可切換。</div>
 </div>
 <script>
 (function(){
-  var STEPS=[{"id": "lid", "n": "上蓋玻璃", "tool": "加熱台 60°C + 吸盤 + 薄刀片", "t": "6–10 分", "w": "沿邊緣 360° 均勻加熱，刀片只進 0.5 mm；玻璃 0.55 mm 厚，翹的角度超過 5° 就會裂。", "note": "玻璃是膠合的，不是螺絲；拆下來就必須換新膠。"}, {"id": "screen", "n": "2.5 吋螢幕模組", "tool": "十字 M1.4 起子", "t": "2 分", "w": "螢幕以 FPC 連到主板，先解鎖 ZIF 再抬；不要直接拉排線。", "note": "螢幕與玻璃是兩件；這次改版把玻璃獨立出來，是為了讓刮傷不用換整片。"}, {"id": "mid", "n": "中框", "tool": "十字 M1.4 起子", "t": "2 分", "w": "四角落自攻柱只耐 3–5 次拆裝，第三次之後要換中框或改埋銅螺母。", "note": "中框同時是遮光件與 PCB 定位基準，裝回前確認四個柱沒有白化。"}, {"id": "fpc", "n": "FPC 軟排線", "tool": "鑷子", "t": "1 分", "w": "ZIF 扣往上掀 90°，不是往後拉；金手指有補強板，方向只有一種。", "note": "彎折半徑 ≥1 mm；裝回時不要壓在電池上方。"}, {"id": "pcb", "n": "主電路板", "tool": "十字 M1.4 起子", "t": "3 分", "w": "取出前先斷電池線（紅黑兩條焊在 BAT 焊盤），否則拆裝時會短路。", "note": "這是可維修性的核心問題：電池是焊的，不是插的。"}, {"id": "batt", "n": "鋰聚合物電池 500 mAh", "tool": "焊台 + 斜口鉗", "t": "5 分", "w": "鋁塑膜禁止用金屬撬；先剪線再取，剪線時兩條分開剪。", "note": "換完要重新焊回 BAT 焊盤；建議下一版改 JST-SH 1.25 座。"}, {"id": "motor", "n": "震動馬達 Ø10", "tool": "鑷子", "t": "1 分", "w": "線是漆包線，拉到會斷；從 Ø10 圓槽側面輕推。", "note": "震動經中框傳導，裝回時要貼平，否則會有異音。"}, {"id": "mag", "n": "磁吸定位磁鐵 ×2", "tool": "鑷子 + 瞬間膠", "t": "2 分", "w": "磁極方向錯了會排斥，先做記號；Ø5×2 很小，會被吸到螺絲起子上。", "note": "磁鐵槽是熱熔或膠固定，重裝要重新點膠。"}, {"id": "pogo", "n": "充電 pogo pin ×2", "tool": "鑷子", "t": "2 分", "w": "Ø1.5 mm，彈簧行程 0.8 mm；歪 0.1 mm 就接觸不良。", "note": "防水靠 pin 座 O 環 + 背蓋熔接；拆過就失去 IPX6。"}, {"id": "back", "n": "下蓋／背蓋", "tool": "破壞性拆解（熔接）", "t": "—", "w": "超音波熔接，沒有可拆路徑；只能沿接縫切開。", "note": "這就是 3.5/10 的主因：所有內部件都被這層熔接殼鎖住。"}, {"id": "strap", "n": "錶帶（20 mm 織帶）", "tool": "—", "t": "1 分", "w": "穿過 3.0 mm 走帶槽，槽深只有 2.4 mm，織帶在裡面折 180°。", "note": "折彎半徑約 1.2 mm，是磨損起點；建議槽深改 6 mm 或改用橫桿。"}];
+  var STEPS=[{"id": "screw", "n": "背蓋螺絲 M1.6 ×2", "tool": "十字 M1.6 起子", "t": "1 分", "w": "兩顆螺絲先拆，別用電動起子——M1.6 扭力上限約 0.15 N·m，鎖爆銅螺母就整組報廢。", "note": "這是改版後新增的可拆路徑：換電池只需這一支起子。"}, {"id": "back", "n": "可拆背蓋（2 螺絲 + 2 卡扣）", "tool": "塑膠撬棒", "t": "2 分", "w": "螺絲拆完還有兩個懸臂卡扣（L≈12 mm），沿長邊縫隙推開，不要從走帶槽那端硬扳。", "note": "卡扣應變設計在 1.25%，可反覆拆裝；ABS 自攻柱已改熱熔銅螺母。"}, {"id": "oring", "n": "防水 O 環（Ø1.0）", "tool": "鑷子", "t": "1 分", "w": "拆下來就換新環——壓縮過的矽膠不會回復原狀，重裝會漏水。", "note": "O 環溝 1.3 × 0.72，壓縮 28%、填充率 84%；這是 IPX6 的唯一密封面。"}, {"id": "batt", "n": "鋰聚合物電池 500 mAh", "tool": "斜口鉗 + 焊台", "t": "5 分", "w": "鋁塑膜禁止用金屬撬；先剪線再取，兩條線分開剪，避免短路。", "note": "電池仍是焊在 BAT 焊盤上——下一版改 JST-SH 1.25 座，換電池才真的不用焊台。"}, {"id": "motor", "n": "震動馬達 Ø10", "tool": "鑷子", "t": "1 分", "w": "漆包線拉到就斷，從 Ø10 圓槽側面輕推出來。", "note": "震動經中框傳導；裝回要貼平，否則會有異音。"}, {"id": "pogo", "n": "充電 pogo pin ×2", "tool": "鑷子", "t": "2 分", "w": "Ø1.5 mm、彈簧行程 0.8 mm，歪 0.1 mm 就接觸不良。", "note": "IPX6 靠 pin 座 O 環＋背蓋 O 環；兩道一起失效才會進水。"}, {"id": "mag", "n": "磁吸定位磁鐵 ×2", "tool": "鑷子", "t": "1 分", "w": "磁極方向錯了會排斥，拆前先做記號；Ø5×2 會被起子吸走。", "note": "磁鐵槽是點膠固定，重裝要重新點膠。"}, {"id": "pcb", "n": "主電路板（4 層）", "tool": "十字 M1.4 起子", "t": "3 分", "w": "取出前先斷電池線，否則拆裝時會短路。", "note": "四角是 M1.4 熱熔銅螺母，可重複拆裝 20 次以上（原本 ABS 自攻只有 3–5 次）。"}, {"id": "fpc", "n": "FPC 軟排線（12 pin）", "tool": "鑷子", "t": "1 分", "w": "ZIF 扣往上掀 90°，不是往後拉；金手指方向只有一種。", "note": "彎折半徑 ≥1 mm；裝回時不要壓在電池上方。"}, {"id": "mid", "n": "中框（螢幕支架）", "tool": "十字 M1.4 起子", "t": "2 分", "w": "中框同時是遮光件與 PCB 定位基準，裝回前確認四個銅螺母沒有被頂出。", "note": "中框是更換螢幕的必經件；這也是為什麼螢幕只給 1 分。"}, {"id": "screen", "n": "2.5 吋螢幕模組", "tool": "十字 M1.4 起子 + 鑷子", "t": "3 分", "w": "先解 ZIF 再抬螢幕，不要直接拉排線。", "note": "螢幕與玻璃是兩件；玻璃獨立的好處是刮傷不用換整片。"}, {"id": "lid", "n": "上蓋玻璃（滿版黑玻璃）", "tool": "加熱台 60°C + 吸盤 + 薄刀片", "t": "6–10 分", "w": "沿邊緣 360° 均勻加熱，刀片只進 0.5 mm；玻璃 0.55 mm 厚，翹超過 5° 就裂。", "note": "玻璃是膠合的，不是螺絲；這是全機唯一還需要加熱分離的位置。"}, {"id": "strap", "n": "錶帶（20 mm 織帶）", "tool": "—", "t": "1 分", "w": "走帶槽改深 6.0 mm、高 4.5 mm、邊緣 R2.5，織帶不用再被折 180°。", "note": "改版前槽深只有 2.4 mm，折彎半徑 1.2 mm、外緣應變 51%，是磨損來源。"}, {"id": "cradle", "n": "磁吸套框（僅嘉蘭二號）", "tool": "—", "t": "1 分", "w": "表頭吸在套框上，拔起即充電；套框不參與防水，水氣由背蓋 O 環擋住。", "note": "二號多這一層模組化：表頭可整顆拔下，配戴與充電都不必拆機。"}];
   var i=0, tdp=document.getElementById('tdp'), on=false;
   function parts(){return window.PARTS||[];}
   function find(id){return parts().filter(function(p){return p.def&&p.def.id===id;})[0];}
-
+  function list(){return STEPS.filter(function(s){return !!find(s.id);});}
   function frame(rec){
     try{
       var g=rec.g, box=new THREE.Box3().setFromObject(g);
       var c=box.getCenter(new THREE.Vector3()), sz=box.getSize(new THREE.Vector3());
-      var r=Math.max(sz.x,sz.y,sz.z)||10;
-      var d=Math.max(r*2.6,55);
+      var r=Math.max(sz.x,sz.y,sz.z)||10, d=Math.max(r*2.6,55);
       controls.target.copy(c);
       camera.position.set(c.x+d*0.55,c.y+d*0.62,c.z+d*0.95);
       camera.lookAt(c); controls.update();
     }catch(e){}
   }
+  function syncLbl(){
+    var o=window.__tdO||0, L=document.querySelectorAll('.lbl'), P=document.querySelectorAll('#lead polyline'), i;
+    for(i=0;i<L.length;i++) L[i].classList.toggle('td-hide', i!==o-1);
+    for(i=0;i<P.length;i++) P[i].classList.toggle('td-hide', !(i===2*(o-1)||i===2*(o-1)+1));
+  }
   function show(k){
-    i=Math.max(0,Math.min(STEPS.length-1,k));
-    var st=STEPS[i], rec=find(st.id);
+    var arr=list();
+    i=Math.max(0,Math.min(arr.length-1,k));
+    var st=arr[i], rec=find(st.id);
     parts().forEach(function(p){ if(p.g) p.g.visible=false; });
     if(rec&&rec.g) rec.g.visible=true;
-    try{ window.__tdForce && window.__tdForce(); }catch(e){}
-    document.getElementById('tdstep').textContent='步驟 '+(i+1)+' / '+STEPS.length;
+    window.__tdO = rec && rec.def ? rec.def.o : 0;
+    document.getElementById('tdstep').textContent='步驟 '+(i+1)+' / '+arr.length;
     document.getElementById('tdtitle').textContent=st.n;
     document.getElementById('tdtool').textContent='工具：'+st.tool;
     document.getElementById('tdtime').textContent='時間：'+st.t;
     document.getElementById('tdwarn').textContent='⚠ '+st.w;
     document.getElementById('tdnote').textContent=st.note;
     document.getElementById('tdprev').disabled=(i===0);
-    document.getElementById('tdnext').disabled=(i===STEPS.length-1);
-    document.getElementById('tddots').innerHTML=STEPS.map(function(_,k){
+    document.getElementById('tdnext').disabled=(i===arr.length-1);
+    document.getElementById('tddots').innerHTML=arr.map(function(_,k){
       return '<i class="'+(k===i?'on':'')+'"></i>';}).join('');
-    window.__tdO = rec && rec.def ? rec.def.o : 0;
     if(rec) frame(rec);
     syncLbl();
   }
-  function syncLbl(){
-    var o=window.__tdO||0;
-    var L=document.querySelectorAll('.lbl'); var i;
-    for(i=0;i<L.length;i++) L[i].classList.toggle('td-hide', i!==o-1);
-    var P=document.querySelectorAll('#lead polyline');
-    for(i=0;i<P.length;i++) P[i].classList.toggle('td-hide', !(i===2*(o-1)||i===2*(o-1)+1));
-  }
-  function start(){ if(on) return; on=true; tdp.hidden=false;
+  function start(){
+    if(on) return; on=true; tdp.hidden=false;
     var b=document.querySelector('#bar button[data-mode="exploded"]'); if(b) b.click();
     setTimeout(function(){ show(i); },260);
   }
   (function tick(){ if(on) syncLbl(); requestAnimationFrame(tick); })();
   var mo=new MutationObserver(function(){ if(on) syncLbl(); });
   ['#labels','#lead'].forEach(function(sel){ var el=document.querySelector(sel); if(el) mo.observe(el,{childList:true,subtree:true}); });
-  window.__td={start:start,show:show,sync:syncLbl,get i(){return i;},get steps(){return STEPS.length;},
+  window.__td={start:start,show:show,sync:syncLbl,get i(){return i;},
+    get steps(){return list().length;},
     get visible(){return parts().filter(function(p){return p.g&&p.g.visible;}).length;}};
   document.getElementById('tdprev').onclick=function(){show(i-1);};
   document.getElementById('tdnext').onclick=function(){show(i+1);};
-  (function auto(){
-    if(window.__ready && (window.PARTS||[]).length){ start(); return; }
-    setTimeout(auto,400);
-  })();
   document.addEventListener('keydown',function(e){
     if(!on) return;
     if(e.key==='ArrowRight'){show(i+1);e.preventDefault();}
     if(e.key==='ArrowLeft'){show(i-1);e.preventDefault();}
   });
+  (function auto(){
+    if(window.__ready && (window.PARTS||[]).length){ start(); return; }
+    setTimeout(auto,400);
+  })();
 })();
 </script>
 

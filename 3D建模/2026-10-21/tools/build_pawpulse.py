@@ -747,11 +747,11 @@ var VD={
   parts:[
    {id:'strap',o:1,f:'strap',n:'錶帶（20 mm 織帶）',
     d:'20 × 2.5 mm 織帶（頸圍示意 Ø68）',mt:'尼龍織帶＋側壓快扣',
-    u:'穿過機殼兩端 3.0 mm 高的走帶槽；側壓快扣受拉力會脫開，避免貓咪勾到勒傷。',
+    u:'穿過機殼兩端 4.5 mm 高、6.0 mm 深的走帶槽（邊緣 R2.5）；側壓快扣受拉力會脫開，避免貓咪勾到勒傷。',
     ex:[0,-56,20]},
    {id:'back',o:2,f:'back',n:'下蓋／背蓋',
     d:'63.0 × 39.0 × 8.2 mm（內腔 59.4 × 35.4）',mt:'白色 PLA・壁厚 1.8・R7 全圓角',
-    u:'容納 500 mAh 電池與震動馬達；底面開 2 × Ø2.4 磁吸充電孔與麥克風進音孔。',
+    u:'容納 500 mAh 電池與震動馬達；底面開 2 × Ø2.4 磁吸充電孔與麥克風進音孔。改版：2 顆 M1.6 螺絲 + 2 個懸臂卡扣（L≈12 mm）+ O 環溝，背蓋可拆、換電池不必破壞外殼。',
     ex:[18,-34,-12]},
    {id:'batt',o:3,f:'batt',n:'鋰聚合物電池 500 mAh',
     d:'32.0 × 21.0 × 4.5 mm（電池槽）',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
@@ -775,11 +775,11 @@ var VD={
     ex:[40,-22,-20]},
    {id:'pogo',o:8,f:'pogo',n:'磁吸充電 pogo pin ×2',
     d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
-    u:'5 V / 0.5 A 充電接點；防水靠 pin 座 O 環與背蓋超音波熔接。',
+    u:'5 V / 0.5 A 充電接點；IPX6 靠 pin 座 O 環＋背蓋 O 環溝（1.3 × 0.72，壓縮 28%）。',
     ex:[-40,-24,-18]},
    {id:'mid',o:9,f:'mid',n:'中框（螢幕支架）',
     d:'59.0 × 35.0 × 2.6 mm（開窗 56 × 33）',mt:'黑色 ABS・遮光',
-    u:'壓住 LCD 四周避免漏光，同時當 PCB 的定位基準；四角落有 M1.4 自攻柱。',
+    u:'壓住 LCD 四周避免漏光，同時當 PCB 的定位基準；四角落改埋 M1.4 熱熔銅螺母（可重複拆裝 20 次以上）。',
     ex:[-14,56,-6]},
    {id:'screen',o:10,f:'screen',n:'2.5 吋 IPS 全滿玻璃螢幕',
     d:'模組 57.0 × 34.0 × 2.2 mm（可視 55.0 × 32.0）',mt:'256 × 448 IPS・SPI 介面',
@@ -788,7 +788,15 @@ var VD={
    {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
     d:'63.0 × 39.0 × 2.4 mm（可視 55.0 × 32.0 R4）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
     u:'滿版黑玻璃蓋住整個正面，四周只留 4 mm 邊框；2.5D 邊緣與機身齊平。',
-    ex:[0,96,0]}
+    ex:[0,96,0]},
+   {id:'oring',o:12,f:'oring',n:'防水 O 環（Ø1.0）',
+    d:'Ø1.0 mm 線徑・環長約 176 mm',mt:'矽膠 50 Shore A・黑色',
+    u:'放在背蓋 O 環溝（1.3 × 0.72）內，壓縮 28% 才有 IPX6；換電池時要一起換新環。',
+    ex:[-38,-58,0]},
+   {id:'screw',o:13,f:'screw',n:'背蓋螺絲 M1.6 ×2',
+    d:'M1.6 × 4 mm・頭 Ø2.8',mt:'SUS304 不鏽鋼・十字',
+    u:'鎖進中框的 M1.4 熱熔銅螺母；拆背蓋只需這一支螺絲起子，不必破壞外殼。',
+    ex:[38,-58,0]}
   ]
  },
  b:{
@@ -807,7 +815,7 @@ var VD={
     ex:[14,-36,-10]},
    {id:'back',o:3,f:'back',n:'背蓋（PPG／聽診器）',
     d:'56.0 × 44.0 × 7.2 mm（振膜 Ø28 外凸 5）',mt:'PC+ABS 霧黑・PPG 窗 Ø15',
-    u:'貼皮膚面：Ø28 聽診器式振膜收心音／呼吸音，12 孔聲學陣列，兩側雙波長 PPG。',
+    u:'貼皮膚面：Ø28 聽診器式振膜收心音／呼吸音，12 孔聲學陣列，兩側雙波長 PPG。改版：2 顆 M1.6 螺絲 + 2 卡扣 + O 環溝，可拆換電池。',
     ex:[-16,-14,10]},
    {id:'batt',o:4,f:'batt',n:'鋰聚合物電池 500 mAh',
     d:'34.0 × 26.0 × 5.4 mm',mt:'鋁塑膜・3.7 V 500 mAh・附保護板',
@@ -831,11 +839,11 @@ var VD={
     ex:[38,-26,-18]},
    {id:'pogo',o:9,f:'pogo',n:'磁吸充電 pogo pin ×2',
     d:'Ø1.5 × 5 mm（孔 Ø2.4・距 14 mm）',mt:'黃銅鍍金・彈簧行程 0.8 mm',
-    u:'與套框上的簧片接觸充電；IPX6 靠 pin 座 O 環與背蓋熔接。',
+    u:'與套框上的簧片接觸充電；IPX6 靠 pin 座 O 環＋背蓋 O 環溝（1.3 × 0.72，壓縮 28%）。',
     ex:[-38,-28,-16]},
    {id:'mid',o:10,f:'mid',n:'中框（收音／揚聲開孔）',
     d:'56.0 × 44.0 × 6.0 mm',mt:'PC+ABS 霧黑・揚聲 Ø28 腔體',
-    u:'撐住螢幕與主板，底面留 Ø28 揚聲腔與 Ø1 收音孔；同時當電池的擋牆。',
+    u:'撐住螢幕與主板，底面留 Ø28 揚聲腔與 Ø1 收音孔；同時當電池的擋牆；四角改埋 M1.4 熱熔銅螺母。',
     ex:[-14,66,-4]},
    {id:'screen',o:11,f:'screen',n:'2.4 吋螢幕模組',
     d:'52.0 × 40.0 × 2.4 mm（可視 48.96 × 36.72）',mt:'240 × 320 IPS・MIPI',
@@ -844,7 +852,15 @@ var VD={
    {id:'lid',o:11,f:'lid',n:'上蓋（滿版黑玻璃）',
     d:'56.0 × 44.0 × 3.0 mm（可視 48.96 × 36.72）',mt:'康寧玻璃＋AF 鍍膜・R7 圓角',
     u:'2.5D 邊緣、與機身齊平；玻璃開窗 48.96 × 36.72 讓螢幕亮度幾乎不打折。',
-    ex:[0,100,0]}
+    ex:[0,100,0]},
+   {id:'oring',o:12,f:'oring',n:'防水 O 環（Ø1.0）',
+    d:'Ø1.0 mm 線徑・環長約 166 mm',mt:'矽膠 50 Shore A・黑色',
+    u:'背蓋 O 環溝（1.3 × 0.72）壓縮 28%；磁吸套框不參與防水，水氣仍從背蓋這圈擋住。',
+    ex:[-38,-60,0]},
+   {id:'screw',o:13,f:'screw',n:'背蓋螺絲 M1.6 ×2',
+    d:'M1.6 × 4 mm・頭 Ø2.8',mt:'SUS304 不鏽鋼・十字',
+    u:'與 O 環一起構成可拆背蓋：兩顆螺絲 + 兩個卡扣，拆開就能換電池。',
+    ex:[38,-60,0]}
   ]
  }
 };
@@ -1106,12 +1122,30 @@ function bBack(){
     });
     /* 走帶槽（22 × 3.0）兩端 */
     [-1,1].forEach(function(s){
-      var slot=box(2.4,3.0,22,M.inkSoft);
-      slot.position.set(s*(W/2-0.8),-3.2,0);g.add(slot);
+      /* 改版：槽深 2.4 → 6.0、槽高 3.0 → 4.5，織帶折彎半徑 1.2 → 2.5 mm */
+      var slot=box(6.0,4.5,22,M.inkSoft);
+      slot.position.set(s*(W/2-3.0),-3.2,0);g.add(slot);
+      [1,-1].forEach(function(k){
+        var rr=cylY(1.05,1.05,22.4,M.inkSoft,18);
+        rr.rotation.z=Math.PI/2;rr.position.set(s*(W/2-3.0),-3.2+k*2.15,0);g.add(rr);
+      });
     });
     /* 磁鐵槽 */
     [-14,14].forEach(function(x){
       var p=cylY(3.1,3.1,0.5,M.inkSoft,24);p.position.set(x,-5.75,13);g.add(p);
+    });
+    /* 改版：可拆背蓋 — O 環溝 1.3 × 0.72 */
+    var gr=mesh(hframe(W-3.0,D-3.0,0.72,V.cr,W-5.6,D-5.6,4),M.inkSoft);
+    gr.position.y=-5.72;g.add(gr);
+    /* 2 × M1.6 螺絲座（Ø4.2 柱 + Ø3.4 熱熔螺母孔） */
+    [-24,24].forEach(function(x){
+      var bos=cylY(2.1,2.1,5.0,M.shell2,20);bos.position.set(x,-3.2,0);g.add(bos);
+      var nh=cylY(1.7,1.7,3.4,M.black,16);nh.position.set(x,-4.0,0);g.add(nh);
+    });
+    /* 2 個懸臂卡扣（長邊，L≈12 mm） */
+    [-1,1].forEach(function(s2){
+      var tab=box(9.0,1.6,1.2,M.shell2);tab.position.set(0,-4.9,s2*(D/2-2.5));g.add(tab);
+      var lip=box(9.0,0.7,0.8,M.shell2);lip.position.set(0,-5.7,s2*(D/2-3.1));g.add(lip);
     });
   }else{
     var fl2=mesh(hplate(W,D,1.8,V.cr,22),M.frame);fl2.position.y=-8.0;g.add(fl2);
@@ -1150,7 +1184,40 @@ function bBack(){
       var rim2=mesh(new THREE.TorusGeometry(1.5,0.22,8,20),M.gold);
       rim2.rotation.x=-Math.PI/2;rim2.position.set(x,-7.05,13);g.add(rim2);
     });
+    /* 改版：可拆背蓋 — O 環溝 1.3 × 0.72 */
+    var gr2=mesh(hframe(W-3.0,D-3.0,0.72,V.cr,W-5.6,D-5.6,4),M.inkSoft);
+    gr2.position.y=-7.12;g.add(gr2);
+    /* 2 × M1.6 螺絲座 */
+    [-21,21].forEach(function(x){
+      var bos2=cylY(2.1,2.1,4.5,M.frame,20);bos2.position.set(x,-5.0,0);g.add(bos2);
+      var nh2=cylY(1.7,1.7,3.2,M.black,16);nh2.position.set(x,-5.6,0);g.add(nh2);
+    });
+    /* 2 個懸臂卡扣 */
+    [-1,1].forEach(function(s2){
+      var tab2=box(9.0,1.6,1.2,M.frame);tab2.position.set(0,-6.3,s2*(D/2-2.5));g.add(tab2);
+      var lip2=box(9.0,0.7,0.8,M.frame);lip2.position.set(0,-7.1,s2*(D/2-3.1));g.add(lip2);
+    });
   }
+  return g;
+}
+
+/* O 環（背蓋防水，Ø1.0 線徑） */
+function bOring(){
+  var g=new THREE.Group(),W=V.W,D=V.D;
+  var R=mesh(hframe(W-4.2,D-4.2,1.0,Math.max(4,V.cr-2),W-6.2,D-6.2,3.2),M.rubber);
+  R.position.y=(V.key==='a')?-5.68:-7.08;g.add(R);
+  return g;
+}
+
+/* 背蓋螺絲 M1.6 ×2（頭 Ø2.8） */
+function bScrew(){
+  var g=new THREE.Group();
+  var xs=(V.key==='a')?[-24,24]:[-21,21];
+  var yh=(V.key==='a')?-5.9:-7.3;
+  xs.forEach(function(x){
+    var hd=cylY(1.4,1.4,0.55,M.steel,20);hd.position.set(x,yh,0);g.add(hd);
+    var sk=cylY(0.42,0.42,3.2,M.steel,12);sk.position.set(x,yh+1.9,0);g.add(sk);
+  });
   return g;
 }
 
@@ -1215,7 +1282,8 @@ function bStrap(){
 }
 
 var BUILD={lid:bLid,screen:bScreen,mid:bMid,pcb:bPcb,batt:bBatt,fpc:bFpc,
-  motor:bMotor,mag:bMag,pogo:bPogo,back:bBack,strap:bStrap,cradle:bCradle};
+  motor:bMotor,mag:bMag,pogo:bPogo,back:bBack,strap:bStrap,cradle:bCradle,
+  oring:bOring,screw:bScrew};
 
 /* ═══════════════ 建構／切換型號 ═══════════════ */
 var model=new THREE.Group();scene.add(model);
