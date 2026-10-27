@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e110d">
+<title>一粒沙到一顆晶片 · 半導體產業鏈地圖</title>
+<style>
+:root{--bg:#0e110d;--card:#181c15;--card2:#1f2419;--line:#2c3225;--ink:#f0f2ea;--dim:#9ba392;
+--lime:#c9f24d;--cyan:#7fd8d0;--amber:#e8b04b;--violet:#b9a4f0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;line-height:1.65}
+header{max-width:1180px;margin:0 auto;padding:20px 16px 6px}
+h1{margin:0;font-size:22px;letter-spacing:.01em}
+.sub{color:var(--dim);font-size:13.5px;margin-top:6px;max-width:760px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 12px 48px}
+
+/* 鏈條 */
+.chain{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0 4px}
+.stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 10px;
+  cursor:pointer;transition:.18s;min-height:88px}
+.stage:hover{background:var(--card2);border-color:#46512e}
+.stage.on{border-color:var(--lime);background:#232c1a;box-shadow:0 0 0 1px #c9f24d33,0 0 24px #c9f24d14}
+.stage .k{font-size:10.5px;color:var(--dim);letter-spacing:.1em}
+.stage .n{font-size:14.5px;font-weight:800;margin-top:3px}
+.stage .e{font-size:10.5px;color:var(--dim);letter-spacing:.04em;margin-top:1px}
+.stage .c{font-size:11.5px;color:var(--dim);margin-top:6px}
+.stage::after{content:"";position:absolute;right:-7px;top:50%;width:6px;height:2px;background:#39422f}
+.stage:last-child::after{display:none}
+@media(max-width:820px){
+  .chain{grid-template-columns:1fr;gap:7px}
+  .stage::after{display:none}
+  .stage{min-height:0;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+  .stage .c{margin-top:0}
+}
+
+/* 詳情 */
+.detail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px 18px;margin-top:14px}
+.detail h2{margin:0;font-size:18px}
+.detail .lead{color:var(--dim);font-size:13.5px;margin:6px 0 12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:9px}
+.node{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.node .t{font-size:14px;font-weight:700}
+.node .b{font-size:12.8px;color:#cfd4c7;margin-top:4px}
+.node .m{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--lime);margin-top:6px;letter-spacing:.02em}
+.node.warn{border-color:#5d4a24}
+.node.warn .m{color:var(--amber)}
+
+/* 歷史線 */
+.hist{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.hist h3{margin:0 0 10px;font-size:15px}
+.hist ol{margin:0;padding-left:18px}
+.hist li{font-size:13.2px;margin:6px 0;color:#d3d8cb}
+.hist b{color:var(--ink)}
+.hist .yr{font-family:ui-monospace,Menlo,monospace;color:var(--lime);margin-right:6px}
+
+footer{color:#7c8274;font-size:11.5px;margin-top:18px;border-top:1px solid var(--line);padding-top:10px}
+.tools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tools button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);
+  background:var(--card);color:var(--dim);cursor:pointer}
+.tools button:hover{color:var(--ink);border-color:#46512e}
+
+@media print{
+  body{background:#fff;color:#111}
+  header,.detail,.hist,.chain{max-width:none}
+  .tools{display:none}
+  .stage,.node,.detail,.hist{background:#fff;border-color:#bbb;box-shadow:none;break-inside:avoid}
+  .stage .k,.stage .e,.stage .c,.detail .lead,.node .b,.hist li{color:#333}
+  .node .m{color:#0d5b2a}
+  .hist .yr{color:#0d5b2a}
+  .stage .k,.stage .e,.stage .c{color:#444}
+  .stage.on{background:#fff;border-color:#111}
+  .cards{grid-template-columns:1fr 1fr;gap:6px}
+  .node{padding:8px 9px}
+  .node .t{font-size:11.5pt}
+  .node .b{font-size:9.5pt}
+  .node .m{font-size:9pt}
+  .hist li{font-size:9.5pt}
+  h1{font-size:19px;margin-bottom:4px}
+  .chain{grid-template-columns:repeat(5,1fr)}
+  .stage::after{display:none}
+  footer{color:#666}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>一粒沙到一顆晶片</h1>
+  <div class="sub">沙子裡有矽，矽是地殼含量第二多的元素。但要把它變成能算數、能記憶的晶片，中間隔著一條人類工業史上最複雜的鏈：幾百道工序、十幾個國家的工廠、上千億美元的廠房。這頁把鏈條拆成五段，點任一段看裡面有什麼。</div>
+</header>
+
+<div class="wrap">
+  <div class="chain" id="chain"></div>
+  <div class="detail" id="detail"></div>
+
+  <div class="hist">
+    <h3>順便記住的歷史線</h3>
+    <ol>
+      <li><span class="yr">1947</span>貝爾實驗室發明電晶體（巴丁、布拉頓、蕭克利）。</li>
+      <li><span class="yr">1955</span>蕭克利在加州山景城設廠，招來八個年輕人；一年後八人集體出走，被蕭克利罵作「八叛徒」。</li>
+      <li><span class="yr">1957</span>八人創辦<b>仙童半導體</b>——英特爾、AMD 後來都從它裂變出去。</li>
+      <li><span class="yr">1958</span>德州儀器<b>基爾比</b>做出第一塊積體電路。</li>
+      <li><span class="yr">1959</span>仙童<b>諾伊斯</b>用平面製程做出可量產的積體電路——真正改變世界的是這一版。</li>
+      <li><span class="yr">1987</span><b>張忠謀</b>創立台積電，決定只做代工、絕不設計晶片，把「設計」與「製造」拆開，全球 fabless 產業才長得出來。</li>
+    </ol>
+  </div>
+
+  <div class="tools">
+    <button onclick="window.print()">列印／存成 PDF（自動變白底一頁）</button>
+  </div>
+
+  <footer>
+    數字標「影片說法」者是原片口述、未經獨立查證；其餘為業界公開規格。製程細節（微影、蝕刻、沉積、離子佈植）為簡化說明，實際為數百道工序循環。
+  </footer>
+</div>
+
+<script>
+const STAGES=[
+ {k:'01 上游', n:'IP・EDA・設備材料', e:'DESIGN ENABLERS',
+  lead:'晶片的「圖紙」跟「畫圖工具」不在設計公司手上，而在少數幾家公司手裡。這是整條鏈最上游、最難被替代的一段。',
+  nodes:[
+   {t:'IP 授權（預製件圖紙）', b:'ARM 只設計 CPU 架構、一顆晶片都不造，靠授權站在最上游；蘋果、高通、華為海思、聯發科都買它的架構再自己做。', m:'ARM · RISC-V（開源替代）'},
+   {t:'EDA（電子設計自動化）', b:'設計晶片用的軟體。數十億顆電晶體的擺放與連線靠手畫不可能，這塊由三家巨頭寡占。', m:'Synopsys · Cadence · Siemens EDA'},
+   {t:'設備', b:'微影最關鍵：先進製程的極紫外光（EUV）機台全球只有一家能做，一台數億美元、交期以年計。', m:'ASML(EUV) · Applied Materials · Lam · TEL · KLA'},
+   {t:'材料', b:'矽晶圓、光阻、特用氣體、CMP 研磨液。純度是關鍵：電子級矽要到 99.9999999%（9 個 9）。', m:'信越 · SUMCO · JSR · 東京應化'}
+  ]},
+ {k:'02 設計', n:'Fabless 設計公司', e:'CHIP DESIGN',
+  lead:'只畫圖、不建廠。圖紙交給代工廠，這是最輕資產、也最靠人才的一段。',
+  nodes:[
+   {t:'邏輯晶片', b:'CPU／GPU／NPU／MCU，負責運算與決策，是晶片家族的大腦。', m:'高通 · 蘋果 · 海思 · 聯發科 · NVIDIA · AMD'},
+   {t:'存儲晶片', b:'DRAM 與 NAND。斷電後資料還在的那種，靠它。', m:'三星 · SK 海力士 · 美光 · 長鑫 · 長江存儲'},
+   {t:'類比與功率', b:'現實世界是連續的訊號（聲音、溫度），數位晶片只認 0 與 1，中間靠類比晶片翻譯；功率半導體則是電力開關。', m:'TI · ADI · 英飛凌 · ST · MOS／IGBT'},
+   {t:'為什麼要分這麼多種', b:'設計、存儲、轉換這幾件事差太遠，沒法一顆全幹。就像公司要有會計、倉管、業務、技術，分工不同、誰也替代不了誰。', m:'一顆手機裡就有十幾顆晶片'}
+  ]},
+ {k:'03 製造', n:'晶圓代工・IDM', e:'FABRICATION',
+  lead:'把圖紙變成實物，最難也最貴。先進晶圓廠投資動輒上百億美元、建廠三到四年，技術世代又更新得快，跟不上就血本無歸。',
+  nodes:[
+   {t:'晶圓代工（Foundry）', b:'自己不設計、專門幫別人造。台積電 1987 年由張忠謀創立，當年「只代工、不設計」被認為是瘋了，結果把整個行業拆成了設計與製造兩半。', m:'台積電 · 三星 · 英特爾 · 中芯 · 華虹'},
+   {t:'IDM（垂直整合）', b:'從設計到製造自己全包，資本更重、切換更慢，但在記憶體與功率元件上仍強。', m:'英特爾 · 三星 · 德儀 · 英飛凌 · 長鑫 · 長江存儲'},
+   {t:'四步做出晶片', b:'① 矽拉成單晶、切片成晶圓　② 微影：把電路圖印到晶圓上（最難）　③ 蝕刻、沉積、離子佈植，反覆幾百道把電路一層層堆出來　④ 晶圓測試，把壞的挑掉。', m:'晶圓 300 mm｜EUV 波長 13.5 nm'},
+   {t:'沒有最先進機台怎麼辦', b:'影片說法：華為被制裁後改用「垂直堆疊」提高密度，號稱最新麒麟達 2.38 億顆／平方毫米，接近台積電早期 3 nm 水準——繞開 EUV 的另一條路。', m:'影片說法，未獨立查證', warn:true}
+  ]},
+ {k:'04 封裝測試', n:'OSAT・先進封裝', e:'ASSEMBLY & TEST',
+  lead:'晶圓切成一顆顆裸晶，裝進殼、接好腳、測過才賣得出去。這一段過去被當低階，現在成了效能瓶頸的解法。',
+  nodes:[
+   {t:'傳統封測', b:'切割、黏晶、打線、塑封、成品測試。勞力密集，亞洲占絕大多數產能。', m:'日月光 · Amkor · 長電科技 · 通富微電'},
+   {t:'先進封裝', b:'把多顆晶片（或 HBM 記憶體）用砂中介層疊在一起，繞開單晶片微縮的極限。AI 伺服器幾乎都靠這類技術。', m:'CoWoS · InFO · SoIC · Chiplet'},
+   {t:'為什麼現在重要', b:'微縮越來越貴、越來越慢，把「做小」換成「疊起來」，是這幾年效能提升的主要來源。', m:'先進封裝產能是 AI 晶片出貨瓶頸'}
+  ]},
+ {k:'05 下游', n:'終端應用', e:'END MARKET',
+  lead:'晶片最後去了哪裡。同一條鏈，餵養的是完全不同的產業。',
+  nodes:[
+   {t:'消費電子', b:'手機、筆電、穿戴裝置——量大、換代快、對成本最敏感。', m:'手機｜穿戴｜家電'},
+   {t:'汽車與工業', b:'車規晶片要求 −40～150 °C、十五年壽命、零缺陷，認證比消費級嚴得多。', m:'MCU · 功率 · 感測'},
+   {t:'AI 與通訊', b:'訓練與推論吃 GPU／NPU 加高頻寬記憶體；基地台與光通訊吃另一批晶片。', m:'GPU｜HBM｜光模組'},
+   {t:'軍工與太空', b:'抗輻射、耐極端溫度，量少但單價高、認證期長。', m:'特種製程'}
+  ]}
+];
+
+const chain=document.getElementById('chain'), detail=document.getElementById('detail');
+let active=0;
+
+function render(){
+  chain.innerHTML='';
+  STAGES.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='stage'+(i===active?' on':'');
+    d.innerHTML=`<div class="k">${s.k}</div><div class="n">${s.n}</div><div class="e">${s.e}</div><div class="c">${s.nodes.length} 個要點</div>`;
+    d.onclick=()=>{active=i;render();};
+    chain.appendChild(d);
+  });
+  const s=STAGES[active];
+  detail.innerHTML=`<h2>${s.k}　${s.n}</h2><div class="lead">${s.lead}</div>
+    <div class="cards">${s.nodes.map(n=>`<div class="node${n.warn?' warn':''}">
+      <div class="t">${n.t}</div><div class="b">${n.b}</div><div class="m">${n.m}</div></div>`).join('')}</div>`;
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'&&active<STAGES.length-1){active++;render();}
+  if(e.key==='ArrowLeft'&&active>0){active--;render();}
+});
+render();
+</script>
+</body>
+</html>
