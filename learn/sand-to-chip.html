@@ -61,9 +61,15 @@ footer{color:#7c8274;font-size:11.5px;margin-top:18px;border-top:1px solid var(-
   background:var(--card);color:var(--dim);cursor:pointer}
 .tools button:hover{color:var(--ink);border-color:#46512e}
 
+@page{margin:11mm}
 @media print{
   body{background:#fff;color:#111}
-  header,.detail,.hist,.chain{max-width:none}
+  header{display:none}
+  .ptitle{margin:0 0 6px}
+  .ptitle b{font-size:13pt;letter-spacing:.02em}
+  .ptitle span{display:block;font-size:8pt;color:#555;margin-top:1px}
+  header,.detail,.hist{max-width:none}
+  header{padding:0 0 6px}
   .tools{display:none}
   .stage,.node,.detail,.hist{background:#fff;border-color:#bbb;box-shadow:none;break-inside:avoid}
   .stage .k,.stage .e,.stage .c,.detail .lead,.node .b,.hist li{color:#333}
@@ -71,13 +77,17 @@ footer{color:#7c8274;font-size:11.5px;margin-top:18px;border-top:1px solid var(-
   .hist .yr{color:#0d5b2a}
   .stage .k,.stage .e,.stage .c{color:#444}
   .stage.on{background:#fff;border-color:#111}
-  .cards{grid-template-columns:1fr 1fr;gap:6px}
-  .node{padding:8px 9px}
-  .node .t{font-size:11.5pt}
-  .node .b{font-size:9.5pt}
-  .node .m{font-size:9pt}
+  .chain{display:none}
+  .detail{margin-top:6px;padding:0}
+  .detail h2{break-after:avoid;page-break-after:avoid;margin-top:14px!important}
+  .detail .lead{break-after:avoid;page-break-after:avoid;margin:4px 0 8px}
+  .cards{display:block}
+  .node{display:block;break-inside:avoid;page-break-inside:avoid;margin:0 0 5px;padding:6px 9px}
+  .node .t{font-size:10pt}
+  .node .b{font-size:9pt;margin-top:2px}
+  .node .m{font-size:8.5pt;margin-top:3px}
   .hist li{font-size:9.5pt}
-  h1{font-size:19px;margin-bottom:4px}
+  h1{font-size:19px;margin:0 0 4px}
   .chain{grid-template-columns:repeat(5,1fr)}
   .stage::after{display:none}
   footer{color:#666}
@@ -159,7 +169,18 @@ const STAGES=[
 ];
 
 const chain=document.getElementById('chain'), detail=document.getElementById('detail');
+const ALL=/[?&]all=1/.test(location.search);
 let active=0;
+
+function renderAll(){
+  chain.innerHTML='';
+  detail.innerHTML=`<div class="ptitle"><b>一粒沙到一顆晶片 · 半導體產業鏈</b>
+    <span>互動版：tsaitepiao-alt.github.io/3d-viewers/learn/sand-to-chip.html</span></div>`+
+  STAGES.map(s=>`<h2 style="margin-top:14px">${s.k}　${s.n}</h2>
+    <div class="lead">${s.lead}</div>
+    <div class="cards">${s.nodes.map(n=>`<div class="node${n.warn?' warn':''}">
+      <div class="t">${n.t}</div><div class="b">${n.b}</div><div class="m">${n.m}</div></div>`).join('')}</div>`).join('');
+}
 
 function render(){
   chain.innerHTML='';
@@ -180,7 +201,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'&&active<STAGES.length-1){active++;render();}
   if(e.key==='ArrowLeft'&&active>0){active--;render();}
 });
-render();
+if(ALL){renderAll();}else{render();}
 </script>
 </body>
 </html>
