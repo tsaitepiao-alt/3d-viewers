@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>嘉蘭 GPS 電源 — 3D 接線／爆炸圖（真實尺寸）</title>
+<style>
+ html,body{margin:0;height:100%;background:#0f1116;overflow:hidden;
+   font-family:-apple-system,"PingFang TC","Heiti TC",sans-serif;color:#e8e8ea}
+ #cv{display:block}
+ .panel{position:fixed;background:rgba(20,22,28,.9);border:1px solid #2e3340;
+   border-radius:10px;backdrop-filter:blur(6px)}
+ #t{top:12px;left:12px;padding:10px 14px;font-size:13px;line-height:1.55;max-width:44vw}
+ #t b{font-size:15px}
+ #c{bottom:12px;left:12px;padding:9px 11px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+ #c button{background:#232734;color:#e8e8ea;border:1px solid #363c4c;border-radius:7px;
+   padding:7px 11px;font-size:12.5px;cursor:pointer}
+ #c button.on{background:#e8734a;border-color:#e8734a;color:#fff}
+ #sl{width:130px;accent-color:#e8734a}
+ #lg{bottom:12px;right:12px;padding:9px 12px;font-size:12px;line-height:1.7}
+ .sw{display:inline-block;width:13px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+ #d{top:12px;right:12px;padding:10px 13px;font-size:12px;line-height:1.75;min-width:196px}
+ #d .ok{color:#5ee0a0}#d .no{color:#ff7b7b}
+ #d h4{margin:0 0 6px;font-size:12.5px;color:#9aa2b1;font-weight:500;letter-spacing:.4px}
+ #d b{font-variant-numeric:tabular-nums}
+ @media(max-width:760px){
+   #t{max-width:60vw;font-size:11.5px;padding:8px 10px}
+   #d{display:none}
+   #c{left:8px;right:8px;bottom:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;gap:6px}
+   #c button{flex:0 0 auto;padding:8px 10px;font-size:12px}
+   #lg{display:none}
+ }
+</style></head><body>
+<canvas id="cv"></canvas>
+
+<div id="t" class="panel">
+  <b>嘉蘭一號 — GPS 電源 3D 接線圖</b><br>
+  ESP32-S3 ＋ ATGM336H ＋ AO3401A ＋ 0.1F 超電容<br>
+  <span style="color:#9aa2b1">拖曳旋轉、滾輪縮放、右鍵平移；尺寸為真實比例（mm）</span>
+</div>
+
+<div id="d" class="panel">
+  <h4>組裝尺寸核對</h4>
+  <div>實測外框 <b id="bw">–</b> × <b id="bd">–</b> × <b id="bh">–</b> mm</div>
+  <div>外殼內空間 61 × 37 × 13.4 mm</div>
+  <div id="fit"></div>
+</div>
+
+<div id="c" class="panel">
+  <button id="b1" class="on">立體</button>
+  <button id="b2">俯視</button>
+  <button id="b3">正面</button>
+  <button id="b4">自動旋轉</button>
+  <button id="b5">尺寸標註</button>
+  <span style="color:#9aa2b1;font-size:12px;margin-left:4px">爆炸</span>
+  <input id="sl" type="range" min="0" max="100" value="0">
+</div>
+
+<div id="lg" class="panel">
+  <span class="sw" style="background:#e11d1d"></span>3V3 電源<br>
+  <span class="sw" style="background:#1f2430"></span>GND 接地<br>
+  <span class="sw" style="background:#2563eb"></span>UART（GPS 資料）<br>
+  <span class="sw" style="background:#22c55e"></span>GPIO21 閘極控制<br>
+  <span class="sw" style="background:#a855f7"></span>V_BCKP 備援
+</div>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  'use strict';
+  var CV = document.getElementById('cv');
+  var isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+  var renderer = new THREE.WebGLRenderer({ canvas: CV, antialias: !isMobile });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f1116);
+  scene.fog = new THREE.Fog(0x0f1116, 180, 420);
+
+  var camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 1200);
+  camera.position.set(62, 58, 78);
+
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 4, 0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+
+  // -------- 光源 --------
+  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x1a1f28, 0.85));
+  var k = new THREE.DirectionalLight(0xffffff, 0.95); k.position.set(60, 90, 50); scene.add(k);
+  var f = new THREE.DirectionalLight(0x9fb6ff, 0.35); f.position.set(-70, 30, -60); scene.add(f);
+
+  // -------- 材質 --------
+  function mat(color, opt) {
+    return new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.62, metalness: 0.15 }, opt || {}));
+  }
+  var M = {
+    pcb:   mat(0x0f2a1e, { roughness: 0.8, metalness: 0.05 }),
+    gold:  mat(0xd9b45a, { roughness: 0.32, metalness: 0.95 }),
+    shield: mat(0xc7ccd4, { roughness: 0.35, metalness: 0.9 }),
+    black: mat(0x14161b, { roughness: 0.55, metalness: 0.2 }),
+    chip:  mat(0x1b1e24, { roughness: 0.7 }),
+    ceramic: mat(0xf1efe8, { roughness: 0.5, metalness: 0.05 }),
+    cap:   mat(0x2b3038, { roughness: 0.45, metalness: 0.55 }),
+    batt:  mat(0x9aa7b4, { roughness: 0.55, metalness: 0.35 }),
+    glass: new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 0.12, metalness: 0.4, transparent: true, opacity: 0.92 })
+  };
+
+  // -------- 基礎工具 --------
+  function box(w, h, d, m, x, y, z) {
+    var g = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+    g.position.set(x || 0, y || 0, z || 0);
+    return g;
+  }
+  function label(text, size) {
+    var c = document.createElement('canvas');
+    var s = size || 34;
+    c.width = 512; c.height = 96;
+    var ctx = c.getContext('2d');
+    ctx.font = 'bold ' + s + 'px -apple-system, "PingFang TC", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(10,13,18,.72)';
+    var w = ctx.measureText(text).width + 26;
+    ctx.fillRect(256 - w / 2, 16, w, 64);
+    ctx.fillStyle = '#dfe7f2';
+    ctx.fillText(text, 256, 49);
+    var tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter;
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    sp.scale.set(11, 2.05, 1);
+    return sp;
+  }
+
+  // -------- 電路板 --------
+  var PCB = { w: 54, d: 30, t: 1.6 };
+  var board = new THREE.Group();
+  var pcb = box(PCB.w, PCB.t, PCB.d, M.pcb, 0, PCB.t / 2, 0);
+  board.add(pcb);
+  // 板邊金色焊盤
+  for (var i = 0; i < 6; i++) {
+    var pad = box(0.9, 0.12, 3.2, M.gold, -PCB.w / 2 + 1.4, PCB.t + 0.06, -10 + i * 4);
+    board.add(pad);
+  }
+  // 四角安裝孔
+  [[-23, -12], [23, -12], [-23, 12], [23, 12]].forEach(function (p) {
+    var hole = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, PCB.t + 0.2, 18), M.black);
+    hole.position.set(p[0], PCB.t / 2, p[1]);
+    board.add(hole);
+  });
+  scene.add(board);
+
+  // -------- 零件定義（全部 mm） --------
+  var parts = [];
+
+  function addPart(cfg) {
+    var g = new THREE.Group();
+    g.rotation.set(cfg.rot ? cfg.rot[0] : 0, cfg.rot ? cfg.rot[1] : 0, cfg.rot ? cfg.rot[2] : 0);
+    cfg.build(g);
+    g.position.set(cfg.x, cfg.baseY, cfg.z);
+    scene.add(g);
+    var lb = label(cfg.name, cfg.labelSize || 34);
+    lb.position.set(cfg.x + (cfg.labelDX || 0), cfg.baseY + (cfg.labelY || 7), cfg.z + (cfg.labelDZ || 0));
+    scene.add(lb);
+    parts.push({ g: g, lb: lb, base: cfg.baseY, lift: cfg.lift || 0, name: cfg.name });
+    return g;
+  }
+
+  // ESP32-S3-WROOM-1：25.5 × 18 × 3.1（含屏蔽罩）
+  addPart({
+    name: 'ESP32-S3 模組', x: -12, z: -6.5, baseY: PCB.t + 1.55, lift: 26, labelY: 6.5,
+    build: function (g) {
+      g.add(box(25.5, 3.1, 18, M.shield, 0, 0, 0));
+      g.add(box(24.6, 0.35, 17.1, M.chip, 0, 1.65, 0));
+      for (var i = 0; i < 8; i++) {
+        g.add(box(1.1, 0.5, 1.1, M.gold, -10.5 + i * 3, -1.35, 8.2));
+        g.add(box(1.1, 0.5, 1.1, M.gold, -10.5 + i * 3, -1.35, -8.2));
+      }
+    }
+  });
+
+  // ATGM336H：10.1 × 9.7 × 2.6，外加 15×15 陶瓷天線（+4）
+  addPart({
+    name: 'GPS 模組 ATGM336H', x: 16, z: -8, baseY: PCB.t + 1.3, lift: 40, labelY: 9,
+    build: function (g) {
+      g.add(box(10.1, 2.6, 9.7, M.chip, 0, 0, 0));
+      g.add(box(8.6, 0.4, 8.2, M.shield, 0, 1.45, 0));
+      g.add(box(1.6, 0.35, 1.6, M.gold, -3.4, -1.4, 4.2));
+    }
+  });
+  addPart({
+    name: '陶瓷天線 15×15', x: 16, z: -8, baseY: PCB.t + 2.6 + 4.4, lift: 56, labelY: 4,
+    build: function (g) {
+      g.add(box(15, 4, 15, M.ceramic, 0, 0, 0));
+      g.add(box(9, 0.3, 9, M.gold, 0, 2.1, 0));
+    }
+  });
+
+  // 0.1F 超電容：d11.5 × h5.4
+  addPart({
+    name: '超電容 0.1F', x: 17, z: 9, baseY: PCB.t + 2.7, lift: 34, labelY: 6,
+    build: function (g) {
+      var c = new THREE.Mesh(new THREE.CylinderGeometry(5.75, 5.75, 5.4, 28), M.cap);
+      g.add(c);
+      var top = new THREE.Mesh(new THREE.CylinderGeometry(5.9, 5.9, 0.5, 28), M.black); top.position.y = 2.9; g.add(top);
+      var l1 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 10), M.gold); l1.position.set(-2.2, -2.9, 0); g.add(l1);
+      var l2 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 10), M.gold); l2.position.set(2.2, -2.9, 0); g.add(l2);
+    }
+  });
+
+  // AO3401A（SOT-23）
+  addPart({
+    name: 'Q1 AO3401A', x: 4, z: 10.5, baseY: PCB.t + 0.55, lift: 20, labelY: 4.6,
+    build: function (g) {
+      g.add(box(2.9, 1.1, 1.3, M.chip, 0, 0, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, -0.55, -0.72, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, 0.55, -0.72, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, 1.45, -0.72, 0));
+    }
+  });
+
+  // BAT54S（SOT-23）
+  addPart({
+    name: 'D1 BAT54S', x: 9, z: 10.5, baseY: PCB.t + 0.55, lift: 20, labelY: 4.6,
+    build: function (g) {
+      g.add(box(2.9, 1.1, 1.3, M.chip, 0, 0, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, -0.9, -0.72, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, 0, -0.72, 0));
+      g.add(box(0.5, 0.35, 1.1, M.gold, 0.9, -0.72, 0));
+    }
+  });
+
+  // 電池 500mAh（板下）
+  addPart({
+    name: '鋰電 500mAh', x: -2, z: 1, baseY: -2.2, lift: -22, labelY: -4,
+    build: function (g) {
+      g.add(box(40, 4, 25, M.batt, 0, 0, 0));
+      g.add(box(11, 0.3, 8, M.black, 12, 2.05, 0));
+      // 紅黑線
+      var r = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 9, 8), mat(0xd33a3a));
+      r.rotation.z = Math.PI / 2; r.position.set(24, 1.2, 2); g.add(r);
+      var b = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 9, 8), mat(0x22252b));
+      b.rotation.z = Math.PI / 2; b.position.set(24, 1.2, -2); g.add(b);
+    }
+  });
+
+  // 2.5" 顯示模組（板上方）
+  addPart({
+    name: '2.5" 顯示模組', x: 0, z: 0, baseY: 10.9, lift: 70, labelY: 3.2, labelDX: 34,
+    build: function (g) {
+      g.add(box(57, 2, 35, M.glass, 0, 0, 0));
+      g.add(box(53, 0.2, 30, new THREE.MeshStandardMaterial({ color: 0x0b1030, emissive: 0x12224a, emissiveIntensity: 0.8, roughness: 0.2 }), 0, 1.05, 0));
+    }
+  });
+
+  // -------- 接線（依 netlist） --------
+  var wireDefs = [
+    { c: 0xe11d1d, p: [[-9, 2.2, 3.4], [-4, 5.5, 6.5], [2, 6, 9.8], [4.5, 2.4, 10.5]] },          // 3V3 → Q1 S
+    { c: 0xe11d1d, p: [[4.9, 2.3, 10.5], [10, 6.4, 9], [14, 5.6, 2], [16, 3.0, -3.6]] },          // Q1 D → GPS VCC
+    { c: 0x1f2430, p: [[16, 2.0, -3.2], [12, 2.4, -1], [6, 2.0, 4], [-2, 1.9, 9.5]] },             // GPS GND → 板 GND
+    { c: 0x2563eb, p: [[15.2, 2.2, -4.2], [6, 4.4, -6], [-2, 4.2, -7.5], [-6, 2.6, -8]] },         // GPS TX → GPIO16
+    { c: 0x2563eb, p: [[-6.2, 2.4, -5.2], [-1, 3.6, -2], [7, 3.4, -3], [14.4, 2.2, -6.6]] },       // GPIO17 → GPS RX
+    { c: 0x22c55e, p: [[-6, 2.4, 12.6], [0, 3.4, 12.2], [4.6, 2.2, 11.0]] },                       // GPIO21 → Q1 G
+    { c: 0xa855f7, p: [[-9, 2.2, 5.0], [-2, 6.8, 11.5], [6, 5.6, 12.2], [14.6, 3.2, 9.6], [16, 2.6, 8.0]] } // 3V3→R3→C1→D1→V_BCKP
+  ];
+
+  var wireMeshes = [];
+  wireDefs.forEach(function (w) {
+    var pts = w.p.map(function (p) { return new THREE.Vector3(p[0], p[1], p[2]); });
+    var curve = new THREE.CatmullRomCurve3(pts);
+    var geo = new THREE.TubeGeometry(curve, 64, 0.42, 8, false);
+    var m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: w.c, roughness: 0.55, metalness: 0.1 }));
+    scene.add(m);
+    wireMeshes.push(m);
+  });
+
+  // -------- 尺寸標註 --------
+  var dimGroup = new THREE.Group();
+  dimGroup.visible = false;
+  scene.add(dimGroup);
+  var dimLineMat = new THREE.LineDashedMaterial({ color: 0xe8734a, dashSize: 1.4, gapSize: 0.9, transparent: true, opacity: 0.85 });
+
+  function dimLine(a, b) {
+    var g = new THREE.BufferGeometry().setFromPoints([a, b]);
+    var l = new THREE.Line(g, dimLineMat);
+    l.computeLineDistances();
+    return l;
+  }
+
+  // -------- 爆炸控制 --------
+  var slider = document.getElementById('sl');
+  var W = 61, D = 37, H = 13.4;   // 外殼內空間
+
+  function applyExplode(t) {
+    parts.forEach(function (p) {
+      p.g.position.y = p.base + p.lift * t;
+      p.lb.position.y = p.base + p.lift * t + (p.lb.userData.ly || 7);
+    });
+    wireMeshes.forEach(function (m) { m.material.opacity = 1 - 0.85 * t; m.material.transparent = t > 0.02; });
+  }
+
+  // 記錄每顆標籤原始高度差
+  parts.forEach(function (p) { p.lb.userData.ly = p.lb.position.y - p.base; });
+
+  function updateDims() {
+    var bb = new THREE.Box3();
+    parts.forEach(function (p) { bb.expandByObject(p.g); });
+    var s = new THREE.Vector3(); bb.getSize(s);
+    var c = new THREE.Vector3(); bb.getCenter(c);
+
+    document.getElementById('bw').textContent = s.x.toFixed(1);
+    document.getElementById('bd').textContent = s.z.toFixed(1);
+    document.getElementById('bh').textContent = s.y.toFixed(1);
+
+    var fits = [s.x <= W, s.z <= D, s.y <= H];
+    document.getElementById('fit').innerHTML = fits.map(function (ok, i) {
+      var nm = ['寬', '深', '高'][i];
+      var v = [s.x, s.z, s.y][i];
+      var lim = [W, D, H][i];
+      return '<span class="' + (ok ? 'ok' : 'no') + '">' + nm + ' ' + v.toFixed(1) + ' / ' + lim +
+             (ok ? ' ✓' : ' ✗') + '</span>';
+    }).join('<br>') + '<br><span style="color:#9aa2b1">（含電池與天線）</span>';
+
+    // 尺寸線
+    while (dimGroup.children.length) dimGroup.remove(dimGroup.children[0]);
+    var y0 = bb.min.y - 4;
+    var x1 = bb.min.x, x2 = bb.max.x, z1 = bb.min.z, z2 = bb.max.z, y1 = bb.min.y, y2 = bb.max.y;
+    dimGroup.add(dimLine(new THREE.Vector3(x1, y0, z2 + 5), new THREE.Vector3(x2, y0, z2 + 5)));
+    dimGroup.add(dimLine(new THREE.Vector3(x2 + 5, y0, z1), new THREE.Vector3(x2 + 5, y0, z2)));
+    dimGroup.add(dimLine(new THREE.Vector3(x2 + 5, y1, z1 - 4), new THREE.Vector3(x2 + 5, y2, z1 - 4)));
+
+    var lw = label('寬 ' + s.x.toFixed(1) + ' mm', 30); lw.position.set(c.x, y0 - 2.5, z2 + 5.2); lw.scale.set(15, 2.8, 1); dimGroup.add(lw);
+    var ld = label('深 ' + s.z.toFixed(1) + ' mm', 30); ld.position.set(x2 + 8.5, y0 - 2.5, c.z); ld.scale.set(15, 2.8, 1); dimGroup.add(ld);
+    var lh = label('高 ' + s.y.toFixed(1) + ' mm', 30); lh.position.set(x2 + 8.5, c.y, z1 - 6); lh.scale.set(15, 2.8, 1); dimGroup.add(lh);
+  }
+
+  // -------- 相機預設 --------
+  function view(to, tgt) {
+    camera.position.set(to[0], to[1], to[2]);
+    controls.target.set(tgt[0], tgt[1], tgt[2]);
+    controls.update();
+  }
+
+  var auto = false;
+  var b1 = document.getElementById('b1'), b2 = document.getElementById('b2'),
+      b3 = document.getElementById('b3'), b4 = document.getElementById('b4'),
+      b5 = document.getElementById('b5');
+
+  function setOn(el) { [b1, b2, b3, b4, b5].forEach(function (b) { b.classList.remove('on'); }); if (el) el.classList.add('on'); }
+
+  b1.onclick = function () { setOn(b1); view([62, 58, 78], [0, 4, 0]); };
+  b2.onclick = function () { setOn(b2); view([0.1, 118, 0.1], [0, 0, 0]); };
+  b3.onclick = function () { setOn(b3); view([0, 22, 105], [0, 4, 0]); };
+  b4.onclick = function () { auto = !auto; b4.classList.toggle('on', auto); };
+  b5.onclick = function () {
+    dimGroup.visible = !dimGroup.visible;
+    b5.classList.toggle('on', dimGroup.visible);
+    if (dimGroup.visible) updateDims();
+  };
+
+  slider.oninput = function () { applyExplode(slider.value / 100); };
+  applyExplode(0);
+  updateDims();
+
+  // -------- 動畫 --------
+  var tPrev = performance.now();
+  function loop(now) {
+    var dt = Math.min(50, now - tPrev) / 1000; tPrev = now;
+    if (auto) {
+      var a = 0.35 * dt;
+      var p = camera.position.clone().sub(controls.target);
+      var cs = Math.cos(a), sn = Math.sin(a);
+      camera.position.set(controls.target.x + p.x * cs - p.z * sn, camera.position.y, controls.target.z + p.x * sn + p.z * cs);
+    }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // 給自動驗證用
+  window.__jialan = { scene: scene, parts: parts, updateDims: updateDims, dimGroup: dimGroup, wires: wireMeshes };
+})();
+</script>
+</body></html>
